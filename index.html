@@ -374,6 +374,66 @@
         /* Fade in animation */
         .fadein { animation: fadeIn 0.4s ease both; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+        /* ── SCIENTIFIC ANALYSIS ── */
+        .sci-divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin: 2rem 0 1.25rem;
+            color: var(--muted); font-size: 0.72rem;
+            font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .sci-divider::before, .sci-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .method-note summary {
+            cursor: pointer; font-size: 0.85rem; font-weight: 600;
+            color: var(--muted); list-style: none;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .method-note summary::-webkit-details-marker { display: none; }
+        .method-note[open] summary { margin-bottom: 1rem; color: var(--text); }
+        .method-note p { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.7; }
+        .method-note strong { color: var(--text); }
+
+        .dose-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+        .dose-table th {
+            text-align: left; font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+            padding: 0.45rem 0.75rem; border-bottom: 2px solid var(--border);
+        }
+        .dose-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
+        .dose-table tr:last-child td { border-bottom: none; }
+        .dose-table .zone-cell { font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; }
+        .dose-table .rate-cell { color: var(--red); font-weight: 600; }
+        .dose-bar-fill { display: inline-block; height: 7px; background: var(--red); border-radius: 2px; opacity: 0.6; vertical-align: middle; margin-left: 0.5rem; transition: width 0.5s ease; }
+
+        .rr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+        .rr-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-align: center; }
+        .rr-num { font-family: 'IBM Plex Mono', monospace; font-size: 1.55rem; font-weight: 500; color: var(--red); line-height: 1; margin-bottom: 0.3rem; }
+        .rr-lbl { font-size: 0.72rem; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .rr-interpretation { font-size: 0.87rem; color: var(--muted); line-height: 1.75; padding: 0.85rem 1.1rem; background: var(--bg); border-radius: var(--radius); border-left: 3px solid var(--red); }
+
+        .chi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .chi-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; text-align: center; }
+        .chi-num { font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 500; color: var(--navy); margin-bottom: 0.2rem; }
+        .chi-lbl { font-size: 0.68rem; color: var(--muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+
+        .verdict-box { padding: 1rem 1.25rem; border-radius: var(--radius); font-size: 0.88rem; display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1rem; }
+        .verdict-sig { background: #edfdf7; border-left: 4px solid #0a9c62; color: #064d32; }
+        .verdict-ns  { background: var(--amber-light); border-left: 4px solid var(--amber); color: #5a3a00; }
+
+        .conclusion-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+        .conclusion-item { padding: 1rem; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
+        .conclusion-num { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--navy); margin-bottom: 0.25rem; }
+        .conclusion-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.55; }
+
+        .formula-block { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; color: var(--muted); line-height: 2; background: var(--bg); padding: 0.75rem 1rem; border-radius: var(--radius); margin-top: 0.75rem; }
+
+        @media (max-width: 640px) {
+            .rr-grid { grid-template-columns: 1fr; }
+            .chi-grid { grid-template-columns: 1fr 1fr; }
+            .conclusion-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -628,6 +688,78 @@
             </div>
         </div>
 
+        <!-- ═══ SCIENTIFIC ANALYSIS SECTION ═══ -->
+        <div class="sci-divider"><span>Statistisk analyse</span></div>
+
+        <!-- Methodology note -->
+        <details class="card method-note" style="padding:1.4rem 1.75rem;">
+            <summary>⚠️ Vigtig metodologisk note — klik for at læse inden fortolkning</summary>
+            <p><strong>Datakilde og udvalgsbias:</strong> Denne analyse er baseret på et selvvalgt spørgeskema distribueret til beboere i berørte områder. Respondenter med stærke symptomer er sandsynligvis overrepræsenterede. Prævalensen kan ikke bruges direkte som et populationsestimat.</p>
+            <p><strong>Hvad analysen KAN vise:</strong> Undersøgelsen kan påvise sammenhæng mellem eksponeringsgrad (afstand til lufthavnen) og symptombyrde. Dosis-respons-mønstre er robuste overfor udvalgsbias — jo klarere gradienten, jo stærkere evidensen.</p>
+            <p><strong>Hvad analysen IKKE kan bevise:</strong> Kausalitet. En statistisk sammenhæng beviser ikke alene årsagssammenhæng. Resultaterne bør bruges som argument for en officiel epidemiologisk undersøgelse.</p>
+        </details>
+
+        <!-- Section 1: Dose-response -->
+        <div class="card">
+            <div class="card-title">📐 1. Dosis-respons-analyse</div>
+            <div class="chart-subtitle">
+                Dosis-respons er et centralt Bradford Hill-kriterium: risikoen for symptomer bør stige proportionalt med eksponeringsgraden. Her bruges afstand til lufthavnen som eksponeringsmål — kortere afstand = højere eksponering.
+            </div>
+            <div id="dose-table-container">
+                <div class="placeholder-bar" style="height:160px;border-radius:4px;"></div>
+            </div>
+            <div class="chart-wrap" style="height:240px;margin-top:1.25rem;">
+                <canvas id="chart-dose-response"></canvas>
+            </div>
+            <div id="dose-gradient-note" style="margin-top:1rem;margin-bottom:0;display:none;"></div>
+        </div>
+
+        <!-- Section 2: Relative Risk -->
+        <div class="card">
+            <div class="card-title">⚖️ 2. Relativ Risiko (RR) med 95% Konfidensinterval</div>
+            <div class="chart-subtitle">
+                Relativ Risiko sammenligner symptomraten i den mest eksponerede gruppe (0–1 km) med kontrolgruppen (10+ km). Et konfidensinterval der ikke inkluderer 1,0 bekræfter statistisk signifikans på α = 0,05.
+            </div>
+            <div class="rr-grid">
+                <div class="rr-box"><div class="rr-num" id="rr-val">–</div><div class="rr-lbl">Relativ Risiko (RR)</div></div>
+                <div class="rr-box"><div class="rr-num" id="rr-lo">–</div><div class="rr-lbl">95% KI — nedre</div></div>
+                <div class="rr-box"><div class="rr-num" id="rr-hi">–</div><div class="rr-lbl">95% KI — øvre</div></div>
+            </div>
+            <div class="rr-interpretation" id="rr-interpretation">Beregner…</div>
+            <details style="margin-top:1rem;">
+                <summary style="cursor:pointer;font-size:0.82rem;color:var(--muted);font-weight:600;list-style:none;">🔍 Beregningsgrundlag og formel</summary>
+                <div class="formula-block" id="rr-details"></div>
+            </details>
+        </div>
+
+        <!-- Section 3: Chi-squared -->
+        <div class="card">
+            <div class="card-title">📊 3. Statistisk Signifikanstest (χ²)</div>
+            <div class="chart-subtitle">
+                <strong>H₀:</strong> Der er ingen sammenhæng mellem afstand til lufthavnen og helbredssymptomer.<br>
+                <strong>Hₐ:</strong> Der er en statistisk signifikant sammenhæng (α = 0,05). Testen sammenligner nærboende (0–3 km) med kontrolgruppen (10+ km).
+            </div>
+            <div class="chi-grid">
+                <div class="chi-box"><div class="chi-num" id="chi-val">–</div><div class="chi-lbl">χ²-værdi</div></div>
+                <div class="chi-box"><div class="chi-num" id="chi-p">–</div><div class="chi-lbl">p-værdi</div></div>
+                <div class="chi-box"><div class="chi-num" id="chi-df">–</div><div class="chi-lbl">Frihedsgrader</div></div>
+            </div>
+            <div id="chi-verdict"></div>
+            <details style="margin-top:1rem;">
+                <summary style="cursor:pointer;font-size:0.82rem;color:var(--muted);font-weight:600;list-style:none;">🔍 Krydstabel og beregning</summary>
+                <div id="chi-table" style="margin-top:0.75rem;overflow-x:auto;"></div>
+            </details>
+        </div>
+
+        <!-- Section 4: Conclusion -->
+        <div class="card" style="border-color:var(--navy-mid);border-width:2px;">
+            <div class="card-title">📋 4. Samlet konklusion og anbefaling</div>
+            <div id="conclusion-body">
+                <div class="placeholder-bar" style="width:90%;"></div>
+                <div class="placeholder-bar" style="width:70%;margin-top:0.5rem;"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ═══ ABOUT TAB ═══ -->
@@ -772,6 +904,31 @@ const SYMPTOMS = [
 
 const DIST_ORDER  = ["0-1 km","1-3 km","3-5 km","5-10 km","10-20 km","20+ km"];
 const COL = { støj:"#2a4f8c", forurening:"#c06010", psyko:"#5e3a8c" };
+
+// ── CHI-SQUARED HELPERS ───────────────────────────────────
+function logGamma(z) {
+    const c = [76.18009172947146,-86.50532032941677,24.01409824083091,
+               -1.231739572450155,0.001208650973866179,-5.395239384953e-6];
+    let y = z, x = z, tmp = x + 5.5;
+    tmp -= (x + 0.5) * Math.log(tmp);
+    let ser = 1.000000000190015;
+    for (let j = 0; j < 6; j++) ser += c[j] / (++y);
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+}
+function gammaIncP(a, x) {
+    if (x <= 0) return 0;
+    let sum = 1/a, term = 1/a;
+    for (let k = 1; k < 300; k++) {
+        term *= x / (a + k);
+        sum += term;
+        if (Math.abs(term) < 1e-12 * Math.abs(sum)) break;
+    }
+    return Math.exp(-x + a * Math.log(x) - logGamma(a)) * sum;
+}
+function chiPValue(chi2, df) {
+    if (chi2 <= 0) return 1;
+    return Math.max(0, Math.min(1, 1 - gammaIncP(df / 2, chi2 / 2)));
+}
 
 const charts = {};
 const destroy = id => { if (charts[id]) { charts[id].destroy(); delete charts[id]; } };
@@ -995,6 +1152,209 @@ function updateAll(docs) {
             }
         }
     });
+
+    // ══════════════════════════════════════════════════════
+    // ── SCIENTIFIC ANALYSIS ────────────────────────────────
+    // ══════════════════════════════════════════════════════
+
+    // Dose-response: symptom rate (%) per distance zone
+    const doseData = DIST_ORDER.map(zone => {
+        const sub = docs.filter(d => d.afstand === zone);
+        const nZ = sub.length;
+        const nSym = sub.filter(d => (d.symptomer?.length || 0) > 0).length;
+        const rate = nZ > 0 ? (nSym / nZ * 100) : null;
+        return { zone, n: nZ, nSym, rate };
+    });
+
+    // Dose-response table
+    const doseContainer = document.getElementById('dose-table-container');
+    const maxRate = Math.max(...doseData.filter(d => d.rate !== null).map(d => d.rate), 1);
+    doseContainer.innerHTML = `
+    <table class="dose-table">
+        <thead><tr>
+            <th>Afstandszone</th><th>Respondenter (n)</th>
+            <th>Med symptomer</th><th>Symptomrate</th>
+        </tr></thead>
+        <tbody>${doseData.map(d => `
+        <tr>
+            <td class="zone-cell">${d.zone}</td>
+            <td>${d.n}</td>
+            <td>${d.nSym}</td>
+            <td class="rate-cell">
+                ${d.rate !== null ? d.rate.toFixed(1) + '%' : '–'}
+                ${d.rate !== null ? `<span class="dose-bar-fill" style="width:${Math.round(d.rate/maxRate*90)}px"></span>` : ''}
+            </td>
+        </tr>`).join('')}
+        </tbody>
+    </table>`;
+
+    // Dose-response gradient note
+    const hasEnough = doseData.filter(d => d.n >= 3);
+    const doseNote = document.getElementById('dose-gradient-note');
+    if (hasEnough.length >= 2) {
+        const firstR = hasEnough[0].rate;
+        const lastR  = hasEnough[hasEnough.length - 1].rate;
+        doseNote.style.display = 'block';
+        if (firstR > lastR) {
+            doseNote.className = 'notice notice-success';
+            doseNote.innerHTML = `📈 <strong>Dosis-respons-gradient observeret:</strong> Symptomraten falder fra ${firstR.toFixed(1)}% (nærmeste zone med ≥3 svar) til ${lastR.toFixed(1)}% (fjerneste zone med ≥3 svar). Dette mønster understøtter biologisk plausibel sammenhæng.`;
+        } else {
+            doseNote.className = 'notice notice-warn';
+            doseNote.innerHTML = `⚠ Gradienten er endnu ikke entydig — dette kan skyldes få besvarelser i visse zoner. Mønstret kan ændre sig med flere svar.`;
+        }
+    }
+
+    // Dose-response bar chart
+    const activeDose = doseData.filter(d => d.n > 0);
+    destroy('dose');
+    charts['dose'] = new Chart(document.getElementById('chart-dose-response'), {
+        type: 'bar',
+        data: {
+            labels: activeDose.map(d => d.zone),
+            datasets: [{
+                label: 'Symptomrate (%)',
+                data: activeDose.map(d => d.rate ?? 0),
+                backgroundColor: activeDose.map((_, i) => {
+                    const t = i / Math.max(activeDose.length - 1, 1);
+                    return `rgba(192,57,43,${(1 - t * 0.68).toFixed(2)})`;
+                }),
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    label: ctx => ` ${ctx.raw?.toFixed(1)}% med symptomer (n=${activeDose[ctx.dataIndex]?.n})`
+                }}
+            },
+            scales: {
+                y: {
+                    min: 0, max: 100,
+                    title: { display: true, text: 'Andel med ≥1 symptom (%)', font: { size: 11 } },
+                    grid: { color: '#f2f1ee' },
+                    ticks: { callback: v => v + '%' }
+                },
+                x: { title: { display: true, text: 'Afstand til lufthavnen', font: { size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Relative Risk ──────────────────────────────────────
+    const grpExp   = docs.filter(d => d.afstand === '0-1 km');
+    const grpUnexp = docs.filter(d => d.afstand === '10-20 km' || d.afstand === '20+ km');
+    const rrA = grpExp.filter(d => (d.symptomer?.length||0) > 0).length;
+    const rrB = grpExp.length - rrA;
+    const rrC = grpUnexp.filter(d => (d.symptomer?.length||0) > 0).length;
+    const rrD = grpUnexp.length - rrC;
+    const riskE = (rrA + rrB) > 0 ? rrA / (rrA + rrB) : 0;
+    const riskU = (rrC + rrD) > 0 ? rrC / (rrC + rrD) : 0;
+    const rr    = riskU > 0 ? riskE / riskU : null;
+    let rrLo = null, rrHi = null, seLnRR = null;
+    if (rr && rrA > 0 && rrB > 0 && rrC > 0 && rrD > 0) {
+        seLnRR = Math.sqrt(rrB/(rrA*(rrA+rrB)) + rrD/(rrC*(rrC+rrD)));
+        rrLo = Math.exp(Math.log(rr) - 1.96 * seLnRR);
+        rrHi = Math.exp(Math.log(rr) + 1.96 * seLnRR);
+    }
+
+    document.getElementById('rr-val').textContent = rr ? rr.toFixed(2) + 'x' : '–';
+    document.getElementById('rr-lo').textContent  = rrLo ? rrLo.toFixed(2) + 'x' : '–';
+    document.getElementById('rr-hi').textContent  = rrHi ? rrHi.toFixed(2) + 'x' : '–';
+
+    const rrInterp = document.getElementById('rr-interpretation');
+    if (rr && rrLo && rrHi) {
+        const sig = rrLo > 1;
+        rrInterp.innerHTML = `Beboere inden for <strong>0–1 km</strong> fra lufthavnen har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer sammenlignet med beboere over 10 km væk. 95% konfidensinterval: [${rrLo.toFixed(2)}; ${rrHi.toFixed(2)}] — ${sig ? '<strong>inkluderer ikke 1,0</strong>, hvilket bekræfter statistisk signifikans (α = 0,05).' : 'inkluderer 1,0 — endnu ikke statistisk signifikant, sandsynligvis pga. for få svar i referencezonen.'}`;
+    } else if ((rrA + rrB) === 0 || (rrC + rrD) === 0) {
+        rrInterp.innerHTML = 'Der mangler besvarelser fra 0–1 km <em>eller</em> 10+ km for at beregne Relativ Risiko.';
+    } else {
+        rrInterp.innerHTML = `Symptomraten i 0–1 km zonen: ${(riskE*100).toFixed(1)}% — Symptomraten i 10+ km zonen: ${(riskU*100).toFixed(1)}%. For en meningsfuld RR kræves variabilitet i begge grupper.`;
+    }
+
+    document.getElementById('rr-details').innerHTML =
+        `RR = P(symptom | 0–1 km) / P(symptom | 10+ km)\n` +
+        `   = ${rrA}/${rrA+rrB} / ${rrC}/${rrC+rrD}\n` +
+        `   = ${riskE.toFixed(4)} / ${riskU.toFixed(4)}\n` +
+        `   = ${rr ? rr.toFixed(4) : '–'}\n` +
+        (seLnRR ? `SE(ln RR) = √[${rrB}/(${rrA}·${rrA+rrB}) + ${rrD}/(${rrC}·${rrC+rrD})] = ${seLnRR.toFixed(4)}\n95% KI  = e^(ln(RR) ± 1,96·SE) = [${rrLo?.toFixed(4)}, ${rrHi?.toFixed(4)}]` : 'Tilstrækkelige data til KI ikke tilgængeligt endnu.');
+
+    // ── Chi-squared test (2×2: nær vs. fjern × symptomer ja/nej) ──
+    const chiNear = docs.filter(d => d.afstand === '0-1 km' || d.afstand === '1-3 km');
+    const chiFar  = docs.filter(d => d.afstand === '10-20 km' || d.afstand === '20+ km');
+    const chiA = chiNear.filter(d => (d.symptomer?.length||0) > 0).length;
+    const chiB = chiNear.length - chiA;
+    const chiC = chiFar.filter(d => (d.symptomer?.length||0) > 0).length;
+    const chiD = chiFar.length - chiC;
+    const chiN = chiA + chiB + chiC + chiD;
+    const chiDenominator = (chiA+chiB) * (chiC+chiD) * (chiA+chiC) * (chiB+chiD);
+    const chi2val = chiN > 0 && chiDenominator > 0
+        ? chiN * Math.pow(chiA*chiD - chiB*chiC, 2) / chiDenominator
+        : 0;
+    const pVal = chiPValue(chi2val, 1);
+
+    document.getElementById('chi-val').textContent = chi2val.toFixed(2);
+    document.getElementById('chi-p').textContent   = pVal < 0.001 ? '< 0,001' : pVal.toFixed(4);
+    document.getElementById('chi-df').textContent  = '1';
+
+    const verdictEl = document.getElementById('chi-verdict');
+    if (chiN < 10) {
+        verdictEl.innerHTML = `<div class="verdict-box verdict-ns">⏳ <span><strong>For få data endnu (n=${chiN} i de to ydergrupper)</strong><br>χ²-testen kræver et rimeligt antal svar i begge grupper (0–3 km og 10+ km). Del undersøgelsen for at samle flere svar.</span></div>`;
+    } else if (pVal < 0.001) {
+        verdictEl.innerHTML = `<div class="verdict-box verdict-sig">✅ <span><strong>Vi forkaster nulhypotesen (p < 0,001)</strong><br>Stærkt statistisk signifikant resultat — sammenhængen mellem nærhed til lufthavnen og helbredsgener er meget usandsynlig at skyldes tilfældighed.</span></div>`;
+    } else if (pVal < 0.05) {
+        verdictEl.innerHTML = `<div class="verdict-box verdict-sig">✅ <span><strong>Vi forkaster nulhypotesen (p = ${pVal.toFixed(4)} &lt; 0,05)</strong><br>Statistisk signifikant resultat — der er en målbar sammenhæng mellem afstand og helbredssymptomer.</span></div>`;
+    } else {
+        verdictEl.innerHTML = `<div class="verdict-box verdict-ns">⚠️ <span><strong>Nulhypotesen kan endnu ikke forkastes (p = ${pVal.toFixed(4)})</strong><br>Endnu for få svar til statistisk signifikans. Resultatet kan ændre sig med flere besvarelser — del undersøgelsen.</span></div>`;
+    }
+
+    const rateNear = (chiA+chiB) > 0 ? (chiA/(chiA+chiB)*100).toFixed(1) : '–';
+    const rateFar  = (chiC+chiD) > 0 ? (chiC/(chiC+chiD)*100).toFixed(1) : '–';
+    document.getElementById('chi-table').innerHTML = `
+    <table class="dose-table">
+        <thead><tr><th></th><th>Symptomer: Ja</th><th>Symptomer: Nej</th><th>I alt</th><th>Symptomrate</th></tr></thead>
+        <tbody>
+            <tr><td class="zone-cell">Nær (0–3 km)</td><td>${chiA}</td><td>${chiB}</td><td>${chiA+chiB}</td><td class="rate-cell">${rateNear}%</td></tr>
+            <tr><td class="zone-cell">Fjern (10+ km)</td><td>${chiC}</td><td>${chiD}</td><td>${chiC+chiD}</td><td class="rate-cell">${rateFar}%</td></tr>
+            <tr style="font-weight:600;border-top:2px solid var(--border);"><td>I alt</td><td>${chiA+chiC}</td><td>${chiB+chiD}</td><td>${chiN}</td><td></td></tr>
+        </tbody>
+    </table>
+    <div style="font-size:0.79rem;color:var(--muted);margin-top:0.6rem;font-family:'IBM Plex Mono',monospace;">
+        χ² = N·(ad−bc)² / [(a+b)(c+d)(a+c)(b+d)] = ${chi2val.toFixed(4)}<br>
+        df = 1 (2×2-tabel), p = ${pVal < 0.001 ? '< 0,001' : pVal.toFixed(6)}
+    </div>`;
+
+    // ── Conclusion ─────────────────────────────────────────
+    const dose0 = doseData.find(d => d.n >= 3)?.rate;
+    const doseLast = [...doseData].reverse().find(d => d.n >= 3)?.rate;
+    const hasGradient = dose0 !== undefined && doseLast !== undefined && dose0 > doseLast;
+    const rrStr = rr ? rr.toFixed(2) : '–';
+    const kiStr = (rrLo && rrHi) ? `[${rrLo.toFixed(2)}–${rrHi.toFixed(2)}]` : '[–]';
+    document.getElementById('conclusion-body').innerHTML = `
+    <p style="color:var(--muted);font-size:0.9rem;line-height:1.8;margin-bottom:1.25rem;">
+        Analysen af <strong>${n} respondenter</strong> viser følgende sammenfaldende fund:
+    </p>
+    <div class="conclusion-grid">
+        <div class="conclusion-item">
+            <div class="conclusion-num">1.</div>
+            <div style="font-weight:600;margin-bottom:0.3rem;font-size:0.88rem;">Dosis-respons</div>
+            <div class="conclusion-desc">${hasGradient ? `Symptomraten falder fra ${dose0?.toFixed(1)}% (nærmeste) til ${doseLast?.toFixed(1)}% (fjerneste zone). Gradienten er i overensstemmelse med Bradford Hill-kriterierne.` : 'Gradienten er under dannelse — flere besvarelser fra alle afstandszoner vil afklare dette mønster.'}</div>
+        </div>
+        <div class="conclusion-item">
+            <div class="conclusion-num">2.</div>
+            <div style="font-weight:600;margin-bottom:0.3rem;font-size:0.88rem;">Relativ Risiko</div>
+            <div class="conclusion-desc">RR = ${rrStr} ${kiStr} sammenligner symptomraten i 0–1 km zonen med kontrolgruppen 10+ km væk. ${rrLo && rrLo > 1 ? 'KI inkluderer ikke 1,0 — statistisk signifikant.' : 'Kræver flere svar fra referencezonen.'}</div>
+        </div>
+        <div class="conclusion-item">
+            <div class="conclusion-num">3.</div>
+            <div style="font-weight:600;margin-bottom:0.3rem;font-size:0.88rem;">χ²-signifikanstest</div>
+            <div class="conclusion-desc">${chiN >= 10 ? `χ² = ${chi2val.toFixed(2)}, p ${pVal < 0.001 ? '< 0,001' : '= ' + pVal.toFixed(4)}. ${pVal < 0.05 ? 'Nulhypotesen forkastes — sammenhæng påvist.' : 'Endnu ikke signifikant.'}` : `Kræver flere svar fra 0–3 km og 10+ km (nu ${chiN} samlet).`}</div>
+        </div>
+    </div>
+    <div class="notice notice-warn" style="margin-bottom:0;">
+        <strong>Anbefaling:</strong> Disse fund opfylder ${hasGradient && pVal < 0.05 ? 'flere' : 'potentielt flere'} af Bradford Hill-kriterierne for en potentiel kausalsammenhæng. Resultaterne bør præsenteres for kommunen og danne grundlag for en officiel epidemiologisk undersøgelse og luftkvalitetsmåling.
+        ${n < 50 ? ' <em>Undersøgelsen har endnu et begrænset antal besvarelser — del linket for at styrke evidensen.</em>' : ''}
+    </div>`;
 }
 
 // ── LIVE LISTENER ─────────────────────────────────────────
