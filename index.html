@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lufthavnen & Dit Helbred — Borgerundersøgelse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --navy: #0d1e36;
+            --navy-mid: #1a3660;
+            --navy-light: #2a4f8c;
+            --amber: #e8a020;
+            --amber-light: #fdf3dc;
+            --red: #c0392b;
+            --teal: #1a8c7a;
+            --bg: #f2f1ee;
+            --white: #ffffff;
+            --text: #0d1e36;
+            --muted: #5a6880;
+            --border: #d8d4cc;
+            --stoj: #2a4f8c;
+            --forurening: #c06010;
+            --psyko: #5e3a8c;
+            --radius: 4px;
+            --shadow: 0 2px 12px rgba(13,30,54,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: var(--navy);
+            color: white;
+            padding: 3rem 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 45%;
+            background: repeating-linear-gradient(
+                -55deg,
+                transparent,
+                transparent 12px,
+                rgba(255,255,255,0.025) 12px,
+                rgba(255,255,255,0.025) 13px
+            );
+            pointer-events: none;
+        }
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 0.9rem;
+        }
+        .header-label::before {
+            content: '';
+            display: inline-block;
+            width: 18px;
+            height: 1.5px;
+            background: var(--amber);
+        }
+        header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 400;
+            line-height: 1.15;
+            margin-bottom: 0.8rem;
+        }
+        header h1 em {
+            color: var(--amber);
+            font-style: italic;
+        }
+        header p {
+            color: rgba(255,255,255,0.72);
+            max-width: 560px;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .header-plane {
+            position: absolute;
+            right: 2rem;
+            bottom: 1rem;
+            font-size: 4rem;
+            opacity: 0.08;
+            transform: rotate(-10deg);
+        }
+
+        /* ── NAV ── */
+        nav.tabs {
+            background: var(--white);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+        }
+        nav.tabs button {
+            padding: 0.9rem 1.8rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--muted);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+        }
+        nav.tabs button:hover { color: var(--navy); }
+        nav.tabs button.active {
+            color: var(--navy);
+            border-bottom-color: var(--amber);
+            font-weight: 600;
+        }
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #edfdf7;
+            color: #0a6644;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+            letter-spacing: 0.05em;
+        }
+        .live-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #0a9c62;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%,100% { opacity:1; }
+            50% { opacity:0.25; }
+        }
+
+        /* ── LAYOUT ── */
+        main { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .card-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.15rem;
+            color: var(--navy);
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ── FORM ── */
+        .form-group { margin-bottom: 1.15rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: var(--navy);
+            margin-bottom: 0.4rem;
+        }
+        .form-group label .req { color: var(--amber); margin-left: 2px; }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: white;
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235a6880' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+        }
+        select { padding-right: 2.2rem; }
+        input[type="text"] { background-image: none; }
+        select:focus, input:focus { border-color: var(--navy-light); }
+
+        /* Symptom checkboxes */
+        .symptom-category { margin-bottom: 1.4rem; }
+        .cat-header {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2px;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .cat-stoj { background: #e8f0fc; color: var(--stoj); }
+        .cat-forurening { background: #fdeee0; color: var(--forurening); }
+        .cat-psyko { background: #f0e8fd; color: var(--psyko); }
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding: 0.42rem 0.8rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .checkbox-item:hover { background: #f7f6f3; }
+        .checkbox-item input[type="checkbox"] {
+            width: 16px; height: 16px;
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--navy-mid);
+            flex-shrink: 0;
+        }
+        .checkbox-item span { font-size: 0.88rem; }
+
+        .btn-primary {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: var(--radius);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            letter-spacing: 0.04em;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background: var(--navy-mid); }
+        .btn-primary:active { transform: scale(0.99); }
+        .btn-primary:disabled { background: var(--muted); cursor: not-allowed; }
+
+        .notice {
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            font-size: 0.87rem;
+            margin-bottom: 1.25rem;
+        }
+        .notice-success { background: #edfdf7; border-left: 3px solid #0a9c62; color: #064d32; }
+        .notice-warn { background: var(--amber-light); border-left: 3px solid var(--amber); color: #5a3a00; }
+
+        /* ── RESULTS ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .stat-box {
+            background: var(--navy);
+            color: white;
+            padding: 1.25rem 1.4rem;
+            border-radius: var(--radius);
+            border-bottom: 3px solid var(--amber);
+        }
+        .stat-box.s2 { background: var(--stoj); border-color: #7ab2f7; }
+        .stat-box.s3 { background: var(--forurening); border-color: #f5b87a; }
+        .stat-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 2rem;
+            font-weight: 500;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+        .stat-lbl { font-size: 0.78rem; opacity: 0.82; letter-spacing: 0.02em; }
+
+        .chart-wrap { position: relative; }
+        .chart-wrap canvas { width: 100% !important; }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .leg { display: flex; align-items: center; gap: 0.4rem; }
+        .leg-dot { width: 11px; height: 11px; border-radius: 2px; }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-subtitle {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* ── ABOUT ── */
+        .about-body p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+        .about-body strong { color: var(--text); }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: 0.78rem;
+            border-top: 1px solid var(--border);
+            background: var(--white);
+            letter-spacing: 0.03em;
+        }
+
+        /* Error */
+        #submit-error { color: var(--red); font-size:0.85rem; text-align:center; margin-bottom:0.75rem; display:none; }
+
+        /* Loading placeholder */
+        .placeholder-bar {
+            height: 16px;
+            background: linear-gradient(90deg, #e8e6e2 25%, #f2f1ee 50%, #e8e6e2 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        @media (max-width: 640px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            nav.tabs button { padding: 0.75rem 0.9rem; font-size: 0.78rem; }
+            .header-plane { display: none; }
+        }
+
+        /* Fade in animation */
+        .fadein { animation: fadeIn 0.4s ease both; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <div class="header-label">Epidemiologisk borgerundersøgelse · 2025</div>
+        <h1>Lufthavnen &<br><em>Dit Helbred</em></h1>
+        <p>Hjælp med at dokumentere sammenhængen mellem eksponering og symptomer ved at besvare spørgeskemaet. Resultaterne opdateres live.</p>
+    </div>
+    <div class="header-plane">✈</div>
+</header>
+
+<nav class="tabs">
+    <button class="active" onclick="showTab('survey')">📋 Spørgeskema</button>
+    <button onclick="showTab('results')">
+        📊 Resultater
+        <span class="live-pill"><span class="live-dot"></span>Live</span>
+    </button>
+    <button onclick="showTab('about')">ℹ Om undersøgelsen</button>
+</nav>
+
+<main>
+
+    <!-- ═══ SURVEY TAB ═══ -->
+    <div id="tab-survey" class="tab-content active fadein">
+
+        <div id="notice-duplicate" class="notice notice-warn" style="display:none">
+            ✅ Du har allerede bidraget til undersøgelsen — tak!
+            <a href="#" onclick="showTab('results');return false;" style="color:#5a3a00;font-weight:600;"> Se resultaterne →</a>
+        </div>
+
+        <div id="survey-form-wrapper">
+            <!-- Step 1 -->
+            <div class="card">
+                <div class="card-title">📍 Din placering</div>
+                <div class="form-group">
+                    <label>Omtrentlig afstand til lufthavnen <span class="req">*</span></label>
+                    <select id="afstand" required>
+                        <option value="">– Vælg afstand –</option>
+                        <option value="0-1 km">0–1 km</option>
+                        <option value="1-3 km">1–3 km</option>
+                        <option value="3-5 km">3–5 km</option>
+                        <option value="5-10 km">5–10 km</option>
+                        <option value="10-20 km">10–20 km</option>
+                        <option value="20+ km">Over 20 km</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Retning fra lufthavnen (valgfri)</label>
+                    <select id="retning">
+                        <option value="">– Vælg retning –</option>
+                        <option value="Nord">Nord</option>
+                        <option value="Nordøst">Nordøst</option>
+                        <option value="Øst">Øst</option>
+                        <option value="Sydøst">Sydøst</option>
+                        <option value="Syd">Syd</option>
+                        <option value="Sydvest">Sydvest</option>
+                        <option value="Vest">Vest</option>
+                        <option value="Nordvest">Nordvest</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hvor længe har du boet på din nuværende adresse?</label>
+                    <select id="varighed">
+                        <option value="">– Vælg venligst –</option>
+                        <option value="Under 1 år">Under 1 år</option>
+                        <option value="1-3 år">1–3 år</option>
+                        <option value="3-10 år">3–10 år</option>
+                        <option value="10+ år">Over 10 år</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="card">
+                <div class="card-title">👤 Om dig (valgfri — kun til statistik)</div>
+                <div class="form-group">
+                    <label>Aldersgruppe</label>
+                    <select id="alder">
+                        <option value="">– Vælg venligst –</option>
+                        <option value="Under 18">Under 18</option>
+                        <option value="18-30">18–30 år</option>
+                        <option value="31-45">31–45 år</option>
+                        <option value="46-60">46–60 år</option>
+                        <option value="61+">Over 60 år</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Har du hjemmeboende børn under 18 år?</label>
+                    <select id="born">
+                        <option value="">– Vælg venligst –</option>
+                        <option value="Ja">Ja</option>
+                        <option value="Nej">Nej</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="card">
+                <div class="card-title">🩺 Symptomer og gener</div>
+                <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.7;">
+                    Sæt kryds ved alle de symptomer og gener, du oplever, og som du mener hænger sammen med lufthavnen. Vælg gerne så mange som passer på dig.
+                </p>
+
+                <div class="symptom-category">
+                    <div class="cat-header cat-stoj">🔊 Støjgener</div>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Søvnproblemer fra støj"><span>Søvnproblemer fra støj</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Koncentrationsbesvær pga. støj"><span>Koncentrationsbesvær pga. støj (fx ved hjemmearbejde)</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Hovedpine fra støj"><span>Hovedpine fra støj</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Tinnitus fra hylelyde"><span>Tinnitus/øresusen fra hylelyde</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Søvnapnø forstærket af støj"><span>Søvnapnø (muligvis forværret af støj)</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Generel irritation og stressrespons fra støj"><span>Generel irritation og stressrespons fra støj</span></label>
+                </div>
+
+                <div class="symptom-category">
+                    <div class="cat-header cat-forurening">💨 Luftforurening og lugtgener</div>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Vejtrækningsbesvær fra luftforurening"><span>Vejtrækningsbesvær fra luftforurening</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Irritation i hals/svælg/slimhinder/løbende næse"><span>Irritation i hals, svælg, slimhinder eller løbende næse</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Kvalme pga. lugten"><span>Kvalme pga. lugten</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Kan ikke lufte mit hjem pga. lugtgener"><span>Kan ikke lufte mit hjem pga. lugtgener</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Hovedpine fra luftforurening"><span>Hovedpine fra luftforurening</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Forværring af barns astmasymptomer grundet lugt"><span>Forværring af barns astmasymptomer grundet lugt</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Forværring af egne KOL/astma-symptomer grundet lugt"><span>Forværring af egne KOL/astma-symptomer grundet lugt</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Bekymring om mine lunger når lugten er slem"><span>Bekymring om mine lunger når lugten er slem</span></label>
+                </div>
+
+                <div class="symptom-category">
+                    <div class="cat-header cat-psyko">🧠 Livskvalitet og psykosociale gener</div>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Mistet livskvalitet fra støj og lugt"><span>Mistet livskvalitet fra støj og lugt</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Magtesløshed ift. situationen"><span>Magtesløshed ift. situationen</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Voldsomme bekymringer for min families helbred"><span>Voldsomme bekymringer for min families helbred</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Overvejer at flytte alene pga. lufthavnen"><span>Overvejer kraftigt at flytte — alene pga. lufthavnen</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="sym" value="Naboers hussalg mislykkes pga. støj/lugt"><span>Bekendt med at naboers hussalg mislykkes pga. støj eller lugt</span></label>
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Andre symptomer eller gener (skriv her, angiv gerne om det er fra støj eller forurening)</label>
+                    <input type="text" id="andre" placeholder="fx: Øjenirritation fra forurening · Stress fra konstant støj …">
+                </div>
+
+                <div class="form-group">
+                    <label>Samlet oplevelse: Hvor alvorligt påvirker det dig? <span class="req">*</span></label>
+                    <select id="alvorlighed" required>
+                        <option value="">– Vælg venligst –</option>
+                        <option value="1">1 — Slet ikke påvirket</option>
+                        <option value="2">2 — Let påvirket</option>
+                        <option value="3">3 — Moderat påvirket</option>
+                        <option value="4">4 — Alvorligt påvirket</option>
+                        <option value="5">5 — Meget alvorligt påvirket</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="submit-error">⚠ Der opstod en fejl. Tjek din internetforbindelse og prøv igen.</div>
+
+            <button class="btn-primary" id="btn-submit" onclick="submitSurvey()">
+                Send mit svar ›
+            </button>
+            <p style="text-align:center;color:var(--muted);font-size:0.78rem;margin-top:0.75rem;">
+                Alle svar er anonyme — der gemmes ingen personoplysninger
+            </p>
+        </div>
+
+        <div id="success-msg" style="display:none">
+            <div class="card" style="text-align:center;padding:2.5rem;">
+                <div style="font-size:2.5rem;margin-bottom:0.75rem;">✈️</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--navy);margin-bottom:0.5rem;">Tak for dit bidrag!</div>
+                <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">Du er med til at skabe evidensbaseret dokumentation, der kan bruges over for myndighederne.</p>
+                <a href="#" onclick="showTab('results');return false;"
+                   style="display:inline-block;background:var(--navy);color:white;padding:0.7rem 1.8rem;border-radius:var(--radius);font-weight:600;text-decoration:none;font-size:0.88rem;letter-spacing:0.04em;">
+                    Se de live resultater →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RESULTS TAB ═══ -->
+    <div id="tab-results" class="tab-content fadein">
+
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-num" id="stat-total">–</div>
+                <div class="stat-lbl">Besvarelser i alt</div>
+            </div>
+            <div class="stat-box s2">
+                <div class="stat-num" id="stat-avg">–</div>
+                <div class="stat-lbl">Gns. symptomer pr. person</div>
+            </div>
+            <div class="stat-box s3">
+                <div class="stat-num" id="stat-pct">–</div>
+                <div class="stat-lbl">Har mindst ét symptom</div>
+            </div>
+        </div>
+
+        <!-- Chart A: Symptom frequency -->
+        <div class="card">
+            <div class="card-title">
+                🩺 Symptomhyppighed — % af respondenter
+                <span class="live-pill" style="margin-left:auto"><span class="live-dot"></span>Live</span>
+            </div>
+            <div class="legend-row">
+                <span class="leg"><span class="leg-dot" style="background:var(--stoj)"></span>Støj</span>
+                <span class="leg"><span class="leg-dot" style="background:var(--forurening)"></span>Luftforurening/lugt</span>
+                <span class="leg"><span class="leg-dot" style="background:var(--psyko)"></span>Livskvalitet/psykosocialt</span>
+            </div>
+            <div class="chart-wrap" style="height:440px;">
+                <canvas id="chart-symptoms"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart B: Distance correlation — THE KEY CHART -->
+        <div class="card">
+            <div class="card-title">
+                📏 Symptombyrde vs. afstand fra lufthavnen
+                <span class="live-pill" style="margin-left:auto"><span class="live-dot"></span>Live</span>
+            </div>
+            <div class="chart-subtitle">
+                Gennemsnitligt antal rapporterede symptomer pr. person, opdelt efter afstand til lufthavnen.
+                Et klart faldende mønster mod højre er et epidemiologisk signal om årsagssammenhæng.
+            </div>
+            <div class="chart-wrap" style="height:300px;">
+                <canvas id="chart-distance"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts C & D side by side -->
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title" style="font-size:0.95rem;">🗺 Besvarelser pr. afstandszone</div>
+                <div class="chart-wrap" style="height:220px;">
+                    <canvas id="chart-pie-dist"></canvas>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title" style="font-size:0.95rem;">⚖ Støj vs. forurening</div>
+                <div class="chart-wrap" style="height:220px;">
+                    <canvas id="chart-pie-type"></canvas>
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom:1.25rem;"></div>
+
+        <!-- Chart E: Severity by distance -->
+        <div class="card">
+            <div class="card-title">📈 Oplevet alvorlighed vs. afstand (1–5 skala)</div>
+            <div class="chart-subtitle">
+                Gennemsnitlig selvvurderet sværhedsgrad af påvirkning, opdelt på afstandszone.
+            </div>
+            <div class="chart-wrap" style="height:260px;">
+                <canvas id="chart-severity"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══ ABOUT TAB ═══ -->
+    <div id="tab-about" class="tab-content fadein">
+        <div class="card about-body">
+            <div class="card-title">Om denne undersøgelse</div>
+            <p>Dette spørgeskema er en borgerdrevet epidemiologisk undersøgelse med det formål at dokumentere en eventuel <strong>statistisk sammenhæng mellem eksponering og oplevede symptomer</strong> i relation til lufthavnen.</p>
+            <p>Metoden er inspireret af en lignende undersøgelse fra et område nær Prøvestenen i København, hvor data fra 124 besvarelser viste et klart og systematisk mønster, som efterfølgende viste sig at have en tydelig effekt på kommunens håndtering af sagen.</p>
+            <p>Det videnskabelige grundlag i epidemiologiske studier bygger på netop denne type eksponerings-respons-gradienter: jo tættere man bor på kilden, jo flere og alvorligere symptomer rapporteres — og omvendt. Når dette mønster ses klart i data, styrkes argumentet for en kausal sammenhæng markant.</p>
+        </div>
+        <div class="card about-body">
+            <div class="card-title">🔒 Anonymitet og data</div>
+            <p>Undersøgelsen gemmer <strong>ingen personhenførbare oplysninger</strong>. Der indsamles ingen IP-adresser, navne, eksakte adresser eller andre identifikatorer.</p>
+            <p>Data der gemmes: omtrentlig afstand til lufthavnen, retning, bopælsvarighed, aldersgruppe, valgte symptomer og selvvurderet alvorlighed.</p>
+            <p>Data opbevares i en sikker Firebase Firestore-database og bruges udelukkende til at fremstille den aggregerede statistik, der vises i resultattabellen.</p>
+        </div>
+        <div class="card about-body">
+            <div class="card-title">📬 Kontakt og formål</div>
+            <p>Formålet med undersøgelsen er at skabe <strong>evidensbaseret dokumentation</strong>, der kan præsenteres over for kommunen og myndighederne med henblik på at kræve handling baseret på konkrete data frem for anekdotiske oplevelser.</p>
+            <p>Undersøgelsen er ikke tilknyttet nogen politisk organisation eller interessegruppe. Den er udelukkende drevet af berørte borgere.</p>
+        </div>
+    </div>
+
+</main>
+
+<footer>
+    Borgerundersøgelse · Alle svar er anonyme · Realtidsdata via Firebase · Ingen personoplysninger gemmes
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    serverTimestamp,
+    query
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ────────────────────────────────────────────────────────
+//  ⚠️  REPLACE THE VALUES BELOW WITH YOUR FIREBASE CONFIG
+//  (Se README.md for instruktioner om, hvordan du finder dem)
+// ────────────────────────────────────────────────────────
+const firebaseConfig = {
+    apiKey: "AIzaSyBOg3mFkYBZbhgW22GxK97z9rh3RCvPiV8",
+    authDomain: "cphforurening.firebaseapp.com",
+    projectId: "cphforurening",
+    storageBucket: "cphforurening.firebasestorage.app",
+    messagingSenderId: "661594236126",
+    appId: "1:661594236126:web:28ad7c23471b55f3224e4f"
+};
+
+// ────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── TAB NAV ──────────────────────────────────────────────
+window.showTab = (tab) => {
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('active');
+    });
+    document.querySelectorAll('nav.tabs button').forEach((btn, i) => {
+        btn.classList.toggle('active', ['survey','results','about'][i] === tab);
+    });
+    const el = document.getElementById('tab-' + tab);
+    el.classList.add('active');
+    el.classList.remove('fadein');
+    void el.offsetWidth;
+    el.classList.add('fadein');
+};
+
+// ── DUPLICATE CHECK ───────────────────────────────────────
+if (localStorage.getItem('lh_survey_done_v1')) {
+    document.getElementById('notice-duplicate').style.display = 'block';
+    document.getElementById('survey-form-wrapper').style.display = 'none';
+}
+
+// ── SUBMIT ────────────────────────────────────────────────
+window.submitSurvey = async () => {
+    const afstand    = document.getElementById('afstand').value;
+    const alvorlighed = document.getElementById('alvorlighed').value;
+    if (!afstand || !alvorlighed) {
+        alert('Udfyld venligst de felter der er markeret med *');
+        return;
+    }
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Sender …';
+
+    const symptomer = Array.from(document.querySelectorAll('input[name="sym"]:checked')).map(c => c.value);
+    const andre = document.getElementById('andre').value.trim();
+    if (andre) symptomer.push(andre);
+
+    const payload = {
+        afstand,
+        retning:    document.getElementById('retning').value    || null,
+        varighed:   document.getElementById('varighed').value   || null,
+        alder:      document.getElementById('alder').value      || null,
+        born:       document.getElementById('born').value       || null,
+        symptomer,
+        alvorlighed: parseInt(alvorlighed),
+        timestamp:  serverTimestamp()
+    };
+
+    try {
+        await addDoc(collection(db, 'responses'), payload);
+        localStorage.setItem('lh_survey_done_v1', '1');
+        document.getElementById('survey-form-wrapper').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+    } catch (err) {
+        console.error(err);
+        document.getElementById('submit-error').style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Send mit svar ›';
+    }
+};
+
+// ── DATA ──────────────────────────────────────────────────
+const SYMPTOMS = [
+    { v:"Søvnproblemer fra støj",                              k:"støj" },
+    { v:"Koncentrationsbesvær pga. støj",                      k:"støj" },
+    { v:"Hovedpine fra støj",                                  k:"støj" },
+    { v:"Tinnitus fra hylelyde",                               k:"støj" },
+    { v:"Søvnapnø forstærket af støj",                         k:"støj" },
+    { v:"Generel irritation og stressrespons fra støj",        k:"støj" },
+    { v:"Vejtrækningsbesvær fra luftforurening",               k:"forurening" },
+    { v:"Irritation i hals/svælg/slimhinder/løbende næse",    k:"forurening" },
+    { v:"Kvalme pga. lugten",                                  k:"forurening" },
+    { v:"Kan ikke lufte mit hjem pga. lugtgener",              k:"forurening" },
+    { v:"Hovedpine fra luftforurening",                        k:"forurening" },
+    { v:"Forværring af barns astmasymptomer grundet lugt",     k:"forurening" },
+    { v:"Forværring af egne KOL/astma-symptomer grundet lugt", k:"forurening" },
+    { v:"Bekymring om mine lunger når lugten er slem",         k:"forurening" },
+    { v:"Mistet livskvalitet fra støj og lugt",                k:"psyko" },
+    { v:"Magtesløshed ift. situationen",                       k:"psyko" },
+    { v:"Voldsomme bekymringer for min families helbred",      k:"psyko" },
+    { v:"Overvejer at flytte alene pga. lufthavnen",           k:"psyko" },
+    { v:"Naboers hussalg mislykkes pga. støj/lugt",            k:"psyko" },
+];
+
+const DIST_ORDER  = ["0-1 km","1-3 km","3-5 km","5-10 km","10-20 km","20+ km"];
+const COL = { støj:"#2a4f8c", forurening:"#c06010", psyko:"#5e3a8c" };
+
+const charts = {};
+const destroy = id => { if (charts[id]) { charts[id].destroy(); delete charts[id]; } };
+
+function updateAll(docs) {
+    const n = docs.length;
+    if (!n) {
+        document.getElementById('stat-total').textContent = '0';
+        document.getElementById('stat-avg').textContent = '–';
+        document.getElementById('stat-pct').textContent = '–';
+        return;
+    }
+
+    // ── Stats ──────────────────────────────
+    let totalSym = 0, withSym = 0;
+    docs.forEach(d => {
+        const c = d.symptomer?.length || 0;
+        totalSym += c;
+        if (c > 0) withSym++;
+    });
+    document.getElementById('stat-total').textContent = n;
+    document.getElementById('stat-avg').textContent   = (totalSym / n).toFixed(1);
+    document.getElementById('stat-pct').textContent   = Math.round(withSym / n * 100) + '%';
+
+    // ── Count symptoms ─────────────────────
+    const counts = {};
+    SYMPTOMS.forEach(s => counts[s.v] = 0);
+    docs.forEach(d => (d.symptomer||[]).forEach(s => { if (s in counts) counts[s]++; }));
+
+    const sorted = SYMPTOMS
+        .map(s => ({ ...s, count: counts[s.v]||0, pct: Math.round((counts[s.v]||0)/n*100) }))
+        .sort((a,b) => b.count - a.count);
+
+    // ── Chart A: symptom bar ───────────────
+    destroy('sym');
+    charts['sym'] = new Chart(document.getElementById('chart-symptoms'), {
+        type: 'bar',
+        data: {
+            labels: sorted.map(s => s.v),
+            datasets: [{
+                data:            sorted.map(s => s.pct),
+                backgroundColor: sorted.map(s => COL[s.k]),
+                borderRadius:    3,
+                borderSkipped:   false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw}%  (${sorted[ctx.dataIndex].count} ud af ${n})`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    max: 100,
+                    title: { display: true, text: '% af respondenter', font: { size: 11 } },
+                    grid:  { color: '#f2f1ee' },
+                    ticks: { font: { size: 11 }, callback: v => v + '%' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10.5, family: "'IBM Plex Sans'" },
+                        callback(val) {
+                            const lbl = this.getLabelForValue(val);
+                            return lbl.length > 44 ? lbl.slice(0, 41) + '…' : lbl;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ── Per-distance stats ─────────────────
+    const dist = {};
+    DIST_ORDER.forEach(d => dist[d] = { n:0, symSum:0, sevSum:0 });
+    docs.forEach(doc => {
+        const d = doc.afstand;
+        if (d && dist[d]) {
+            dist[d].n++;
+            dist[d].symSum += doc.symptomer?.length || 0;
+            dist[d].sevSum += doc.alvorlighed || 0;
+        }
+    });
+    const distLabels = DIST_ORDER.filter(d => dist[d].n > 0);
+    const avgSym = distLabels.map(d => dist[d].n ? +(dist[d].symSum/dist[d].n).toFixed(2) : 0);
+    const avgSev = distLabels.map(d => dist[d].n ? +(dist[d].sevSum/dist[d].n).toFixed(2) : 0);
+
+    // ── Chart B: distance bar ──────────────
+    destroy('dist');
+    charts['dist'] = new Chart(document.getElementById('chart-distance'), {
+        type: 'bar',
+        data: {
+            labels: distLabels,
+            datasets: [{
+                label: 'Gns. antal symptomer',
+                data:  avgSym,
+                backgroundColor: distLabels.map((_, i) => {
+                    const t = i / Math.max(distLabels.length - 1, 1);
+                    const r = Math.round(10 + (42 - 10) * t);
+                    const g = Math.round(30 + (79 - 30) * t);
+                    const b = Math.round(54 + (140 - 54) * t);
+                    return `rgba(${r},${g},${b},${1 - t*0.55})`;
+                }),
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw} symptomer i gns. (${dist[distLabels[ctx.dataIndex]].n} svar)`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Gns. antal symptomer', font: { size: 11 } },
+                    grid: { color: '#f2f1ee' }
+                },
+                x: { title: { display: true, text: 'Afstand fra lufthavnen', font: { size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Chart C: dist pie ──────────────────
+    destroy('pie-dist');
+    charts['pie-dist'] = new Chart(document.getElementById('chart-pie-dist'), {
+        type: 'doughnut',
+        data: {
+            labels: DIST_ORDER,
+            datasets: [{
+                data: DIST_ORDER.map(d => dist[d].n),
+                backgroundColor: ['#0d1e36','#1a3660','#2a4f8c','#4a78cc','#88aae8','#c5d8f8'],
+                borderWidth: 2, borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } }
+            }
+        }
+    });
+
+    // ── Chart D: type pie ──────────────────
+    let stoj = 0, foru = 0, psyko = 0;
+    docs.forEach(doc => (doc.symptomer||[]).forEach(s => {
+        const m = SYMPTOMS.find(x => x.v === s);
+        if (m) { if (m.k==='støj') stoj++; else if (m.k==='forurening') foru++; else psyko++; }
+    }));
+    destroy('pie-type');
+    charts['pie-type'] = new Chart(document.getElementById('chart-pie-type'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Støj', 'Forurening/lugt', 'Livskvalitet'],
+            datasets: [{
+                data: [stoj, foru, psyko],
+                backgroundColor: [COL.støj, COL.forurening, COL.psyko],
+                borderWidth: 2, borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } }
+            }
+        }
+    });
+
+    // ── Chart E: severity line ─────────────
+    destroy('sev');
+    charts['sev'] = new Chart(document.getElementById('chart-severity'), {
+        type: 'line',
+        data: {
+            labels: distLabels,
+            datasets: [{
+                label: 'Gns. alvorlighed',
+                data: avgSev,
+                borderColor: '#c0392b',
+                backgroundColor: 'rgba(192,57,43,0.08)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 6,
+                pointBackgroundColor: '#c0392b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` Gns. ${ctx.raw} ud af 5  (${dist[distLabels[ctx.dataIndex]].n} svar)`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 1, max: 5,
+                    title: { display: true, text: 'Gns. alvorlighed (1–5)', font: { size: 11 } },
+                    grid: { color: '#f2f1ee' },
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    title: { display: true, text: 'Afstand fra lufthavnen', font: { size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// ── LIVE LISTENER ─────────────────────────────────────────
+onSnapshot(query(collection(db, 'responses')), snap => {
+    updateAll(snap.docs.map(d => d.data()));
+});
+</script>
+</body>
+</html>
