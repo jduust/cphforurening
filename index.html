@@ -594,7 +594,11 @@ window.showTab = tab => {
   document.querySelectorAll('nav.tabs button').forEach((b,i)=>b.classList.toggle('active',['survey','results','about'][i]===tab));
   const el=document.getElementById('tab-'+tab);
   el.classList.add('active');
-  if(tab==='results'&&!window._rMapInit){initResultsMap();window._rMapInit=true;}
+  
+  if(tab === 'results'){
+    if(!window._rMapInit){ initResultsMap(); window._rMapInit = true; }
+    if(window._latestDocs) updateAll(window._latestDocs); // Tvinger grafer/kort til at tegne sig selv når fanen er synlig
+  }
 };
 
 // ── Survey map ────────────────────────────────────────────────
@@ -863,6 +867,7 @@ function pFmt(p){return p<0.001?'< 0,001':p.toFixed(4);}
 if(db){
   onSnapshot(query(collection(db,'responses')),snap=>{
     const docs=snap.docs.map(d=>d.data());
+    window._latestDocs = docs;
     updateAll(docs);
     populateDataLists(docs);
     updateScientific(docs);
