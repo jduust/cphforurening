@@ -592,9 +592,24 @@ function hasKronisk(d){return d.kronisk?.length>0&&!d.kronisk.every(v=>v==='Inge
 window.showTab = tab => {
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('nav.tabs button').forEach((b,i)=>b.classList.toggle('active',['survey','results','about'][i]===tab));
-  const el=document.getElementById('tab-'+tab);
-  el.classList.add('active');
-  if(tab==='results'&&!window._rMapInit){initResultsMap();window._rMapInit=true;}
+  
+  const target = document.getElementById('tab-'+tab);
+  target.classList.add('active');
+
+  if(tab === 'results'){
+    // 1. Fix Leaflet kortet (det kræver ofte et "spark" for at loade fliserne korrekt)
+    if(!rMap) { 
+        initResultsMap(); 
+    } else {
+        setTimeout(() => rMap.invalidateSize(), 100);
+    }
+    
+    // 2. Tving graferne til at genoptegne sig selv nu hvor de er synlige
+    // Vi bruger window._latestDocs som vi gemte i onSnapshot
+    if(window._latestDocs) {
+        updateAll(window._latestDocs);
+    }
+  }
 };
 
 // ── Survey map ────────────────────────────────────────────────
