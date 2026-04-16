@@ -187,24 +187,24 @@ details[open] summary{color:var(--text)}
         <div class="form-group" style="margin:0">
           <label>År på nuværende adresse</label>
           <select id="f-years">
-            <option value="">–</option>
-            <option>Under 1 år</option><option>1–3 år</option>
-            <option>3–10 år</option><option>Over 10 år</option>
+            <option value="">-</option>
+            <option>Under 1 år</option><option>1-3 år</option>
+            <option>3-10 år</option><option>Over 10 år</option>
           </select>
         </div>
         <div class="form-group" style="margin:0">
           <label>Aldersgruppe</label>
           <select id="f-age">
-            <option value="">–</option>
-            <option>Under 18</option><option>18–30 år</option>
-            <option>31–45 år</option><option>46–60 år</option><option>Over 60 år</option>
+            <option value="">-</option>
+            <option>Under 18</option><option>18-30 år</option>
+            <option>31-45 år</option><option>46-60 år</option><option>Over 60 år</option>
           </select>
         </div>
       </div>
       <div class="form-group" style="margin-top:.9rem;margin-bottom:0">
         <label>Hjemmeboende børn under 18?</label>
         <select id="f-kids">
-          <option value="">–</option><option>Ja</option><option>Nej</option>
+          <option value="">-</option><option>Ja</option><option>Nej</option>
         </select>
       </div>
     </div>
@@ -333,12 +333,12 @@ details[open] summary{color:var(--text)}
       <div class="form-group">
         <label>Hvornår begyndte du at bemærke generne? <span class="req">*</span></label>
         <select id="f-onset" required>
-          <option value="">– Vælg venligst –</option>
+          <option value="">- Vælg venligst -</option>
           <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
           <option value="Har altid boet her - ved det ikke">Har altid boet her — kan ikke huske det</option>
           <option value="Før 2015">Før 2015</option>
-          <option value="2015–2019">2015–2019</option>
-          <option value="2020–2022">2020–2022</option>
+          <option value="2015-2019">2015-2019</option>
+          <option value="2020-2022">2020-2022</option>
           <option value="2023">2023</option>
           <option value="2024">2024</option>
           <option value="2025">2025</option>
@@ -347,7 +347,7 @@ details[open] summary{color:var(--text)}
       <div class="form-group" style="margin-bottom:0">
         <label>Oplever du generne særligt ved bestemte vindretninger?</label>
         <select id="f-wind-sens">
-          <option value="">– Ved ikke / har ikke lagt mærke til det –</option>
+          <option value="">- Ved ikke / har ikke lagt mærke til det -</option>
           <option value="Ja - vind fra vest eller sydvest">Ja — vind fra vest / sydvest</option>
           <option value="Ja - vind fra syd">Ja — vind fra syd</option>
           <option value="Ja - vind fra øst eller nordøst">Ja — vind fra øst / nordøst</option>
@@ -378,10 +378,10 @@ details[open] summary{color:var(--text)}
 <div id="tab-results" class="tab-content">
 
   <div class="stats-row">
-    <div class="stat-box s0"><div class="stat-num" id="st-total">–</div><div class="stat-lbl">Besvarelser i alt</div></div>
-    <div class="stat-box s1"><div class="stat-num" id="st-sym">–</div><div class="stat-lbl">Gns. symptomer/person</div></div>
-    <div class="stat-box s2"><div class="stat-num" id="st-pct">–</div><div class="stat-lbl">Har mindst ét symptom</div></div>
-    <div class="stat-box s3"><div class="stat-num" id="st-kronisk">–</div><div class="stat-lbl">Kronisk sygdom / kræft</div></div>
+    <div class="stat-box s0"><div class="stat-num" id="st-total">-</div><div class="stat-lbl">Besvarelser i alt</div></div>
+    <div class="stat-box s1"><div class="stat-num" id="st-sym">-</div><div class="stat-lbl">Gns. symptomer/person</div></div>
+    <div class="stat-box s2"><div class="stat-num" id="st-pct">-</div><div class="stat-lbl">Har mindst ét symptom</div></div>
+    <div class="stat-box s3"><div class="stat-num" id="st-kronisk">-</div><div class="stat-lbl">Kronisk sygdom / kræft</div></div>
   </div>
 
   <div class="card">
@@ -410,7 +410,7 @@ details[open] summary{color:var(--text)}
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-title" style="font-size:.95rem">⚖ Alvorlighed vs. afstand</div>
-      <div class="chart-sub" style="font-size:.76rem">Selvvurderet gennemsnitlig alvorlighed (1–5) for støj og luft separat pr. afstandszone.</div>
+      <div class="chart-sub" style="font-size:.76rem">Selvvurderet gennemsnitlig alvorlighed (1-5) for støj og luft separat pr. afstandszone.</div>
       <div class="chart-wrap" style="height:250px"><canvas id="c-sev"></canvas></div>
     </div>
   </div>
@@ -458,11 +458,11 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">⚖️ 2. Relativ Risiko (RR) med 95% Konfidensinterval</div>
-    <div class="chart-sub">Sammenligner symptomraten i 0–1 km-zonen med kontrolgruppen 10+ km. KI der ikke inkluderer 1,0 bekræfter statistisk signifikans (α = 0,05).</div>
+    <div class="chart-sub">Sammenligner symptomraten i 0-1 km-zonen med kontrolgruppen 10+ km. KI der ikke inkluderer 1,0 bekræfter statistisk signifikans (α = 0,05).</div>
     <div class="rr-grid">
-      <div class="rr-box"><div class="rr-num" id="rr-v">–</div><div class="rr-lbl">Relativ Risiko</div></div>
-      <div class="rr-box"><div class="rr-num" id="rr-lo">–</div><div class="rr-lbl">95% KI nedre</div></div>
-      <div class="rr-box"><div class="rr-num" id="rr-hi">–</div><div class="rr-lbl">95% KI øvre</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-v">-</div><div class="rr-lbl">Relativ Risiko</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-lo">-</div><div class="rr-lbl">95% KI nedre</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-hi">-</div><div class="rr-lbl">95% KI øvre</div></div>
     </div>
     <div class="rr-interp" id="rr-interp">Beregner…</div>
     <details style="margin-top:.9rem">
@@ -475,8 +475,8 @@ details[open] summary{color:var(--text)}
     <div class="card-title">📊 3. Statistisk signifikanstest (χ²)</div>
     <div class="chart-sub"><strong>H₀:</strong> Ingen sammenhæng mellem afstand og symptomer &nbsp;|&nbsp; <strong>Hₐ:</strong> Statistisk signifikant sammenhæng (α = 0,05)</div>
     <div class="chi-grid">
-      <div class="chi-box"><div class="chi-num" id="chi-v">–</div><div class="chi-lbl">χ²-værdi</div></div>
-      <div class="chi-box"><div class="chi-num" id="chi-p">–</div><div class="chi-lbl">p-værdi</div></div>
+      <div class="chi-box"><div class="chi-num" id="chi-v">-</div><div class="chi-lbl">χ²-værdi</div></div>
+      <div class="chi-box"><div class="chi-num" id="chi-p">-</div><div class="chi-lbl">p-værdi</div></div>
       <div class="chi-box"><div class="chi-num" id="chi-df">1</div><div class="chi-lbl">Frihedsgrader</div></div>
     </div>
     <div id="chi-verdict"></div>
@@ -538,7 +538,7 @@ catch(e) { console.warn('Firebase ikke konfigureret:', e.message); }
 
 // ── Constants ─────────────────────────────────────────────────
 const AIRPORT = { lat:55.6180, lng:12.6560 };
-const DIST_BANDS = ['0–1 km','1–3 km','3–5 km','5–10 km','10–20 km','20+ km'];
+const DIST_BANDS = ['0-1 km','1-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
 const DIRS8 = ['N','NØ','Ø','SØ','S','SV','V','NV'];
 const COL = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c' };
 
@@ -581,9 +581,9 @@ function bearingDeg(from,to){
 }
 function toDir8(deg){return DIRS8[Math.round(deg/45)%8];}
 function toBand(km){
-  if(km<1)return'0–1 km';if(km<3)return'1–3 km';
-  if(km<5)return'3–5 km';if(km<10)return'5–10 km';
-  if(km<20)return'10–20 km';return'20+ km';
+  if(km<1)return'0-1 km';if(km<3)return'1-3 km';
+  if(km<5)return'3-5 km';if(km<10)return'5-10 km';
+  if(km<20)return'10-20 km';return'20+ km';
 }
 function symCount(d){return(d.stoj?.length||0)+(d.luft?.length||0)+(d.psyko?.length||0);}
 function hasKronisk(d){return d.kronisk?.length>0&&!d.kronisk.every(v=>v==='Ingen af ovenstående');}
@@ -594,11 +594,7 @@ window.showTab = tab => {
   document.querySelectorAll('nav.tabs button').forEach((b,i)=>b.classList.toggle('active',['survey','results','about'][i]===tab));
   const el=document.getElementById('tab-'+tab);
   el.classList.add('active');
-  
-  if(tab === 'results'){
-    if(!window._rMapInit){ initResultsMap(); window._rMapInit = true; }
-    if(window._latestDocs) updateAll(window._latestDocs); // Tvinger grafer/kort til at tegne sig selv når fanen er synlig
-  }
+  if(tab==='results'&&!window._rMapInit){initResultsMap();window._rMapInit=true;}
 };
 
 // ── Survey map ────────────────────────────────────────────────
@@ -735,9 +731,9 @@ function updateAll(docs){
   const n=docs.length;
   const sc=docs.map(symCount);
   document.getElementById('st-total').textContent=n;
-  document.getElementById('st-sym').textContent=n?(sc.reduce((a,b)=>a+b,0)/n).toFixed(1):'–';
-  document.getElementById('st-pct').textContent=n?Math.round(docs.filter(d=>symCount(d)>0).length/n*100)+'%':'–';
-  document.getElementById('st-kronisk').textContent=n?Math.round(docs.filter(hasKronisk).length/n*100)+'%':'–';
+  document.getElementById('st-sym').textContent=n?(sc.reduce((a,b)=>a+b,0)/n).toFixed(1):'-';
+  document.getElementById('st-pct').textContent=n?Math.round(docs.filter(d=>symCount(d)>0).length/n*100)+'%':'-';
+  document.getElementById('st-kronisk').textContent=n?Math.round(docs.filter(hasKronisk).length/n*100)+'%':'-';
   updateResultsMap(docs);
 
   // Per-band
@@ -786,7 +782,7 @@ function updateAll(docs){
      tension:.35,fill:true,pointRadius:5,pointBackgroundColor:COL.luft,pointBorderColor:'#fff',pointBorderWidth:2,spanGaps:true}
   ]},options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},
-    scales:{y:{min:1,max:5,ticks:{stepSize:1},title:{display:true,text:'Gns. alvorlighed 1–5',font:{size:10}},grid:{color:'#f2f1ee'}},
+    scales:{y:{min:1,max:5,ticks:{stepSize:1},title:{display:true,text:'Gns. alvorlighed 1-5',font:{size:10}},grid:{color:'#f2f1ee'}},
       x:{grid:{display:false},ticks:{font:{size:9}}}}}});
 
   // Kronisk
@@ -815,7 +811,7 @@ function updateAll(docs){
 
   // Onset
   const OC={};docs.forEach(d=>{if(d.onset)OC[d.onset]=(OC[d.onset]||0)+1;});
-  const OO=['Før 2015','2015–2019','2020–2022','2023','2024','2025','Oplever ingen mærkbare gener','Har altid boet her - ved det ikke'];
+  const OO=['Før 2015','2015-2019','2020-2022','2023','2024','2025','Oplever ingen mærkbare gener','Har altid boet her - ved det ikke'];
   const OL=OO.filter(k=>OC[k]);
   del('onset');
   ch['onset']=new Chart(document.getElementById('c-onset'),{type:'bar',data:{
@@ -867,7 +863,6 @@ function pFmt(p){return p<0.001?'< 0,001':p.toFixed(4);}
 if(db){
   onSnapshot(query(collection(db,'responses')),snap=>{
     const docs=snap.docs.map(d=>d.data());
-    window._latestDocs = docs;
     updateAll(docs);
     populateDataLists(docs);
     updateScientific(docs);
@@ -895,7 +890,7 @@ function populateDataLists(docs){
 }
 
 // ── Scientific analysis ───────────────────────────────────────
-const BANDS = ['0–1 km','1–3 km','3–5 km','5–10 km','10–20 km','20+ km'];
+const BANDS = ['0-1 km','1-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
 function hasSym(d){return(d.stoj?.length||0)+(d.luft?.length||0)+(d.psyko?.length||0)>0;}
 
 function updateScientific(docs){
@@ -911,7 +906,7 @@ function updateScientific(docs){
   document.getElementById('dose-tbl').innerHTML=`<table class="dose-table"><thead><tr>
     <th>Afstandszone</th><th>n</th><th>Med symptomer</th><th>Symptomrate</th></tr></thead><tbody>
     ${dd.map(d=>`<tr><td class="dzone">${d.zone}</td><td>${d.n}</td><td>${d.nS}</td>
-    <td class="drate">${d.rate!==null?d.rate.toFixed(1)+'%':'–'}
+    <td class="drate">${d.rate!==null?d.rate.toFixed(1)+'%':'-'}
     ${d.rate!==null?`<span class="dbar" style="width:${Math.round(d.rate/maxR*80)}px"></span>`:''}
     </td></tr>`).join('')}</tbody></table>`;
 
@@ -942,8 +937,8 @@ function updateScientific(docs){
       x:{grid:{display:false}}}}});
 
   // 2. Relative Risk
-  const exp  =docs.filter(d=>d.dist_band==='0–1 km');
-  const unexp=docs.filter(d=>d.dist_band==='10–20 km'||d.dist_band==='20+ km');
+  const exp  =docs.filter(d=>d.dist_band==='0-1 km');
+  const unexp=docs.filter(d=>d.dist_band==='10-20 km'||d.dist_band==='20+ km');
   const a=exp.filter(hasSym).length,b=exp.length-exp.filter(hasSym).length;
   const c=unexp.filter(hasSym).length,d2=unexp.length-unexp.filter(hasSym).length;
   const rE=(a+b)?a/(a+b):0, rU=(c+d2)?c/(c+d2):0;
@@ -953,21 +948,21 @@ function updateScientific(docs){
     se=Math.sqrt(b/(a*(a+b))+d2/(c*(c+d2)));
     lo=Math.exp(Math.log(rr)-1.96*se);hi=Math.exp(Math.log(rr)+1.96*se);
   }
-  document.getElementById('rr-v').textContent=rr?rr.toFixed(2)+'x':'–';
-  document.getElementById('rr-lo').textContent=lo?lo.toFixed(2)+'x':'–';
-  document.getElementById('rr-hi').textContent=hi?hi.toFixed(2)+'x':'–';
+  document.getElementById('rr-v').textContent=rr?rr.toFixed(2)+'x':'-';
+  document.getElementById('rr-lo').textContent=lo?lo.toFixed(2)+'x':'-';
+  document.getElementById('rr-hi').textContent=hi?hi.toFixed(2)+'x':'-';
   const rrI=document.getElementById('rr-interp');
-  if(rr&&lo&&hi)rrI.innerHTML=`Beboere inden for <strong>0–1 km</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. 10+ km. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 — kræver flere svar fra fjerneste zone.'}`;
-  else if(!(a+b)||!(c+d2))rrI.innerHTML='Mangler svar fra 0–1 km <em>eller</em> 10+ km for at beregne RR.';
-  else rrI.innerHTML=`0–1 km: ${(rE*100).toFixed(1)}% symptomer (n=${a+b}) &nbsp;|&nbsp; 10+ km: ${(rU*100).toFixed(1)}% symptomer (n=${c+d2}).`;
+  if(rr&&lo&&hi)rrI.innerHTML=`Beboere inden for <strong>0-1 km</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. 10+ km. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 — kræver flere svar fra fjerneste zone.'}`;
+  else if(!(a+b)||!(c+d2))rrI.innerHTML='Mangler svar fra 0-1 km <em>eller</em> 10+ km for at beregne RR.';
+  else rrI.innerHTML=`0-1 km: ${(rE*100).toFixed(1)}% symptomer (n=${a+b}) &nbsp;|&nbsp; 10+ km: ${(rU*100).toFixed(1)}% symptomer (n=${c+d2}).`;
   document.getElementById('rr-formula').textContent=
-    `RR = P(sym | 0–1 km) / P(sym | 10+ km)\n`+
-    `   = ${a}/${a+b} / ${c}/${c+d2} = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'–'}\n`+
+    `RR = P(sym | 0-1 km) / P(sym | 10+ km)\n`+
+    `   = ${a}/${a+b} / ${c}/${c+d2} = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'-'}\n`+
     (se?`SE(ln RR) = ${se.toFixed(4)}\n95% KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper.');
 
   // 3. Chi-squared (near 0-3km vs far 10+ km)
-  const near=docs.filter(d=>d.dist_band==='0–1 km'||d.dist_band==='1–3 km');
-  const far =docs.filter(d=>d.dist_band==='10–20 km'||d.dist_band==='20+ km');
+  const near=docs.filter(d=>d.dist_band==='0-1 km'||d.dist_band==='1-3 km');
+  const far =docs.filter(d=>d.dist_band==='10-20 km'||d.dist_band==='20+ km');
   const cA=near.filter(hasSym).length,cB=near.length-cA;
   const cC=far.filter(hasSym).length,cD=far.length-cC;
   const cN=cA+cB+cC+cD;
@@ -977,15 +972,15 @@ function updateScientific(docs){
   document.getElementById('chi-v').textContent=chi2.toFixed(2);
   document.getElementById('chi-p').textContent=pFmt(pv);
   const verd=document.getElementById('chi-verdict');
-  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>For få data endnu (n=${cN} i ydergrupperne)</strong><br>Del linket for at samle svar fra 0–3 km og 10+ km.</span></div>`;
+  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>For få data endnu (n=${cN} i ydergrupperne)</strong><br>Del linket for at samle svar fra 0-3 km og 10+ km.</span></div>`;
   else if(pv<0.001) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p < 0,001)</strong><br>Stærkt statistisk signifikant — sammenhængen er meget usandsynlig at skyldes tilfældighed.</span></div>`;
   else if(pv<0.05) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p = ${pFmt(pv)} &lt; 0,05)</strong><br>Statistisk signifikant sammenhæng mellem nærhed til lufthavnen og helbredsgener.</span></div>`;
   else verd.innerHTML=`<div class="verdict verdict-ns">⚠️ <span><strong>H₀ kan endnu ikke forkastes (p = ${pFmt(pv)})</strong><br>Endnu for få svar — resultat kan ændre sig markant med flere besvarelser.</span></div>`;
-  const rNear=(cA+cB)?`${(cA/(cA+cB)*100).toFixed(1)}%`:'–';
-  const rFar =(cC+cD)?`${(cC/(cC+cD)*100).toFixed(1)}%`:'–';
+  const rNear=(cA+cB)?`${(cA/(cA+cB)*100).toFixed(1)}%`:'-';
+  const rFar =(cC+cD)?`${(cC/(cC+cD)*100).toFixed(1)}%`:'-';
   document.getElementById('chi-tbl').innerHTML=`<table class="dose-table"><thead><tr>
     <th></th><th>Symptomer: Ja</th><th>Symptomer: Nej</th><th>I alt</th><th>Rate</th></tr></thead><tbody>
-    <tr><td class="dzone">Nær (0–3 km)</td><td>${cA}</td><td>${cB}</td><td>${cA+cB}</td><td class="drate">${rNear}</td></tr>
+    <tr><td class="dzone">Nær (0-3 km)</td><td>${cA}</td><td>${cB}</td><td>${cA+cB}</td><td class="drate">${rNear}</td></tr>
     <tr><td class="dzone">Fjern (10+ km)</td><td>${cC}</td><td>${cD}</td><td>${cC+cD}</td><td class="drate">${rFar}</td></tr>
     <tr style="font-weight:600"><td>I alt</td><td>${cA+cC}</td><td>${cB+cD}</td><td>${cN}</td><td></td></tr>
     </tbody></table>
@@ -994,8 +989,8 @@ function updateScientific(docs){
   // 4. Conclusion
   const withD=dd.filter(d=>d.n>=3);
   const hasGrad=withD.length>=2&&withD[0].rate>withD[withD.length-1].rate;
-  const rrStr=rr?rr.toFixed(2):'–';
-  const kiStr=(lo&&hi)?`[${lo.toFixed(2)}–${hi.toFixed(2)}]`:'[–]';
+  const rrStr=rr?rr.toFixed(2):'-';
+  const kiStr=(lo&&hi)?`[${lo.toFixed(2)}-${hi.toFixed(2)}]`:'[-]';
   document.getElementById('concl-body').innerHTML=`
   <p style="color:var(--muted);font-size:.88rem;line-height:1.8;margin-bottom:1rem">
     Analysen af <strong>${n} respondenter</strong> viser:</p>
