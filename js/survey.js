@@ -3,7 +3,8 @@
 // ════════════════════════════════════════════════════════════
 
 import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand,
-         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, DIRS8 } from './common.js';
+         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, DIRS8,
+         pointInPolygon } from './common.js';
 import { collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -22,20 +23,23 @@ L.circleMarker([AIRPORT.lat, AIRPORT.lng],
     .addTo(sMap)
 );
 addDirOverlay(sMap, 12, 21);
+let _airportGJData = null;
 loadAirportGeoJSON().then(gj => {
   if (!gj) return;
+  _airportGJData = gj;
   const airportPane = sMap.createPane('sAirportPane');
   airportPane.style.zIndex = 450;
-  L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.15, pane:'sAirportPane' },
+  L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.15 },
     pane:'sAirportPane' }).addTo(sMap);
 });
 
 let uMarker, _zoneHL;
 sMap.on('click', e => {
   const { lat, lng } = e.latlng;
-  const km   = haversineKm(AIRPORT, { lat, lng });
-  const dir  = toDir8(bearingDeg(AIRPORT, { lat, lng }));
-  const band = toBand(km);
+  const km  = haversineKm(AIRPORT, { lat, lng });
+  const dir = toDir8(bearingDeg(AIRPORT, { lat, lng }));
+  const isInsideAirport = _airportGJData ? pointInPolygon(lat, lng, _airportGJData) : km < 1.25;
+  const band = isInsideAirport ? EMPLOYEE_BAND : (km < 1.25 ? '1.25-3 km' : toBand(km));
   const isEmp = band === EMPLOYEE_BAND;
   console.log(`[Survey] Klik: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
 
@@ -63,12 +67,17 @@ sMap.on('click', e => {
   }
 
   if (_zoneHL) { _zoneHL.remove(); _zoneHL = null; }
-  const [inner, outer] = BAND_RADII[band];
-  const dirIdx = DIRS8.indexOf(dir);
-  _zoneHL = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
-    color: isEmp ? '#155a2e' : '#c0392b', weight: 2,
-    fillColor: isEmp ? '#155a2e' : '#c0392b', fillOpacity: .18, dashArray: '5 3'
-  }).addTo(sMap);
+  if (isEmp && _airportGJData) {
+    _zoneHL = L.geoJSON(_airportGJData, {
+      style:{ color:'#155a2e', weight:3, fillColor:'#155a2e', fillOpacity:.35, dashArray:'5 3' }
+    }).addTo(sMap);
+  } else {
+    const [inner, outer] = BAND_RADII[band];
+    const dirIdx = DIRS8.indexOf(dir);
+    _zoneHL = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
+      color:'#c0392b', weight:2, fillColor:'#c0392b', fillOpacity:.18, dashArray:'5 3'
+    }).addTo(sMap);
+  }
 
   if (uMarker) uMarker.remove();
   uMarker = L.circleMarker([lat, lng],

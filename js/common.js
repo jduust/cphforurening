@@ -125,6 +125,19 @@ export function sectorLatLngs(center, innerKm, outerKm, dirIndex, steps=24) {
     : [...arc(outerKm, s, e), [center.lat, center.lng]];
 }
 
+export function pointInPolygon(lat, lng, geojson) {
+  const ring = geojson?.features?.[0]?.geometry?.coordinates?.[0];
+  if (!ring) return false;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1]; // GeoJSON: [lng, lat]
+    const xj = ring[j][0], yj = ring[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi))
+      inside = !inside;
+  }
+  return inside;
+}
+
 export function addDirOverlay(map, labelKm, lineKm) {
   for (let i = 0; i < 8; i++) {
     /* jshint ignore:start */
