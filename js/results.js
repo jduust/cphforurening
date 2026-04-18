@@ -237,19 +237,72 @@ function updateAll(docs) {
     });
   }
 
-  // Onset chart
-  const OC = {}; resDocs.forEach(d=>{if(d.onset)OC[d.onset]=(OC[d.onset]||0)+1;});
-  const OO = ['Oplever ingen mærkbare gener','Før 2015','2015-2019','2020-2022',
-               '2023','2024','2025','Husker ikke præcist'];
-  const OL = OO.filter(k=>OC[k]);
+  // Onset chart — average onset year per distance band
+  // Map survey categories to representative year midpoints
+  const ONSET_YEAR = {
+    'Før 2015':   2013,
+    '2015-2019':  2017,
+    '2020-2022':  2021,
+    '2023':       2023,
+    '2024':       2024,
+    '2025':       2025,
+    '2026':       2026,
+    // 'Oplever ingen mærkbare gener' and 'Husker ikke præcist' are excluded
+  };
+  const bandYearLists = {};
+  RES_BANDS.forEach(b => bandYearLists[b] = []);
+  resDocs.forEach(d => {
+    const yr = ONSET_YEAR[d.onset];
+    if (yr && d.dist_band && bandYearLists[d.dist_band]) bandYearLists[d.dist_band].push(yr);
+  });
+  // Only include bands that have at least 1 usable onset answer
+  const onsetBands = AB.filter(b => bandYearLists[b].length > 0);
+  const onsetAvg = b => {
+    const arr = bandYearLists[b];
+    return arr.length ? Math.round(arr.reduce((s,v) => s+v, 0) / arr.length * 10) / 10 : null;
+  };
+  const allYears = onsetBands.map(onsetAvg).filter(Boolean);
+  const xMin = allYears.length ? Math.floor(Math.min(...allYears)) - 1 : 2012;
+  const xMax = 2026;
   del('onset');
   ch['onset'] = new Chart(document.getElementById('c-onset'), {
-    type:'bar',
-    data:{ labels:OL, datasets:[{data:OL.map(k=>OC[k]||0),backgroundColor:'#5e3a8c',borderRadius:4}] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f2f1ee'},
-                  title:{display:true,text:'Antal svar',font:{size:11}}},
-               x:{grid:{display:false}} } }
+    type: 'bar',
+    data:{
+      labels: onsetBands.map(b => `${b}  (n=${bandYearLists[b].length})`),
+      datasets:[{
+        data: onsetBands.map(onsetAvg),
+        backgroundColor: onsetBands.map((_, i) => {
+          const t = i / Math.max(onsetBands.length - 1, 1);
+          return `rgba(94,58,140,${(1 - t * 0.55).toFixed(2)})`;
+        }),
+        borderRadius: 4,
+        barThickness: 22,
+      }]
+    },
+    options:{
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins:{
+        legend:{ display: false },
+        tooltip:{ callbacks:{
+          label: c => {
+            const b = onsetBands[c.dataIndex];
+            const arr = bandYearLists[b];
+            const mn = Math.min(...arr), mx = Math.max(...arr);
+            return ` Gns. ${c.raw?.toFixed(1)}  ·  spredning ${mn}–${mx}  ·  ${arr.length} svar`;
+          }
+        }}
+      },
+      scales:{
+        x:{
+          min: xMin, max: xMax,
+          ticks:{ stepSize: 1, callback: v => v },
+          grid:{ color: '#f2f1ee' },
+          title:{ display: true, text: 'Gennemsnitligt årstal for debut af gener', font:{ size: 11 } }
+        },
+        y:{ grid:{ display: false }, ticks:{ font:{ size: 10 } } }
+      }
+    }
   });
 
   // ── Kronisk disease detail chart (all respondents) ──────────
