@@ -53,10 +53,16 @@ sMap.on('click', e => {
 
   const fb = document.getElementById('map-feedback');
 
-  document.getElementById('resident-sections').style.display = isEmp ? 'none' : 'block';
+  // Always show symptom sections; toggle nuisance subsections and extra cards
+  document.getElementById('resident-sections').style.display = 'block';
   document.getElementById('employee-notice').style.display  = isEmp ? 'block' : 'none';
+  document.getElementById('background-card').style.display  = isEmp ? 'none' : '';
+  document.getElementById('timing-card').style.display      = isEmp ? 'none' : '';
+  // Employees see symptom checkboxes only — hide nuisance subsections
+  document.querySelectorAll('.gen-subsection').forEach(el =>
+    el.style.display = isEmp ? 'none' : '');
   document.getElementById('kronisk-wrap').style.display     = isEmp ? 'block' : 'none';
-  // For residents: restore gating (years check overrides the above)
+  // For residents: kronisk gated by years (overrides above)
   if (!isEmp) {
     const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
     document.getElementById('kronisk-wrap').style.display =
@@ -103,12 +109,14 @@ document.querySelectorAll('input[name=kronisk]').forEach(cb => {
 });
 
 
-// ── Kronisk-sektion: vis kun ved ≥2 år på adressen ───────────
+// ── Kronisk-sektion: vis kun ved ≥2 år (beboere); altid for ansatte ──
 const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
 document.getElementById('f-years')?.addEventListener('change', e => {
-  const show = YEARS_FOR_KRONISK.has(e.target.value);
+  // Only gate if resident (employee flow always shows kronisk-wrap on map click)
+  const isEmpNow = document.getElementById('f-dist-band').value === EMPLOYEE_BAND;
+  if (isEmpNow) return;
   const wrap = document.getElementById('kronisk-wrap');
-  if (wrap) wrap.style.display = show ? 'block' : 'none';
+  if (wrap) wrap.style.display = YEARS_FOR_KRONISK.has(e.target.value) ? 'block' : 'none';
 });
 
 // ── Duplicate check ───────────────────────────────────────────
@@ -123,10 +131,11 @@ window.submitSurvey = async () => {
   if (!document.getElementById('f-dist-band').value) {
     alert('Klik venligst på kortet for at angive din placering'); return;
   }
-  if (!document.getElementById('f-years').value) {
+  const _isEmpSubmit = document.getElementById('f-dist-band').value === EMPLOYEE_BAND;
+  if (!_isEmpSubmit && !document.getElementById('f-years').value) {
     alert('Angiv venligst hvor længe du har boet på adressen'); return;
   }
-  if (!document.getElementById('f-onset').value) {
+  if (!_isEmpSubmit && !document.getElementById('f-onset').value) {
     alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
   }
   if (!db) { alert('Firebase ikke konfigureret endnu.'); return; }
@@ -135,7 +144,7 @@ window.submitSurvey = async () => {
   btn.disabled = true; btn.textContent = 'Sender …';
 
   const dist_band   = document.getElementById('f-dist-band').value;
-  const is_employee = dist_band === '0-1.25 km';
+  const is_employee = dist_band === EMPLOYEE_BAND;
 
   const stoj    = Array.from(document.querySelectorAll('input[name=stoj]:checked')).map(c=>c.value)
                   .concat(window._chips.stoj);

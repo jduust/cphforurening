@@ -44,31 +44,39 @@ export const BAND_MIDPOINTS = {
 export const DIRS8 = ['N','NØ','Ø','SØ','S','SV','V','NV'];
 export const COL   = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c', ansatte:'#155a2e' };
 
+// t:'sym' = actual health symptom (used in Bradford Hill / dose-response calculations)
+// t:'gen' = nuisance / behavioural impact (visualised separately, NOT used in RR/χ²/regression)
 export const ALL_SYMS = [
-  {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj'},
-  {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj'},
-  {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj'},
-  {v:'Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)',           k:'stoj'},
-  {v:'Tinnitus eller vedvarende ringen/brummen i ørerne',                    k:'stoj'},
-  {v:'Forhøjet stressniveau eller irritabilitet fra støjbelastning',         k:'stoj'},
-  {v:'Hovedpine eller trykfornemmelse ved kraftig flystøj',                  k:'stoj'},
-  {v:'Ubehag eller angstreaktioner ved kraftige flystøjshændelser',          k:'stoj'},
-  {v:'Forhindret i at føre samtale indendørs eller udendørs',                k:'stoj'},
-  {v:'Vejrtrækningsbesvær eller åndenød i hjemmet eller haven',              k:'luft'},
-  {v:'Vedvarende eller tilbagevendende hoste',                               k:'luft'},
-  {v:'Irritation i øjne, næse eller svælg',                                  k:'luft'},
-  {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft'},
-  {v:'Lugt af jetbrændstof indendørs eller i haven',                         k:'luft'},
-  {v:'Kvalme eller utilpashed ved lugtgener fra lufthavnen',                 k:'luft'},
-  {v:'Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet',       k:'luft'},
-  {v:'Begrænser udendørs ophold pga. luftkvalitet',                          k:'luft'},
-  {v:'Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening', k:'luft'},
-  {v:'Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft', k:'psyko'},
-  {v:'Vedvarende bekymring for eget eller families helbred pga. lufthavnen', k:'psyko'},
-  {v:'Søvnunderskud påvirker evnen til at arbejde eller studere',            k:'psyko'},
-  {v:'Følelse af magtesløshed over for myndighedernes passivitet',           k:'psyko'},
-  {v:'Seriøst overvejet at flytte pga. generne fra lufthavnen',              k:'psyko'},
-  {v:'Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne', k:'psyko'},
+  // ── Støj — symptomer ──────────────────────────────────────────
+  {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj', t:'sym'},
+  {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj', t:'sym'},
+  {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj', t:'sym'},
+  {v:'Tinnitus eller vedvarende ringen/brummen i ørerne',                    k:'stoj', t:'sym'},
+  {v:'Forhøjet stressniveau eller irritabilitet fra støjbelastning',         k:'stoj', t:'sym'},
+  {v:'Hovedpine eller trykfornemmelse ved kraftig flystøj',                  k:'stoj', t:'sym'},
+  {v:'Ubehag eller angstreaktioner ved kraftige flystøjshændelser',          k:'stoj', t:'sym'},
+  // ── Støj — gener (adfærdspåvirkning) ─────────────────────────
+  {v:'Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)',           k:'stoj', t:'gen'},
+  {v:'Forhindret i at føre samtale indendørs eller udendørs',                k:'stoj', t:'gen'},
+  // ── Luft — symptomer ──────────────────────────────────────────
+  {v:'Vejrtrækningsbesvær eller åndenød i hjemmet eller haven',              k:'luft', t:'sym'},
+  {v:'Vedvarende eller tilbagevendende hoste',                               k:'luft', t:'sym'},
+  {v:'Irritation i øjne, næse eller svælg',                                  k:'luft', t:'sym'},
+  {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft', t:'sym'},
+  {v:'Kvalme eller utilpashed ved lugtgener fra lufthavnen',                 k:'luft', t:'sym'},
+  {v:'Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening', k:'luft', t:'sym'},
+  // ── Luft — gener (adfærdspåvirkning) ─────────────────────────
+  {v:'Lugt af jetbrændstof indendørs eller i haven',                         k:'luft', t:'gen'},
+  {v:'Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet',       k:'luft', t:'gen'},
+  {v:'Begrænser udendørs ophold pga. luftkvalitet',                          k:'luft', t:'gen'},
+  // ── Psyko — symptomer ────────────────────────────────────────
+  {v:'Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne', k:'psyko', t:'sym'},
+  // ── Psyko — gener (adfærdspåvirkning) ────────────────────────
+  {v:'Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft', k:'psyko', t:'gen'},
+  {v:'Vedvarende bekymring for eget eller families helbred pga. lufthavnen', k:'psyko', t:'gen'},
+  {v:'Søvnunderskud påvirker evnen til at arbejde eller studere',            k:'psyko', t:'gen'},
+  {v:'Følelse af magtesløshed over for myndighedernes passivitet',           k:'psyko', t:'gen'},
+  {v:'Seriøst overvejet at flytte pga. generne fra lufthavnen',              k:'psyko', t:'gen'},
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -93,7 +101,20 @@ export function toBand(km)   {
   if (km < 20)   return '10-20 km';
   return '20+ km';
 }
-export function symCount(d)   { return (d.stoj?.length||0) + (d.luft?.length||0) + (d.psyko?.length||0); }
+// Pre-computed set of nuisance values — anything NOT in this set is treated as a symptom
+const _GEN_VALS = new Set(ALL_SYMS.filter(s => s.t === 'gen').map(s => s.v));
+
+// Counts only health symptoms (Bradford Hill / dose-response calculations use this)
+// Custom chips (user-typed, not in ALL_SYMS) are treated as symptoms by default
+export function symCount(d) {
+  return ['stoj','luft','psyko'].reduce((n, cat) =>
+    n + (d[cat]||[]).filter(v => !_GEN_VALS.has(v)).length, 0);
+}
+// Counts only nuisances / behavioural impacts (separate visualisation only)
+export function genCount(d) {
+  return ['stoj','luft','psyko'].reduce((n, cat) =>
+    n + (d[cat]||[]).filter(v => _GEN_VALS.has(v)).length, 0);
+}
 export function hasKronisk(d) { return d.kronisk?.length > 0 && !d.kronisk.every(v => v === 'Ingen relevante diagnoser at angive'); }
 export function isEmployee(d) { return !!(d.is_employee || d.dist_band === EMPLOYEE_BAND); }
 

@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════════════
 
 import { db, AIRPORT, DIST_BANDS, BAND_MIDPOINTS, DIRS8, COL,
-         ALL_SYMS, symCount, hasKronisk, isEmployee,
+         ALL_SYMS, symCount, genCount, hasKronisk, isEmployee,
          EMPLOYEE_BAND, registerResultsRefresh,
          destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay }
   from './common.js';
@@ -140,7 +140,9 @@ function updateAll(docs) {
         backgroundColor:'rgba(42,79,140,.15)', borderColor:'#2a4f8c',
         pointBackgroundColor:'#2a4f8c', pointRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ r:{ beginAtZero:true, ticks:{font:{size:9}}, pointLabels:{font:{size:11}} } } }
+      scales:{ r:{ beginAtZero:true,
+        ticks:{ font:{size:9}, stepSize:1, precision:0 },
+        pointLabels:{font:{size:11}} } } }
   });
 
   // Severity chart
@@ -157,8 +159,8 @@ function updateAll(docs) {
     ] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}} },
-      scales:{ y:{ min:1, max:5, ticks:{stepSize:1},
-                   title:{display:true,text:'Gns. alvorlighed 1-5',font:{size:10}}, grid:{color:'#f2f1ee'} },
+      scales:{ y:{ min:0, max:10, ticks:{stepSize:2},
+                   title:{display:true,text:'Gns. alvorlighed (0–10)',font:{size:10}}, grid:{color:'#f2f1ee'} },
                x:{ grid:{display:false}, ticks:{font:{size:9}} } } }
   });
 
@@ -177,10 +179,10 @@ function updateAll(docs) {
                x:{grid:{display:false}} } }
   });
 
-  // Symptom frequency (residents only, split by category)
-  const SC = {}; ALL_SYMS.forEach(s=>SC[s.v]=0);
+  // Symptom frequency (residents only — symptom-type items only)
+  const SC = {}; ALL_SYMS.filter(s=>s.t==='sym').forEach(s=>SC[s.v]=0);
   resDocs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in SC)SC[v]++;})));
-  const sorted = ALL_SYMS.map(s=>({...s, pct:n?Math.round(SC[s.v]/n*100):0})).sort((a,b)=>b.pct-a.pct);
+  const sorted = ALL_SYMS.filter(s=>s.t==='sym').map(s=>({...s, pct:n?Math.round(SC[s.v]/n*100):0})).sort((a,b)=>b.pct-a.pct);
   del('sym');
   ch['sym'] = new Chart(document.getElementById('c-sym'), {
     type:'bar',
@@ -194,10 +196,30 @@ function updateAll(docs) {
                   callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
   });
 
+  // Nuisance / behavioural-impact frequency (residents only)
+  const GC = {}; ALL_SYMS.filter(s=>s.t==='gen').forEach(s=>GC[s.v]=0);
+  resDocs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in GC)GC[v]++;})));
+  const sortedGen = ALL_SYMS.filter(s=>s.t==='gen').map(s=>({...s,pct:n?Math.round(GC[s.v]/n*100):0})).sort((a,b)=>b.pct-a.pct);
+  del('gen');
+  const genEl = document.getElementById('c-gen');
+  if (genEl) {
+    ch['gen'] = new Chart(genEl, {
+      type:'bar',
+      data:{ labels:sortedGen.map(s=>s.v),
+             datasets:[{ data:sortedGen.map(s=>s.pct), backgroundColor:sortedGen.map(s=>COL[s.k]), borderRadius:3 }] },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%  (${Math.round(c.raw*n/100)} ud af ${n})`}}},
+        scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},
+                    title:{display:true,text:'% af respondenter',font:{size:11}}},
+                 y:{grid:{display:false},ticks:{font:{size:10},
+                    callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
+    });
+  }
+
   // Onset chart
   const OC = {}; resDocs.forEach(d=>{if(d.onset)OC[d.onset]=(OC[d.onset]||0)+1;});
-  const OO = ['Før 2015','2015-2019','2020-2022','2023','2024','2025',
-               'Siden jeg flyttede til området','Oplever ingen mærkbare gener'];
+  const OO = ['Oplever ingen mærkbare gener','Før 2015','2015-2019','2020-2022',
+               '2023','2024','2025','Husker ikke præcist'];
   const OL = OO.filter(k=>OC[k]);
   del('onset');
   ch['onset'] = new Chart(document.getElementById('c-onset'), {
@@ -209,28 +231,31 @@ function updateAll(docs) {
                x:{grid:{display:false}} } }
   });
 
-  // ── Employee symptom chart ────────────────────────────────
-  const empSyms = {};
-  empDocs.forEach(d=>(d.ansatte||[]).forEach(v=>{empSyms[v]=(empSyms[v]||0)+1;}));
-  const empSorted = Object.entries(empSyms).sort((a,b)=>b[1]-a[1]);
+  // ── Employee symptom chart (sym-type items from stoj/luft/psyko) ──
+  const empSC = {}; ALL_SYMS.filter(s=>s.t==='sym').forEach(s=>empSC[s.v]=0);
+  empDocs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in empSC)empSC[v]++;})));
+  const empSorted = ALL_SYMS.filter(s=>s.t==='sym' && empSC[s.v]>0)
+    .map(s=>({...s, pct:nEmp?Math.round(empSC[s.v]/nEmp*100):0})).sort((a,b)=>b.pct-a.pct);
   const empEl = document.getElementById('c-ansatte');
   if (empEl) {
     del('ansatte');
     if (empSorted.length > 0) {
       ch['ansatte'] = new Chart(empEl, {
         type:'bar',
-        data:{ labels:empSorted.map(e=>e[0]),
-               datasets:[{data:empSorted.map(e=>nEmp?Math.round(e[1]/nEmp*100):0),
-                          backgroundColor:'rgba(21,90,46,.72)',borderRadius:3}] },
+        data:{ labels:empSorted.map(s=>s.v),
+               datasets:[{data:empSorted.map(s=>s.pct),
+                          backgroundColor:empSorted.map(s=>COL[s.k]),borderRadius:3}] },
         options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
           plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}% af ansatte`}}},
-          scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'}},
-                   y:{grid:{display:false},ticks:{font:{size:10}}} } }
+          scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},
+                      title:{display:true,text:'% af ansatte',font:{size:11}}},
+                   y:{grid:{display:false},ticks:{font:{size:10},
+                      callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
       });
     } else {
       empEl.style.display = 'none';
       const p = empEl.parentElement?.querySelector('.chart-sub');
-      if (p) p.textContent = 'Ingen ansattesymptomer indberettet endnu.';
+      if (p) p.textContent = 'Ingen symptomdata for ansatte endnu.';
     }
   }
 
@@ -271,7 +296,7 @@ function gammaIncP(a,x) {
 }
 function chiP(chi2,df) { return Math.max(0,Math.min(1,1-gammaIncP(df/2,chi2/2))); }
 function pFmt(p)       { return p<0.001?'< 0,001':p.toFixed(4); }
-function hasSym(d)     { return (d.stoj?.length||0)+(d.luft?.length||0)+(d.psyko?.length||0)>0; }
+function hasSym(d)     { return symCount(d) > 0; }
 
 // Weighted linear regression — returns {slope, intercept, r2}
 function weightedLinReg(xy) {
