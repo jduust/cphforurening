@@ -4,7 +4,8 @@
 
 import { db, AIRPORT, DIST_BANDS, BAND_MIDPOINTS, DIRS8, COL,
          ALL_SYMS, symCount, hasKronisk, isEmployee,
-         EMPLOYEE_BAND, registerResultsRefresh }
+         EMPLOYEE_BAND, registerResultsRefresh,
+         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay }
   from './common.js';
 import { collection, onSnapshot, query }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -24,37 +25,54 @@ function initResultsMap() {
     { radius:11, color:'#e8a020', fillColor:'#e8a020', fillOpacity:1, weight:2 })
     .bindTooltip('✈ CPH Lufthavn', { permanent:true, direction:'top', offset:[0,-14] })
     .addTo(rMap);
-  [1.25,3,5,10,20].forEach(km =>
+  [3,5,10,20].forEach(km =>
     L.circle([AIRPORT.lat, AIRPORT.lng],
-      { radius:km*1000, color: km===1.25?'#155a2e':'#2a4f8c',
-        weight:km===1.25?2:1.5, fillOpacity:.02, dashArray:'4 6' })
+      { radius:km*1000, color:'#2a4f8c', weight:1.5, fillOpacity:.02, dashArray:'4 6' })
       .addTo(rMap)
   );
+  addDirOverlay(rMap, 21, 21.5);
+  const airportPane = rMap.createPane('rAirportPane');
+  airportPane.style.zIndex = 450;
+  loadAirportGeoJSON().then(gj => {
+    if (!gj) return;
+    L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.2 },
+      pane:'rAirportPane' }).addTo(rMap);
+  });
 }
 
 function updateResultsMap(docs) {
   if (!rMap) { console.warn('[Results] Kort ikke initialiseret endnu.'); return; }
   if (window._rMarkers) window._rMarkers.forEach(m => m.remove());
   window._rMarkers = [];
+
+  const RES_BANDS = DIST_BANDS.filter(b => b !== EMPLOYEE_BAND);
   const zones = {};
   docs.forEach(d => {
-    if (!d.lat_z || !d.lng_z) return;
-    const k = `${d.lat_z}_${d.lng_z}`;
-    if (!zones[k]) zones[k] = { lat:d.lat_z, lng:d.lng_z, syms:[], n:0, emp:0 };
-    zones[k].syms.push(symCount(d)); zones[k].n++;
-    if (isEmployee(d)) zones[k].emp++;
+    if (!d.dist_band || !d.dir || !RES_BANDS.includes(d.dist_band)) return;
+    const k = `${d.dist_band}|${d.dir}`;
+    if (!zones[k]) zones[k] = { band:d.dist_band, dir:d.dir, syms:[], n:0 };
+    zones[k].syms.push(symCount(d));
+    zones[k].n++;
   });
+
   Object.values(zones).forEach(z => {
-    const avg = z.syms.reduce((a,b)=>a+b,0) / z.n;
-    const r   = Math.max(7, Math.min(30, z.n*5));
-    const t   = Math.min(avg/10, 1);
-    const col = `rgb(${Math.round(42+t*150)},${Math.round(79-t*36)},${Math.round(140-t*97)})`;
-    const m   = L.circleMarker([z.lat, z.lng],
-      { radius:r, color:'white', weight:1.5, fillColor:col, fillOpacity:.78 })
-      .bindPopup(`<b>${z.n} svar</b> i denne zone<br>Gns. <b>${avg.toFixed(1)}</b> symptomer${z.emp?`<br><em>${z.emp} ansat(te)</em>`:''}`)
-      .addTo(rMap);
+    const avg    = z.syms.reduce((a,b)=>a+b,0) / z.n;
+    const t      = Math.min(avg / 10, 1);
+    const col    = `rgb(${Math.round(42+t*150)},${Math.round(79-t*36)},${Math.round(140-t*97)})`;
+    const dirIdx = DIRS8.indexOf(z.dir);
+    if (dirIdx < 0) return;
+    const [inner, outer] = BAND_RADII[z.band] || [0, 3];
+    const pct  = Math.round(z.syms.filter(s=>s>0).length / z.n * 100);
+    const m = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
+      color:'white', weight:1, fillColor:col, fillOpacity:.68
+    }).bindPopup(
+      `<b>${z.band}</b> &nbsp;·&nbsp; retning <b>${z.dir}</b><br>` +
+      `${z.n} svar &nbsp;·&nbsp; gns. <b>${avg.toFixed(1)}</b> symptomer<br>` +
+      `${pct}% med mindst ét symptom`
+    ).addTo(rMap);
     window._rMarkers.push(m);
   });
+
   console.log(`[Results] Kort opdateret: ${Object.keys(zones).length} zoner.`);
 }
 

@@ -95,6 +95,65 @@ export function symCount(d)   { return (d.stoj?.length||0) + (d.luft?.length||0)
 export function hasKronisk(d) { return d.kronisk?.length > 0 && !d.kronisk.every(v => v === 'Ingen af ovenstående'); }
 export function isEmployee(d) { return !!(d.is_employee || d.dist_band === EMPLOYEE_BAND); }
 
+// ── Zone geometry helpers ─────────────────────────────────────
+export const BAND_RADII = {
+  '0-1.25 km':  [0,     1.25],
+  '1.25-3 km':  [1.25,  3   ],
+  '3-5 km':     [3,     5   ],
+  '5-10 km':    [5,     10  ],
+  '10-20 km':   [10,    20  ],
+  '20+ km':     [20,    25  ],
+};
+
+export function destPoint(center, km, bearingDeg) {
+  const R = 6371, d = km / R, b = bearingDeg * Math.PI / 180;
+  const φ1 = center.lat * Math.PI / 180, λ1 = center.lng * Math.PI / 180;
+  const φ2 = Math.asin(Math.sin(φ1)*Math.cos(d) + Math.cos(φ1)*Math.sin(d)*Math.cos(b));
+  const λ2 = λ1 + Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(φ1), Math.cos(d)-Math.sin(φ1)*Math.sin(φ2));
+  return [φ2*180/Math.PI, λ2*180/Math.PI];
+}
+
+export function sectorLatLngs(center, innerKm, outerKm, dirIndex, steps=24) {
+  const s = dirIndex * 45 - 22.5, e = dirIndex * 45 + 22.5;
+  const arc = (r, from, to) => {
+    const pts = [];
+    for (let i = 0; i <= steps; i++) pts.push(destPoint(center, r, from + (to-from)*i/steps));
+    return pts;
+  };
+  return innerKm > 0.1
+    ? [...arc(outerKm, s, e), ...arc(innerKm, e, s)]
+    : [...arc(outerKm, s, e), [center.lat, center.lng]];
+}
+
+export function addDirOverlay(map, labelKm, lineKm) {
+  for (let i = 0; i < 8; i++) {
+    /* jshint ignore:start */
+    L.polyline([[AIRPORT.lat, AIRPORT.lng], destPoint(AIRPORT, lineKm, i * 45 + 22.5)],
+      { color:'#5a6880', weight:.8, dashArray:'3 5', opacity:.45, interactive:false }).addTo(map);
+    /* jshint ignore:end */
+  }
+  DIRS8.forEach((dir, i) => {
+    const pos = destPoint(AIRPORT, labelKm, i * 45);
+    L.marker(pos, {
+      icon: L.divIcon({ html:`<div class="dir-label">${dir}</div>`, className:'', iconSize:[32,20], iconAnchor:[16,10] }),
+      interactive: false
+    }).addTo(map);
+  });
+}
+
+let _airportGJ = null;
+export async function loadAirportGeoJSON() {
+  if (_airportGJ !== null) return _airportGJ;
+  try {
+    const r = await fetch('./airport.geojson');
+    _airportGJ = await r.json();
+  } catch(e) {
+    console.warn('[Airport GeoJSON] Load failed:', e.message);
+    _airportGJ = false;
+  }
+  return _airportGJ;
+}
+
 // ── Tab navigation ────────────────────────────────────────────
 let _refreshResults = null;
 export function registerResultsRefresh(fn) { _refreshResults = fn; }

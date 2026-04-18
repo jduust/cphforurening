@@ -2,7 +2,8 @@
 //  survey.js  —  Spørgeskema: kort, formular, chips, indsendelse
 // ════════════════════════════════════════════════════════════
 
-import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand } from './common.js';
+import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand,
+         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, DIRS8 } from './common.js';
 import { collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -15,20 +16,27 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 L.circleMarker([AIRPORT.lat, AIRPORT.lng],
   { radius: 9, color: '#e8a020', fillColor: '#e8a020', fillOpacity: 1, weight: 2 })
   .bindTooltip('✈ CPH Lufthavn', { permanent: false }).addTo(sMap);
-[1.25,3,5,10,20].forEach(km =>
+[3,5,10,20].forEach(km =>
   L.circle([AIRPORT.lat, AIRPORT.lng],
-    { radius: km * 1000, color: '#2a4f8c', weight: km===1.25?2:1,
-      fillOpacity: km===1.25?.06:.02, dashArray: km===1.25?'6 4':'4 5',
-      color: km===1.25?'#155a2e':'#2a4f8c' })
+    { radius: km * 1000, color: '#2a4f8c', weight: 1, fillOpacity: .02, dashArray: '4 5' })
     .addTo(sMap)
 );
+addDirOverlay(sMap, 12, 21);
+loadAirportGeoJSON().then(gj => {
+  if (!gj) return;
+  const airportPane = sMap.createPane('sAirportPane');
+  airportPane.style.zIndex = 450;
+  L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.15, pane:'sAirportPane' },
+    pane:'sAirportPane' }).addTo(sMap);
+});
 
-let uMarker;
+let uMarker, _zoneHL;
 sMap.on('click', e => {
   const { lat, lng } = e.latlng;
   const km   = haversineKm(AIRPORT, { lat, lng });
   const dir  = toDir8(bearingDeg(AIRPORT, { lat, lng }));
   const band = toBand(km);
+  const isEmp = band === EMPLOYEE_BAND;
   console.log(`[Survey] Klik: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
 
   ['f-dist-band','f-dist-km','f-dir','f-lat-z','f-lng-z'].forEach((id, i) => {
@@ -41,10 +49,9 @@ sMap.on('click', e => {
 
   const fb = document.getElementById('map-feedback');
 
-  if (band === EMPLOYEE_BAND) {
+  if (isEmp) {
     fb.innerHTML = `✈️ <strong>Ansatzone (0–1,25 km).</strong> Du placerer dig i lufthavnens umiddelbare nærhed — denne zone antages at indeholde ansatte, ikke beboere. Din besvarelse behandles som <em>erhvervseksponering</em>, ikke som naboeksponering. Korrekt, hvis du arbejder i lufthavnen.`;
     fb.className = 'employee-notice';
-    // Auto-tjek ansatte-checkboxen
     const empCb = document.getElementById('f-is-employee');
     if (empCb && !empCb.checked) {
       empCb.checked = true;
@@ -55,8 +62,15 @@ sMap.on('click', e => {
     fb.className = 'ok';
   }
 
+  if (_zoneHL) { _zoneHL.remove(); _zoneHL = null; }
+  const [inner, outer] = BAND_RADII[band];
+  const dirIdx = DIRS8.indexOf(dir);
+  _zoneHL = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
+    color: isEmp ? '#155a2e' : '#c0392b', weight: 2,
+    fillColor: isEmp ? '#155a2e' : '#c0392b', fillOpacity: .18, dashArray: '5 3'
+  }).addTo(sMap);
+
   if (uMarker) uMarker.remove();
-  const isEmp = band === EMPLOYEE_BAND;
   uMarker = L.circleMarker([lat, lng],
     { radius: 9, color: isEmp?'#155a2e':'#c0392b',
       fillColor: isEmp?'#155a2e':'#c0392b', fillOpacity: .9, weight: 2 })
