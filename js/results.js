@@ -12,6 +12,27 @@ import { collection, onSnapshot, query }
 
 console.log('[Results] Modul indlæst.');
 
+// Ordered from most to least alarming — controls chart sort and colors
+const KRONISK_ITEMS = [
+  // ── Kræft ───────────────────────────────────────────────────
+  {s:'Lungekræft',                     full:'Lungekræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Blærekræft',                     full:'Blærekræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Brystkræft',                     full:'Brystkræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Anden kræfttype',                full:'Anden kræfttype — diagnosticeret efter flytning hertil', prefix:true,                grp:'Kræft',      col:'#5c0a0a'},
+  // ── Hjerte-kar ──────────────────────────────────────────────
+  {s:'Slagtilfælde',                   full:'Slagtilfælde — diagnosticeret efter flytning hertil',                                grp:'Hjerte-kar', col:'#922020'},
+  {s:'Iskæmisk hjertesygdom / infarkt',full:'Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret efter flytning hertil',  grp:'Hjerte-kar', col:'#922020'},
+  {s:'Hjertearytmi',                   full:'Hjertearytmi — nyopstået efter flytning hertil',                                    grp:'Hjerte-kar', col:'#922020'},
+  {s:'Hypertension (nyopstået)',       full:'Hypertension (forhøjet blodtryk) — nyopstået efter flytning hertil',               grp:'Hjerte-kar', col:'#922020'},
+  // ── Luftveje ────────────────────────────────────────────────
+  {s:'KOL / kronisk bronkitis',        full:'KOL eller kronisk bronkitis — nyopstået efter flytning hertil',                     grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma — barn (nyopstået)',       full:'Astma hos hjemmeboende barn — nyopstået efter flytning hertil',                    grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma (nyopstået)',              full:'Astma — nyopstået efter flytning til adressen',                                     grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma (tydeligt forværret)',     full:'Astma — eksisterede, men tydeligt forværret efter flytning hertil',                 grp:'Luftveje',   col:'#2a4f8c'},
+  // ── Øvrige ──────────────────────────────────────────────────
+  {s:'Diabetes type 2 (nyopstået)',    full:'Diabetes type 2 — nyopstået efter flytning hertil',                                 grp:'Øvrige',     col:'#5a6880'},
+];
+
 let _latestDocs = null;
 
 // ── Results map ───────────────────────────────────────────────
@@ -231,31 +252,103 @@ function updateAll(docs) {
                x:{grid:{display:false}} } }
   });
 
-  // ── Employee symptom chart (sym-type items from stoj/luft/psyko) ──
-  const empSC = {}; ALL_SYMS.filter(s=>s.t==='sym').forEach(s=>empSC[s.v]=0);
-  empDocs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in empSC)empSC[v]++;})));
-  const empSorted = ALL_SYMS.filter(s=>s.t==='sym' && empSC[s.v]>0)
-    .map(s=>({...s, pct:nEmp?Math.round(empSC[s.v]/nEmp*100):0})).sort((a,b)=>b.pct-a.pct);
-  const empEl = document.getElementById('c-ansatte');
-  if (empEl) {
-    del('ansatte');
-    if (empSorted.length > 0) {
-      ch['ansatte'] = new Chart(empEl, {
+  // ── Kronisk disease detail chart (all respondents) ──────────
+  const nAll = docs.length;
+  const kDetail = KRONISK_ITEMS.map(item => {
+    const cnt = docs.reduce((acc, d) =>
+      acc + ((d.kronisk||[]).some(v => item.prefix ? v.startsWith(item.full) : v === item.full) ? 1 : 0), 0);
+    return { ...item, cnt, pct: nAll ? +(cnt / nAll * 100).toFixed(1) : 0 };
+  });
+
+  // Group-level counts (one person may have multiple conditions, count unique respondents per group)
+  const GRP_META = [
+    { g:'Kræft',      col:'#5c0a0a', bg:'#fde8e8', label:'Kræft' },
+    { g:'Hjerte-kar', col:'#922020', bg:'#fdf0ec', label:'Hjerte-kar' },
+    { g:'Luftveje',   col:'#2a4f8c', bg:'#eaf1fc', label:'Luftveje' },
+    { g:'Øvrige',     col:'#5a6880', bg:'#f2f4f7', label:'Øvrige' },
+  ];
+  const grpCounts = {};
+  GRP_META.forEach(({ g }) => {
+    const grpItems = kDetail.filter(k => k.grp === g);
+    grpCounts[g] = docs.filter(d =>
+      grpItems.some(item => (d.kronisk||[]).some(v => item.prefix ? v.startsWith(item.full) : v === item.full))
+    ).length;
+  });
+  const totalWithAny = docs.filter(d =>
+    kDetail.some(item => (d.kronisk||[]).some(v => item.prefix ? v.startsWith(item.full) : v === item.full))
+  ).length;
+
+  // Inject summary alarm box
+  const summaryEl = document.getElementById('kd-summary');
+  if (summaryEl) {
+    if (nAll > 0 && totalWithAny > 0) {
+      summaryEl.innerHTML = `
+        <div style="background:#fdf0f0;border:1px solid #e0a0a0;border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
+          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7b0000;margin-bottom:.7rem">
+            ⚠ ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)}%) rapporterer én eller flere af nedenstående diagnoser — opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+            ${GRP_META.map(m => `
+              <div style="text-align:center;padding:.65rem .4rem;background:white;border-radius:3px;border-top:3px solid ${m.col}">
+                <div style="font-size:1.45rem;font-weight:700;color:${m.col};line-height:1.1">${grpCounts[m.g]}</div>
+                <div style="font-size:.68rem;color:${m.col};font-weight:600;margin-top:.15rem">${(nAll?grpCounts[m.g]/nAll*100:0).toFixed(1)}%</div>
+                <div style="font-size:.62rem;color:#888;margin-top:.1rem">${m.label}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    } else if (nAll > 0) {
+      summaryEl.innerHTML = '';
+    }
+  }
+
+  // Only show items with at least 1 report (keeps chart clean)
+  const kVisible = kDetail.filter(k => k.cnt > 0);
+  del('kronisk-detail');
+  const kdEl = document.getElementById('c-kronisk-detail');
+  if (kdEl) {
+    if (kVisible.length > 0) {
+      kdEl.style.display = '';
+      // Dynamic height: min 160px, then ~38px per item
+      kdEl.parentElement.style.height = Math.max(160, kVisible.length * 38 + 50) + 'px';
+      // Build group-prefixed labels for visual grouping
+      const groupedLabels = kVisible.map((k, i) => {
+        const prev = kVisible[i-1];
+        return (!prev || prev.grp !== k.grp) ? `[${k.grp}]  ${k.s}` : k.s;
+      });
+      ch['kronisk-detail'] = new Chart(kdEl, {
         type:'bar',
-        data:{ labels:empSorted.map(s=>s.v),
-               datasets:[{data:empSorted.map(s=>s.pct),
-                          backgroundColor:empSorted.map(s=>COL[s.k]),borderRadius:3}] },
+        data:{
+          labels: groupedLabels,
+          datasets:[{
+            data: kVisible.map(k => k.pct),
+            backgroundColor: kVisible.map(k => k.col),
+            borderRadius: 3,
+            barThickness: 20,
+          }]
+        },
         options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}% af ansatte`}}},
-          scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},
-                      title:{display:true,text:'% af ansatte',font:{size:11}}},
-                   y:{grid:{display:false},ticks:{font:{size:10},
-                      callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:c=>{
+              const k=kVisible[c.dataIndex];
+              return ` ${k.cnt} respondenter · ${c.raw}% af alle (n=${nAll})`;
+            }, title:c=>kVisible[c[0].dataIndex].s }}
+          },
+          scales:{
+            x:{ min:0, ticks:{callback:v=>v+'%'}, grid:{color:'#f2f1ee'},
+                title:{display:true,text:'% af alle respondenter',font:{size:10}} },
+            y:{ grid:{display:false}, ticks:{font:{size:10.5}, color:ctx=>{
+                  const lbl = groupedLabels[ctx.index]||'';
+                  return lbl.startsWith('[') ? '#5c0a0a' : '#0d1e36';
+                }}}
+          }
+        }
       });
     } else {
-      empEl.style.display = 'none';
-      const p = empEl.parentElement?.querySelector('.chart-sub');
-      if (p) p.textContent = 'Ingen symptomdata for ansatte endnu.';
+      kdEl.style.display = 'none';
+      const p = kdEl.parentElement?.previousElementSibling;
+      if (p?.classList.contains('chart-sub'))
+        p.textContent = 'Ingen kroniske sygdomme indberettet endnu.';
     }
   }
 
@@ -264,19 +357,14 @@ function updateAll(docs) {
 
 // ── Datalists ─────────────────────────────────────────────────
 function populateDataLists(docs) {
-  const sets = {stoj:new Set(),luft:new Set(),psyko:new Set(),kronisk:new Set(),ansatte:new Set()};
-  const PRE_STOJ   = new Set(['Søvnbesvær / svært ved at falde i søvn','Tidlig opvågning eller fragmenteret søvn pga. støj','Konstant træthed pga. forstyrret søvn','Koncentrationsbesvær (hjemmearbejde / lektier)','Tinnitus / konstant ringen eller brummen i ørerne','Hovedpine fra støj','Stress og irritabilitet fra vedvarende støjniveau']);
-  const PRE_LUFT   = new Set(['Vejtrækningsbesvær / åndenød','Vedvarende eller tilbagevendende hoste','Irritation i øjne, næse eller svælg','Løbende næse / hyppige forkølelseslignende symptomer','Kvalme ved lugtgener fra jetbrændstof','Hovedpine fra luftforurening eller lugt','Kan ikke lufte hjemmet pga. lugtgener','Holder børn inde pga. dårlig udeluft','Forværring af eksisterende luftvejssygdom ved lugtgener']);
-  const PRE_PSYKO  = new Set(['Betydelig forringelse af livskvalitet','Magtesløshed ift. myndighedernes passivitet','Bekymringer for min eller familiens langsigtede helbred','Søvnmanglen påvirker min arbejds- eller skoleevne','Overvejer kraftigt at flytte alene pga. lufthavnen','Kender naboer hvis hussalg er mislykket pga. støj eller lugt']);
-  const PRE_ANSAT  = new Set(['Kerosindampe / brændstofdampe på arbejdspladsen','Kraftig støjeksponering tæt på fly og motorer','Vibrationsgener fra fly eller ground equipment','Hudirritationer eller øjenirritationer pga. arbejdsmiljø','Hørenedsættelse/tinnitus relateret til arbejde','Kroniske luftvejsproblemer relateret til arbejde']);
+  const sets = {stoj:new Set(),luft:new Set(),psyko:new Set(),kronisk:new Set()};
   docs.forEach(d => {
-    (d.stoj  ||[]).filter(v=>!PRE_STOJ.has(v)).forEach(v=>sets.stoj.add(v));
-    (d.luft  ||[]).filter(v=>!PRE_LUFT.has(v)).forEach(v=>sets.luft.add(v));
-    (d.psyko ||[]).filter(v=>!PRE_PSYKO.has(v)).forEach(v=>sets.psyko.add(v));
+    (d.stoj  ||[]).forEach(v=>sets.stoj.add(v));
+    (d.luft  ||[]).forEach(v=>sets.luft.add(v));
+    (d.psyko ||[]).forEach(v=>sets.psyko.add(v));
     (d.kronisk||[]).forEach(v=>sets.kronisk.add(v));
-    (d.ansatte||[]).filter(v=>!PRE_ANSAT.has(v)).forEach(v=>sets.ansatte.add(v));
   });
-  ['stoj','luft','psyko','kronisk','ansatte'].forEach(cat => {
+  ['stoj','luft','psyko','kronisk'].forEach(cat => {
     const dl = document.getElementById(`dl-${cat}`);
     if (dl) dl.innerHTML=[...sets[cat]].sort().map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join('');
   });

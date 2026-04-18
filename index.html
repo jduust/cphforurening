@@ -531,6 +531,22 @@ details[open] summary{color:var(--text)}
     <div class="chart-wrap" style="height:260px"><canvas id="c-kronisk"></canvas></div>
   </div>
 
+  <div class="card" style="border:2px solid #c03030">
+    <div class="card-title" style="border-bottom-color:#e0c0c0;color:#7b0000">
+      ⚠ Lægediagnosticerede sygdomme — opstået efter flytning til området
+      <span class="analysis-badge" style="background:#fdf0f0;color:#7b0000;border-color:#e0a0a0">Alle respondenter</span>
+    </div>
+    <div class="chart-sub">Alle angivne tilstande er <strong>lægediagnosticerede</strong> og opstod <strong>efter</strong> flytning til denne adresse. Lungekræft, hjertesygdom og slagtilfælde er de stærkest evidensbaserede endpoints for kronisk støj- og luftforureningseksponering (WHO, HYENA-studiet, Health Effects Institute). Selv 1–2% udgør en markant overrepræsentation: den alderstandardiserede baggrundsrate for lungekræft i Danmark er ~0,15% pr. år — enhver koncentration i et geografisk defineret nærområde er et alvorligt signal.</div>
+    <div id="kd-summary"></div>
+    <div class="leg-row">
+      <span class="leg"><span class="leg-dot" style="background:#5c0a0a"></span>Kræft</span>
+      <span class="leg"><span class="leg-dot" style="background:#922020"></span>Hjerte-kar</span>
+      <span class="leg"><span class="leg-dot" style="background:#2a4f8c"></span>Luftveje</span>
+      <span class="leg"><span class="leg-dot" style="background:#5a6880"></span>Øvrige</span>
+    </div>
+    <div class="chart-wrap" style="height:200px"><canvas id="c-kronisk-detail"></canvas></div>
+  </div>
+
   <div class="card">
     <div class="card-title">Symptomhyppighed — beboere
       <span class="analysis-badge">Kun kliniske symptomer</span>
@@ -555,17 +571,6 @@ details[open] summary{color:var(--text)}
       <span class="leg"><span class="leg-dot" style="background:var(--psyko)"></span>Psykosocialt</span>
     </div>
     <div class="chart-wrap" style="height:280px"><canvas id="c-gen"></canvas></div>
-  </div>
-
-  <!-- ✈️ Ansatte-afsnit -->
-  <div class="sci-divider"><span>Ansatte i lufthavnen</span></div>
-  <div class="card" style="border:1px solid #9fd8b8">
-    <div class="card-title" style="border-bottom-color:#c0e8cc">
-      Symptomer hos ansatte i lufthavnen
-      <span class="gun-badge emp-badge">Separat analyse</span>
-    </div>
-    <div class="chart-sub">Ansatte i lufthavnsområdet behandles adskilt fra beboere, da de er udsat for direkte erhvervseksponering. Disse data indgår <em>ikke</em> i beboeranalyserne ovenfor.</div>
-    <div class="chart-wrap" style="height:280px"><canvas id="c-ansatte"></canvas></div>
   </div>
 
   <div class="card">
