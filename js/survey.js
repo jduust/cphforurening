@@ -2,8 +2,7 @@
 //  survey.js  —  Spørgeskema: kort, formular, chips, indsendelse
 // ════════════════════════════════════════════════════════════
 
-import { db }                                              from './common.js';
-import { AIRPORT, haversineKm, bearingDeg, toDir8, toBand } from './common.js';
+import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand } from './common.js';
 import { collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -16,9 +15,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 L.circleMarker([AIRPORT.lat, AIRPORT.lng],
   { radius: 9, color: '#e8a020', fillColor: '#e8a020', fillOpacity: 1, weight: 2 })
   .bindTooltip('✈ CPH Lufthavn', { permanent: false }).addTo(sMap);
-[1,3,5,10,20].forEach(km =>
+[1.25,3,5,10,20].forEach(km =>
   L.circle([AIRPORT.lat, AIRPORT.lng],
-    { radius: km * 1000, color: '#2a4f8c', weight: 1, fillOpacity: .02, dashArray: '4 5' })
+    { radius: km * 1000, color: '#2a4f8c', weight: km===1.25?2:1,
+      fillOpacity: km===1.25?.06:.02, dashArray: km===1.25?'6 4':'4 5',
+      color: km===1.25?'#155a2e':'#2a4f8c' })
     .addTo(sMap)
 );
 
@@ -28,7 +29,8 @@ sMap.on('click', e => {
   const km   = haversineKm(AIRPORT, { lat, lng });
   const dir  = toDir8(bearingDeg(AIRPORT, { lat, lng }));
   const band = toBand(km);
-  console.log(`[Survey] Klik på kort: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
+  console.log(`[Survey] Klik: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
+
   ['f-dist-band','f-dist-km','f-dir','f-lat-z','f-lng-z'].forEach((id, i) => {
     document.getElementById(id).value = [
       band, km.toFixed(2), dir,
@@ -36,14 +38,37 @@ sMap.on('click', e => {
       (Math.round(lng*100)/100).toFixed(2)
     ][i];
   });
+
   const fb = document.getElementById('map-feedback');
-  fb.textContent = `📍 ${band} fra lufthavnen · Retning: ${dir} (${km.toFixed(1)} km)`;
-  fb.className = 'ok';
+
+  if (band === EMPLOYEE_BAND) {
+    fb.innerHTML = `✈️ <strong>Ansatzone (0–1,25 km).</strong> Du placerer dig i lufthavnens umiddelbare nærhed — denne zone antages at indeholde ansatte, ikke beboere. Din besvarelse behandles som <em>erhvervseksponering</em>, ikke som naboeksponering. Korrekt, hvis du arbejder i lufthavnen.`;
+    fb.className = 'employee-notice';
+    // Auto-tjek ansatte-checkboxen
+    const empCb = document.getElementById('f-is-employee');
+    if (empCb && !empCb.checked) {
+      empCb.checked = true;
+      empCb.dispatchEvent(new Event('change'));
+    }
+  } else {
+    fb.textContent = `📍 ${band} fra lufthavnen · Retning: ${dir} (${km.toFixed(1)} km)`;
+    fb.className = 'ok';
+  }
+
   if (uMarker) uMarker.remove();
+  const isEmp = band === EMPLOYEE_BAND;
   uMarker = L.circleMarker([lat, lng],
-    { radius: 9, color: '#c0392b', fillColor: '#c0392b', fillOpacity: .9, weight: 2 })
-    .bindTooltip(`${band} · ${dir}`, { permanent: true, direction: 'top', offset: [0,-12] })
+    { radius: 9, color: isEmp?'#155a2e':'#c0392b',
+      fillColor: isEmp?'#155a2e':'#c0392b', fillOpacity: .9, weight: 2 })
+    .bindTooltip(isEmp ? `✈️ Ansatzone · ${dir}` : `${band} · ${dir}`,
+      { permanent: true, direction: 'top', offset: [0,-12] })
     .addTo(sMap);
+});
+
+// ── Ansatte toggle ────────────────────────────────────────────
+document.getElementById('f-is-employee')?.addEventListener('change', e => {
+  const wrap = document.getElementById('ansatte-symp-wrap');
+  if (wrap) wrap.style.display = e.target.checked ? 'block' : 'none';
 });
 
 // ── "Anden kræft" toggle ──────────────────────────────────────
@@ -67,9 +92,9 @@ document.querySelectorAll('input[name=kronisk]').forEach(cb => {
 
 // ── Duplicate check ───────────────────────────────────────────
 if (localStorage.getItem('lh_v3_done')) {
-  console.log('[Survey] Bruger har allerede besvaret (localStorage flag fundet).');
-  document.getElementById('notice-done').style.display  = 'block';
-  document.getElementById('form-wrap').style.display    = 'none';
+  console.log('[Survey] Allerede besvaret (localStorage).');
+  document.getElementById('notice-done').style.display = 'block';
+  document.getElementById('form-wrap').style.display   = 'none';
 }
 
 // ── Submit ────────────────────────────────────────────────────
@@ -80,24 +105,30 @@ window.submitSurvey = async () => {
   if (!document.getElementById('f-onset').value) {
     alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
   }
-  if (!db) { alert('Firebase ikke konfigureret endnu. Se README.md'); return; }
+  if (!db) { alert('Firebase ikke konfigureret endnu.'); return; }
 
   const btn = document.getElementById('btn-sub');
   btn.disabled = true; btn.textContent = 'Sender …';
-  console.log('[Survey] Indsender svar til Firestore…');
 
-  const stoj    = Array.from(document.querySelectorAll('input[name=stoj]:checked')).map(c => c.value)
+  const is_employee = !!(document.getElementById('f-is-employee')?.checked);
+
+  const stoj    = Array.from(document.querySelectorAll('input[name=stoj]:checked')).map(c=>c.value)
                   .concat(window._chips.stoj);
-  const luft    = Array.from(document.querySelectorAll('input[name=luft]:checked')).map(c => c.value)
+  const luft    = Array.from(document.querySelectorAll('input[name=luft]:checked')).map(c=>c.value)
                   .concat(window._chips.luft);
-  const psyko   = Array.from(document.querySelectorAll('input[name=psyko]:checked')).map(c => c.value)
+  const psyko   = Array.from(document.querySelectorAll('input[name=psyko]:checked')).map(c=>c.value)
                   .concat(window._chips.psyko);
-  const kronisk = Array.from(document.querySelectorAll('input[name=kronisk]:checked')).map(c => c.value)
+  const kronisk = Array.from(document.querySelectorAll('input[name=kronisk]:checked')).map(c=>c.value)
                   .concat(window._chips.kronisk);
-  const cType   = document.getElementById('f-cancer-type').value.trim();
-  if (cType) { const i = kronisk.indexOf('Anden kræfttype'); if (i > -1) kronisk[i] = `Anden kræft: ${cType}`; }
+  const ansatte = is_employee
+    ? Array.from(document.querySelectorAll('input[name=ansatte]:checked')).map(c=>c.value)
+      .concat(window._chips.ansatte)
+    : [];
 
-  console.log('[Survey] Data:', { stoj, luft, psyko, kronisk });
+  const cType = document.getElementById('f-cancer-type').value.trim();
+  if (cType) { const i=kronisk.indexOf('Anden kræfttype'); if(i>-1) kronisk[i]=`Anden kræft: ${cType}`; }
+
+  console.log('[Survey] Indsender:', { is_employee, stoj, luft, psyko, kronisk, ansatte });
 
   try {
     const ref = await addDoc(collection(db, 'responses'), {
@@ -109,46 +140,45 @@ window.submitSurvey = async () => {
       years:     document.getElementById('f-years').value    || null,
       age:       document.getElementById('f-age').value      || null,
       kids:      document.getElementById('f-kids').value     || null,
-      stoj, luft, kronisk, psyko,
-      stoj_sev:  stoj.length  ? parseInt(document.getElementById('stoj-sev').value) : null,
-      luft_sev:  luft.length  ? parseInt(document.getElementById('luft-sev').value) : null,
+      is_employee,
+      stoj, luft, kronisk, psyko, ansatte,
+      stoj_sev:  stoj.length  ? parseInt(document.getElementById('stoj-sev').value)  : null,
+      luft_sev:  luft.length  ? parseInt(document.getElementById('luft-sev').value)  : null,
       onset:     document.getElementById('f-onset').value,
       wind_sens: document.getElementById('f-wind-sens').value || null,
       ts:        serverTimestamp()
     });
-    console.log('[Survey] ✅ Svar gemt med ID:', ref.id);
+    console.log('[Survey] ✅ Gemt med ID:', ref.id);
     localStorage.setItem('lh_v3_done', '1');
     document.getElementById('form-wrap').style.display    = 'none';
     document.getElementById('success-wrap').style.display = 'block';
   } catch (e) {
-    console.error('[Survey] ❌ Fejl ved indsendelse:', e);
+    console.error('[Survey] ❌ Fejl:', e);
     document.getElementById('err-msg').style.display = 'block';
     btn.disabled = false; btn.textContent = 'Send mit svar ›';
   }
 };
 
 // ── Custom symptom chips ──────────────────────────────────────
-window._chips = { stoj: [], luft: [], psyko: [], kronisk: [] };
+window._chips = { stoj:[], luft:[], psyko:[], kronisk:[], ansatte:[] };
 
 window.addCustomSym = cat => {
   const inp = document.getElementById(`custom-${cat}-input`);
   const val = inp.value.trim();
-  if (!val || window._chips[cat].includes(val)) { inp.value = ''; return; }
+  if (!val || window._chips[cat].includes(val)) { inp.value=''; return; }
   window._chips[cat].push(val);
   inp.value = '';
   renderChips(cat);
 };
-
 function renderChips(cat) {
   const el = document.getElementById(`chips-${cat}`);
-  el.innerHTML = window._chips[cat].map((v, i) =>
+  if (!el) return;
+  el.innerHTML = window._chips[cat].map((v,i) =>
     `<span class="chip">${v}<button title="Fjern" onclick="removeChip('${cat}',${i})">×</button></span>`
   ).join('');
 }
-
-window.removeChip = (cat, i) => { window._chips[cat].splice(i, 1); renderChips(cat); };
-
-['stoj','luft','psyko','kronisk'].forEach(cat => {
+window.removeChip = (cat, i) => { window._chips[cat].splice(i,1); renderChips(cat); };
+['stoj','luft','psyko','kronisk','ansatte'].forEach(cat => {
   document.getElementById(`custom-${cat}-input`)?.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); window.addCustomSym(cat); }
   });
