@@ -67,7 +67,6 @@ select:focus,input:focus{border-color:var(--navy-light)}
 .sev-row label{font-size:.78rem;color:var(--muted);white-space:nowrap}
 .sev-row input[type=range]{flex:1;accent-color:var(--navy)}
 .sev-val{font-family:'IBM Plex Mono',monospace;font-size:.9rem;font-weight:500;color:var(--navy);min-width:1.5rem;text-align:center}
-/* Custom symptom adder */
 .custom-sym-area{margin-top:.75rem;border-top:1px dashed var(--border);padding-top:.75rem}
 .custom-sym-label{font-size:.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
 .custom-sym-row{display:flex;gap:.5rem;align-items:center}
@@ -82,6 +81,7 @@ select:focus,input:focus{border-color:var(--navy-light)}
 .btn-primary:disabled{background:var(--muted);cursor:not-allowed}
 .notice{padding:.9rem 1.1rem;border-radius:var(--r);font-size:.86rem;margin-bottom:1.1rem}
 .notice-warn{background:var(--amber-light);border-left:3px solid var(--amber);color:#5a3a00}
+.notice-success{background:#edfdf7;border-left:3px solid #0a9c62;color:#064d32}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.1rem}
 .stat-box{padding:1.1rem 1.25rem;border-radius:var(--r);border-bottom:3px solid transparent;color:white}
 .s0{background:var(--navy);border-color:var(--amber)}
@@ -107,7 +107,6 @@ footer{text-align:center;padding:1.75rem;color:var(--muted);font-size:.76rem;bor
   nav.tabs button{padding:.7rem .85rem;font-size:.77rem}
   .h-plane{display:none}
 }
-/* Scientific analysis */
 .sci-divider{display:flex;align-items:center;gap:.9rem;margin:1.8rem 0 1.1rem;color:var(--muted);font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
 .sci-divider::before,.sci-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .dose-table{width:100%;border-collapse:collapse;font-size:.83rem}
@@ -236,6 +235,7 @@ details[open] summary{color:var(--text)}
         </div>
         <div class="chips" id="chips-stoj"></div>
       </div>
+    </div>
 
     <!-- Luft -->
     <div class="card">
@@ -266,6 +266,7 @@ details[open] summary{color:var(--text)}
         </div>
         <div class="chips" id="chips-luft"></div>
       </div>
+    </div>
 
     <!-- Kronisk -->
     <div class="card">
@@ -304,6 +305,7 @@ details[open] summary{color:var(--text)}
         </div>
         <div class="chips" id="chips-kronisk"></div>
       </div>
+    </div>
 
     <!-- Psyko -->
     <div class="card">
@@ -326,6 +328,7 @@ details[open] summary{color:var(--text)}
         </div>
         <div class="chips" id="chips-psyko"></div>
       </div>
+    </div>
 
     <!-- Timing + vind -->
     <div class="card">
@@ -507,527 +510,30 @@ details[open] summary{color:var(--text)}
   </div>
   <div class="card about-body">
     <div class="card-title">⚙️ Teknisk opsætning</div>
-    <p>Siden hostes gratis og permanent på <strong>GitHub Pages</strong> (sover aldrig). Data opbevares i <strong>Firebase Firestore</strong> (gratis Spark-plan). Erstat de seks <code>REPLACE_...</code>-værdier i script-sektionen med din Firebase-konfiguration — se README.md.</p>
+    <p>Siden hostes gratis og permanent på <strong>GitHub Pages</strong> (sover aldrig). Data opbevares i <strong>Firebase Firestore</strong> (gratis Spark-plan). Filen <code>js/common.js</code> indeholder Firebase-konfigurationen — opdatér de 6 værdier i <code>firebaseConfig</code>.</p>
+    <p style="margin-top:.6rem"><strong>Filstruktur:</strong><br>
+    <code>index.html</code> — HTML-markup<br>
+    <code>js/common.js</code> — Firebase, konstanter, hjælpefunktioner, fanebladnavigation<br>
+    <code>js/survey.js</code> — Spørgeskemakort, formular, chips, indsendelse<br>
+    <code>js/results.js</code> — Live-lytter, grafer, kort, statistisk analyse</p>
   </div>
 </div>
 
 </main>
 <footer>Borgerundersøgelse · Alle svar er anonyme · Realtidsdata via Firebase · GitHub Pages</footer>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!--
+  Moduler importeres i rækkefølge:
+    1. common.js  — Firebase + delte hjælpere (ingen DOM-brug)
+    2. survey.js  — Initialiserer spørgeskemakortet (kræver DOM)
+    3. results.js — Registrerer live-lytter og refreshResults-callback
 
-// ┌──────────────────────────────────────────────────────────────┐
-// │  ERSTAT DISSE 6 VÆRDIER MED DIN FIREBASE-KONFIGURATION       │
-// │  (Project Settings → Your apps → Config i Firebase Console)  │
-// └──────────────────────────────────────────────────────────────┘
-const firebaseConfig = {
-  apiKey:            "AIzaSyBOg3mFkYBZbhgW22GxK97z9rh3RCvPiV8",
-  authDomain:        "cphforurening.firebaseapp.com",
-  projectId:         "cphforurening",
-  storageBucket:     "cphforurening.firebasestorage.app",
-  messagingSenderId: "661594236126",
-  appId:             "1:661594236126:web:28ad7c23471b55f3224e4f"
-};
+  Leaflet og Chart.js indlæses som globale scripts øverst i <head>
+  så de er tilgængelige for alle tre moduler via window.L / window.Chart.
+-->
+<script type="module" src="js/common.js"></script>
+<script type="module" src="js/survey.js"></script>
+<script type="module" src="js/results.js"></script>
 
-let db;
-try { const app = initializeApp(firebaseConfig); db = getFirestore(app); }
-catch(e) { console.warn('Firebase ikke konfigureret:', e.message); }
-
-// ── Constants ─────────────────────────────────────────────────
-const AIRPORT = { lat:55.6180, lng:12.6560 };
-const DIST_BANDS = ['0-1 km','1-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
-const DIRS8 = ['N','NØ','Ø','SØ','S','SV','V','NV'];
-const COL = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c' };
-
-const ALL_SYMS = [
-  {v:'Søvnbesvær / svært ved at falde i søvn',k:'stoj'},
-  {v:'Tidlig opvågning eller fragmenteret søvn pga. støj',k:'stoj'},
-  {v:'Konstant træthed pga. forstyrret søvn',k:'stoj'},
-  {v:'Koncentrationsbesvær (hjemmearbejde / lektier)',k:'stoj'},
-  {v:'Tinnitus / konstant ringen eller brummen i ørerne',k:'stoj'},
-  {v:'Hovedpine fra støj',k:'stoj'},
-  {v:'Stress og irritabilitet fra vedvarende støjniveau',k:'stoj'},
-  {v:'Vejtrækningsbesvær / åndenød',k:'luft'},
-  {v:'Vedvarende eller tilbagevendende hoste',k:'luft'},
-  {v:'Irritation i øjne, næse eller svælg',k:'luft'},
-  {v:'Løbende næse / hyppige forkølelseslignende symptomer',k:'luft'},
-  {v:'Kvalme ved lugtgener fra jetbrændstof',k:'luft'},
-  {v:'Hovedpine fra luftforurening eller lugt',k:'luft'},
-  {v:'Kan ikke lufte hjemmet pga. lugtgener',k:'luft'},
-  {v:'Holder børn inde pga. dårlig udeluft',k:'luft'},
-  {v:'Forværring af eksisterende luftvejssygdom ved lugtgener',k:'luft'},
-  {v:'Betydelig forringelse af livskvalitet',k:'psyko'},
-  {v:'Magtesløshed ift. myndighedernes passivitet',k:'psyko'},
-  {v:'Bekymringer for min eller familiens langsigtede helbred',k:'psyko'},
-  {v:'Søvnmanglen påvirker min arbejds- eller skoleevne',k:'psyko'},
-  {v:'Overvejer kraftigt at flytte alene pga. lufthavnen',k:'psyko'},
-  {v:'Kender naboer hvis hussalg er mislykket pga. støj eller lugt',k:'psyko'},
-];
-
-// ── Helpers ───────────────────────────────────────────────────
-function haversineKm(a,b){
-  const R=6371,r=Math.PI/180,dLat=(b.lat-a.lat)*r,dLng=(b.lng-a.lng)*r;
-  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-}
-function bearingDeg(from,to){
-  const r=Math.PI/180;
-  const y=Math.sin((to.lng-from.lng)*r)*Math.cos(to.lat*r);
-  const x=Math.cos(from.lat*r)*Math.sin(to.lat*r)-Math.sin(from.lat*r)*Math.cos(to.lat*r)*Math.cos((to.lng-from.lng)*r);
-  return((Math.atan2(y,x)*180/Math.PI)+360)%360;
-}
-function toDir8(deg){return DIRS8[Math.round(deg/45)%8];}
-function toBand(km){
-  if(km<1)return'0-1 km';if(km<3)return'1-3 km';
-  if(km<5)return'3-5 km';if(km<10)return'5-10 km';
-  if(km<20)return'10-20 km';return'20+ km';
-}
-function symCount(d){return(d.stoj?.length||0)+(d.luft?.length||0)+(d.psyko?.length||0);}
-function hasKronisk(d){return d.kronisk?.length>0&&!d.kronisk.every(v=>v==='Ingen af ovenstående');}
-
-// ── Tab nav ───────────────────────────────────────────────────
-window.showTab = tab => {
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('nav.tabs button').forEach((b,i)=>b.classList.toggle('active',['survey','results','about'][i]===tab));
-  
-  const target = document.getElementById('tab-'+tab);
-  target.classList.add('active');
-
-  if(tab === 'results'){
-    // 1. Fix Leaflet kortet (det kræver ofte et "spark" for at loade fliserne korrekt)
-    if(!rMap) { 
-        initResultsMap(); 
-    } else {
-        setTimeout(() => rMap.invalidateSize(), 100);
-    }
-    
-    // 2. Tving graferne til at genoptegne sig selv nu hvor de er synlige
-    // Vi bruger window._latestDocs som vi gemte i onSnapshot
-    if(window._latestDocs) {
-        updateAll(window._latestDocs);
-    }
-  }
-};
-
-// ── Survey map ────────────────────────────────────────────────
-const sMap = L.map('map-picker').setView([AIRPORT.lat,AIRPORT.lng],11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:17}).addTo(sMap);
-L.circleMarker([AIRPORT.lat,AIRPORT.lng],{radius:9,color:'#e8a020',fillColor:'#e8a020',fillOpacity:1,weight:2})
-  .bindTooltip('✈ CPH Lufthavn',{permanent:false}).addTo(sMap);
-[1,3,5,10,20].forEach(km=>L.circle([AIRPORT.lat,AIRPORT.lng],
-  {radius:km*1000,color:'#2a4f8c',weight:1,fillOpacity:.02,dashArray:'4 5'}).addTo(sMap));
-
-let uMarker;
-sMap.on('click',e=>{
-  const {lat,lng}=e.latlng;
-  const km=haversineKm(AIRPORT,{lat,lng});
-  const dir=toDir8(bearingDeg(AIRPORT,{lat,lng}));
-  const band=toBand(km);
-  ['f-dist-band','f-dist-km','f-dir','f-lat-z','f-lng-z'].forEach((id,i)=>{
-    document.getElementById(id).value=[band,km.toFixed(2),dir,
-      (Math.round(lat*100)/100).toFixed(2),(Math.round(lng*100)/100).toFixed(2)][i];
-  });
-  const fb=document.getElementById('map-feedback');
-  fb.textContent=`📍 ${band} fra lufthavnen · Retning: ${dir} (${km.toFixed(1)} km)`;
-  fb.className='ok';
-  if(uMarker)uMarker.remove();
-  uMarker=L.circleMarker([lat,lng],{radius:9,color:'#c0392b',fillColor:'#c0392b',fillOpacity:.9,weight:2})
-    .bindTooltip(`${band} · ${dir}`,{permanent:true,direction:'top',offset:[0,-12]}).addTo(sMap);
-});
-
-// "Anden kræft" toggle
-document.querySelectorAll('input[name=kronisk]').forEach(cb=>{
-  if(cb.value==='Anden kræfttype')cb.addEventListener('change',e=>{
-    document.getElementById('andre-kraeft-wrap').style.display=e.target.checked?'block':'none';
-  });
-});
-// Severity toggles
-['stoj','luft'].forEach(cat=>{
-  document.querySelectorAll(`input[name=${cat}]`).forEach(cb=>{
-    cb.addEventListener('change',()=>{
-      document.getElementById(`${cat}-sev-row`).style.display=
-        document.querySelector(`input[name=${cat}]:checked`)?'flex':'none';
-    });
-  });
-});
-// Duplicate check
-if(localStorage.getItem('lh_v3_done')){
-  document.getElementById('notice-done').style.display='block';
-  document.getElementById('form-wrap').style.display='none';
-}
-
-// ── Submit ────────────────────────────────────────────────────
-window.submitSurvey = async()=>{
-  if(!document.getElementById('f-dist-band').value){alert('Klik venligst på kortet for at angive din placering');return;}
-  if(!document.getElementById('f-onset').value){alert('Angiv venligst hvornår du begyndte at mærke generne');return;}
-  if(!db){alert('Firebase ikke konfigureret endnu. Se README.md');return;}
-  const btn=document.getElementById('btn-sub');
-  btn.disabled=true;btn.textContent='Sender …';
-
-  const stoj   = Array.from(document.querySelectorAll('input[name=stoj]:checked')).map(c=>c.value)
-                 .concat(window._chips.stoj);
-  const luft   = Array.from(document.querySelectorAll('input[name=luft]:checked')).map(c=>c.value)
-                 .concat(window._chips.luft);
-  const psyko  = Array.from(document.querySelectorAll('input[name=psyko]:checked')).map(c=>c.value)
-                 .concat(window._chips.psyko);
-  const kronisk= Array.from(document.querySelectorAll('input[name=kronisk]:checked')).map(c=>c.value)
-                 .concat(window._chips.kronisk);
-  const cType  = document.getElementById('f-cancer-type').value.trim();
-  if(cType){const i=kronisk.indexOf('Anden kræfttype');if(i>-1)kronisk[i]=`Anden kræft: ${cType}`;}
-
-  try {
-    await addDoc(collection(db,'responses'),{
-      dist_band:document.getElementById('f-dist-band').value,
-      dist_km:parseFloat(document.getElementById('f-dist-km').value)||null,
-      dir:document.getElementById('f-dir').value,
-      lat_z:parseFloat(document.getElementById('f-lat-z').value)||null,
-      lng_z:parseFloat(document.getElementById('f-lng-z').value)||null,
-      years:document.getElementById('f-years').value||null,
-      age:document.getElementById('f-age').value||null,
-      kids:document.getElementById('f-kids').value||null,
-      stoj,luft,kronisk,psyko,
-      stoj_sev:stoj.length?parseInt(document.getElementById('stoj-sev').value):null,
-      luft_sev:luft.length?parseInt(document.getElementById('luft-sev').value):null,
-      onset:document.getElementById('f-onset').value,
-      wind_sens:document.getElementById('f-wind-sens').value||null,
-      ts:serverTimestamp()
-    });
-    localStorage.setItem('lh_v3_done','1');
-    document.getElementById('form-wrap').style.display='none';
-    document.getElementById('success-wrap').style.display='block';
-  } catch(e){
-    console.error(e);
-    document.getElementById('err-msg').style.display='block';
-    btn.disabled=false;btn.textContent='Send mit svar ›';
-  }
-};
-
-// ── Results map ───────────────────────────────────────────────
-let rMap;
-function initResultsMap(){
-  rMap=L.map('map-results').setView([AIRPORT.lat,AIRPORT.lng],10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:17}).addTo(rMap);
-  L.circleMarker([AIRPORT.lat,AIRPORT.lng],{radius:11,color:'#e8a020',fillColor:'#e8a020',fillOpacity:1,weight:2})
-    .bindTooltip('✈ CPH Lufthavn',{permanent:true,direction:'top',offset:[0,-14]}).addTo(rMap);
-  [1,3,5,10,20].forEach(km=>L.circle([AIRPORT.lat,AIRPORT.lng],
-    {radius:km*1000,color:'#2a4f8c',weight:1.5,fillOpacity:.02,dashArray:'4 6'}).addTo(rMap));
-}
-function updateResultsMap(docs){
-  if(!rMap)return;
-  if(window._rMarkers)window._rMarkers.forEach(m=>m.remove());
-  window._rMarkers=[];
-  const zones={};
-  docs.forEach(d=>{
-    if(!d.lat_z||!d.lng_z)return;
-    const k=`${d.lat_z}_${d.lng_z}`;
-    if(!zones[k])zones[k]={lat:d.lat_z,lng:d.lng_z,syms:[],n:0};
-    zones[k].syms.push(symCount(d));zones[k].n++;
-  });
-  Object.values(zones).forEach(z=>{
-    const avg=z.syms.reduce((a,b)=>a+b,0)/z.n;
-    const r=Math.max(7,Math.min(30,z.n*5));
-    const t=Math.min(avg/10,1);
-    const col=`rgb(${Math.round(42+t*150)},${Math.round(79-t*36)},${Math.round(140-t*97)})`;
-    const m=L.circleMarker([z.lat,z.lng],{radius:r,color:'white',weight:1.5,fillColor:col,fillOpacity:.78})
-      .bindPopup(`<b>${z.n} svar</b> i denne zone<br>Gns. <b>${avg.toFixed(1)}</b> symptomer`)
-      .addTo(rMap);
-    window._rMarkers.push(m);
-  });
-}
-
-// ── Charts ────────────────────────────────────────────────────
-const ch={};
-const del=id=>{if(ch[id]){ch[id].destroy();delete ch[id];}};
-
-function updateAll(docs){
-  const n=docs.length;
-  const sc=docs.map(symCount);
-  document.getElementById('st-total').textContent=n;
-  document.getElementById('st-sym').textContent=n?(sc.reduce((a,b)=>a+b,0)/n).toFixed(1):'-';
-  document.getElementById('st-pct').textContent=n?Math.round(docs.filter(d=>symCount(d)>0).length/n*100)+'%':'-';
-  document.getElementById('st-kronisk').textContent=n?Math.round(docs.filter(hasKronisk).length/n*100)+'%':'-';
-  updateResultsMap(docs);
-
-  // Per-band
-  const B={};
-  DIST_BANDS.forEach(b=>B[b]={n:0,sum:0,ss:[],ls:[],kn:0});
-  docs.forEach(d=>{
-    const b=d.dist_band;if(!b||!B[b])return;
-    B[b].n++;B[b].sum+=symCount(d);
-    if(d.stoj_sev)B[b].ss.push(d.stoj_sev);
-    if(d.luft_sev)B[b].ls.push(d.luft_sev);
-    if(hasKronisk(d))B[b].kn++;
-  });
-  const AB=DIST_BANDS.filter(b=>B[b].n>0);
-  const avg=b=>B[b].n?+(B[b].sum/B[b].n).toFixed(2):0;
-  const avgArr=b=>a=>a.length?+(a.reduce((x,y)=>x+y,0)/a.length).toFixed(2):null;
-  const distCols=AB.map((_,i)=>{const t=i/Math.max(AB.length-1,1);return`rgba(${Math.round(13+t*179)},${Math.round(30+t*129)},${Math.round(54+t*99)},${1-t*.5})`;});
-
-  // Distance gradient
-  del('dist');
-  ch['dist']=new Chart(document.getElementById('c-dist'),{type:'bar',data:{
-    labels:AB.map(b=>b+(B[b].n?` (n=${B[b].n})`:'')),
-    datasets:[{data:AB.map(avg),backgroundColor:distCols,borderRadius:4}]
-  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-    tooltip:{callbacks:{label:c=>` ${c.raw} symptomer i gns.`}}},
-    scales:{y:{beginAtZero:true,title:{display:true,text:'Gns. antal symptomer',font:{size:11}},grid:{color:'#f2f1ee'}},
-      x:{grid:{display:false}}}}});
-
-  // Radar
-  const DR={};DIRS8.forEach(d=>DR[d]={s:0,n:0});
-  docs.forEach(d=>{if(d.dir&&DR[d.dir]){DR[d.dir].s+=symCount(d);DR[d.dir].n++;}});
-  del('radar');
-  ch['radar']=new Chart(document.getElementById('c-radar'),{type:'radar',data:{
-    labels:DIRS8,
-    datasets:[{label:'Gns. symptomer',data:DIRS8.map(d=>DR[d].n?+(DR[d].s/DR[d].n).toFixed(2):0),
-      backgroundColor:'rgba(42,79,140,.15)',borderColor:'#2a4f8c',
-      pointBackgroundColor:'#2a4f8c',pointRadius:4}]
-  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-    scales:{r:{beginAtZero:true,ticks:{font:{size:9}},pointLabels:{font:{size:11}}}}}});
-
-  // Severity
-  del('sev');
-  ch['sev']=new Chart(document.getElementById('c-sev'),{type:'line',data:{labels:AB,datasets:[
-    {label:'Støj',data:AB.map(b=>avgArr(b)(B[b].ss)),borderColor:COL.stoj,backgroundColor:'rgba(42,79,140,.08)',
-     tension:.35,fill:true,pointRadius:5,pointBackgroundColor:COL.stoj,pointBorderColor:'#fff',pointBorderWidth:2,spanGaps:true},
-    {label:'Luft',data:AB.map(b=>avgArr(b)(B[b].ls)),borderColor:COL.luft,backgroundColor:'rgba(192,96,16,.07)',
-     tension:.35,fill:true,pointRadius:5,pointBackgroundColor:COL.luft,pointBorderColor:'#fff',pointBorderWidth:2,spanGaps:true}
-  ]},options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},
-    scales:{y:{min:1,max:5,ticks:{stepSize:1},title:{display:true,text:'Gns. alvorlighed 1-5',font:{size:10}},grid:{color:'#f2f1ee'}},
-      x:{grid:{display:false},ticks:{font:{size:9}}}}}});
-
-  // Kronisk
-  del('kronisk');
-  ch['kronisk']=new Chart(document.getElementById('c-kronisk'),{type:'bar',data:{
-    labels:AB.map(b=>b+(B[b].n?` (n=${B[b].n})`:'')),
-    datasets:[{label:'% med kronisk sygdom/kræft',data:AB.map(b=>B[b].n?+(B[b].kn/B[b].n*100).toFixed(1):0),
-      backgroundColor:'rgba(192,57,43,.72)',borderRadius:4}]
-  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-    tooltip:{callbacks:{label:c=>` ${c.raw}%`}}},
-    scales:{y:{max:100,title:{display:true,text:'% af respondenter',font:{size:11}},
-      ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'}},x:{grid:{display:false}}}}});
-
-  // Symptom frequency
-  const SC={};ALL_SYMS.forEach(s=>SC[s.v]=0);
-  docs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in SC)SC[v]++;})));
-  const sorted=ALL_SYMS.map(s=>({...s,pct:n?Math.round(SC[s.v]/n*100):0})).sort((a,b)=>b.pct-a.pct);
-  del('sym');
-  ch['sym']=new Chart(document.getElementById('c-sym'),{type:'bar',data:{
-    labels:sorted.map(s=>s.v),
-    datasets:[{data:sorted.map(s=>s.pct),backgroundColor:sorted.map(s=>COL[s.k]),borderRadius:3}]
-  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-    tooltip:{callbacks:{label:(c,i)=>` ${c.raw}%  (${Math.round(c.raw*n/100)} ud af ${n})`}}},
-    scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},title:{display:true,text:'% af respondenter',font:{size:11}}},
-      y:{grid:{display:false},ticks:{font:{size:10},callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}}}}});
-
-  // Onset
-  const OC={};docs.forEach(d=>{if(d.onset)OC[d.onset]=(OC[d.onset]||0)+1;});
-  const OO=['Før 2015','2015-2019','2020-2022','2023','2024','2025','Oplever ingen mærkbare gener','Har altid boet her - ved det ikke'];
-  const OL=OO.filter(k=>OC[k]);
-  del('onset');
-  ch['onset']=new Chart(document.getElementById('c-onset'),{type:'bar',data:{
-    labels:OL,datasets:[{data:OL.map(k=>OC[k]||0),backgroundColor:'#5e3a8c',borderRadius:4}]
-  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-    scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f2f1ee'},title:{display:true,text:'Antal svar',font:{size:11}}},
-      x:{grid:{display:false}}}}});
-}
-
-// ── Custom symptom chips ──────────────────────────────────────
-window._chips = {stoj:[],luft:[],psyko:[],kronisk:[]};
-window.addCustomSym = cat => {
-  const inp = document.getElementById(`custom-${cat}-input`);
-  const val = inp.value.trim();
-  if(!val || window._chips[cat].includes(val)) { inp.value=''; return; }
-  window._chips[cat].push(val);
-  inp.value = '';
-  renderChips(cat);
-};
-function renderChips(cat){
-  const el = document.getElementById(`chips-${cat}`);
-  el.innerHTML = window._chips[cat].map((v,i) =>
-    `<span class="chip">${v}<button title="Fjern" onclick="removeChip('${cat}',${i})">×</button></span>`
-  ).join('');
-}
-window.removeChip = (cat,i) => { window._chips[cat].splice(i,1); renderChips(cat); };
-['stoj','luft','psyko','kronisk'].forEach(cat => {
-  document.getElementById(`custom-${cat}-input`)?.addEventListener('keydown', e => {
-    if(e.key==='Enter'){ e.preventDefault(); window.addCustomSym(cat); }
-  });
-});
-
-// ── Chi-squared helpers ───────────────────────────────────────
-function logGamma(z){
-  const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.001208650973866179,-5.395239384953e-6];
-  let y=z,x=z,tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);
-  let ser=1.000000000190015;for(let j=0;j<6;j++)ser+=c[j]/(++y);
-  return -tmp+Math.log(2.5066282746310005*ser/x);
-}
-function gammaIncP(a,x){
-  if(x<=0)return 0;let sum=1/a,term=1/a;
-  for(let k=1;k<300;k++){term*=x/(a+k);sum+=term;if(Math.abs(term)<1e-12*Math.abs(sum))break;}
-  return Math.exp(-x+a*Math.log(x)-logGamma(a))*sum;
-}
-function chiP(chi2,df){return Math.max(0,Math.min(1,1-gammaIncP(df/2,chi2/2)));}
-function pFmt(p){return p<0.001?'< 0,001':p.toFixed(4);}
-
-// ── Live listener ─────────────────────────────────────────────
-if(db){
-  onSnapshot(query(collection(db,'responses')),snap=>{
-    const docs=snap.docs.map(d=>d.data());
-    updateAll(docs);
-    populateDataLists(docs);
-    updateScientific(docs);
-  });
-} else {
-  updateAll([]);
-}
-
-// ── Populate datalists from previous submissions ──────────────
-function populateDataLists(docs){
-  const sets={stoj:new Set(),luft:new Set(),psyko:new Set(),kronisk:new Set()};
-  const PRESET_STOJ  = new Set(['Søvnbesvær / svært ved at falde i søvn','Tidlig opvågning eller fragmenteret søvn pga. støj','Konstant træthed pga. forstyrret søvn','Koncentrationsbesvær (hjemmearbejde / lektier)','Tinnitus / konstant ringen eller brummen i ørerne','Hovedpine fra støj','Stress og irritabilitet fra vedvarende støjniveau']);
-  const PRESET_LUFT  = new Set(['Vejtrækningsbesvær / åndenød','Vedvarende eller tilbagevendende hoste','Irritation i øjne, næse eller svælg','Løbende næse / hyppige forkølelseslignende symptomer','Kvalme ved lugtgener fra jetbrændstof','Hovedpine fra luftforurening eller lugt','Kan ikke lufte hjemmet pga. lugtgener','Holder børn inde pga. dårlig udeluft','Forværring af eksisterende luftvejssygdom ved lugtgener']);
-  const PRESET_PSYKO = new Set(['Betydelig forringelse af livskvalitet','Magtesløshed ift. myndighedernes passivitet','Bekymringer for min eller familiens langsigtede helbred','Søvnmanglen påvirker min arbejds- eller skoleevne','Overvejer kraftigt at flytte alene pga. lufthavnen','Kender naboer hvis hussalg er mislykket pga. støj eller lugt']);
-  docs.forEach(d=>{
-    (d.stoj||[]).filter(v=>!PRESET_STOJ.has(v)).forEach(v=>sets.stoj.add(v));
-    (d.luft||[]).filter(v=>!PRESET_LUFT.has(v)).forEach(v=>sets.luft.add(v));
-    (d.psyko||[]).filter(v=>!PRESET_PSYKO.has(v)).forEach(v=>sets.psyko.add(v));
-    (d.kronisk||[]).forEach(v=>sets.kronisk.add(v));
-  });
-  ['stoj','luft','psyko','kronisk'].forEach(cat=>{
-    const dl=document.getElementById(`dl-${cat}`);
-    if(dl) dl.innerHTML=[...sets[cat]].sort().map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join('');
-  });
-}
-
-// ── Scientific analysis ───────────────────────────────────────
-const BANDS = ['0-1 km','1-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
-function hasSym(d){return(d.stoj?.length||0)+(d.luft?.length||0)+(d.psyko?.length||0)>0;}
-
-function updateScientific(docs){
-  const n=docs.length; if(!n)return;
-
-  // 1. Dose-response table
-  const dd=BANDS.map(zone=>{
-    const sub=docs.filter(d=>d.dist_band===zone);
-    const nS=sub.filter(hasSym).length;
-    return{zone,n:sub.length,nS,rate:sub.length?nS/sub.length*100:null};
-  });
-  const maxR=Math.max(...dd.filter(d=>d.rate!==null).map(d=>d.rate),1);
-  document.getElementById('dose-tbl').innerHTML=`<table class="dose-table"><thead><tr>
-    <th>Afstandszone</th><th>n</th><th>Med symptomer</th><th>Symptomrate</th></tr></thead><tbody>
-    ${dd.map(d=>`<tr><td class="dzone">${d.zone}</td><td>${d.n}</td><td>${d.nS}</td>
-    <td class="drate">${d.rate!==null?d.rate.toFixed(1)+'%':'-'}
-    ${d.rate!==null?`<span class="dbar" style="width:${Math.round(d.rate/maxR*80)}px"></span>`:''}
-    </td></tr>`).join('')}</tbody></table>`;
-
-  const active=dd.filter(d=>d.n>0);
-  const doseNote=document.getElementById('dose-note');
-  const withData=dd.filter(d=>d.n>=3);
-  if(withData.length>=2){
-    doseNote.style.display='block';
-    const first=withData[0].rate,last=withData[withData.length-1].rate;
-    doseNote.className=first>last?'notice notice-success':'notice notice-warn';
-    doseNote.innerHTML=first>last
-      ?`📈 <strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)}% (nærmeste zone) til ${last.toFixed(1)}% (fjerneste zone) — understøtter biologisk plausibel årsagssammenhæng.`
-      :`⚠ Gradienten er endnu ikke entydig — sandsynligvis pga. få svar i visse zoner.`;
-  }
-
-  // Dose-response bar chart
-  const dEl=document.getElementById('c-dose');
-  if(ch['dose']){ch['dose'].destroy();delete ch['dose'];}
-  ch['dose']=new Chart(dEl,{type:'bar',data:{
-    labels:active.map(d=>d.zone),
-    datasets:[{label:'Symptomrate (%)',
-      data:active.map(d=>d.rate??0),
-      backgroundColor:active.map((_,i)=>`rgba(192,57,43,${(1-i/Math.max(active.length-1,1)*.65).toFixed(2)})`),
-      borderRadius:4}]
-  },options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw?.toFixed(1)}% symptomrate (n=${active[c.dataIndex]?.n})`}}},
-    scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'},title:{display:true,text:'Andel med ≥1 symptom (%)',font:{size:10}},grid:{color:'#f2f1ee'}},
-      x:{grid:{display:false}}}}});
-
-  // 2. Relative Risk
-  const exp  =docs.filter(d=>d.dist_band==='0-1 km');
-  const unexp=docs.filter(d=>d.dist_band==='10-20 km'||d.dist_band==='20+ km');
-  const a=exp.filter(hasSym).length,b=exp.length-exp.filter(hasSym).length;
-  const c=unexp.filter(hasSym).length,d2=unexp.length-unexp.filter(hasSym).length;
-  const rE=(a+b)?a/(a+b):0, rU=(c+d2)?c/(c+d2):0;
-  const rr=rU>0?rE/rU:null;
-  let lo=null,hi=null,se=null;
-  if(rr&&a>0&&b>0&&c>0&&d2>0){
-    se=Math.sqrt(b/(a*(a+b))+d2/(c*(c+d2)));
-    lo=Math.exp(Math.log(rr)-1.96*se);hi=Math.exp(Math.log(rr)+1.96*se);
-  }
-  document.getElementById('rr-v').textContent=rr?rr.toFixed(2)+'x':'-';
-  document.getElementById('rr-lo').textContent=lo?lo.toFixed(2)+'x':'-';
-  document.getElementById('rr-hi').textContent=hi?hi.toFixed(2)+'x':'-';
-  const rrI=document.getElementById('rr-interp');
-  if(rr&&lo&&hi)rrI.innerHTML=`Beboere inden for <strong>0-1 km</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. 10+ km. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 — kræver flere svar fra fjerneste zone.'}`;
-  else if(!(a+b)||!(c+d2))rrI.innerHTML='Mangler svar fra 0-1 km <em>eller</em> 10+ km for at beregne RR.';
-  else rrI.innerHTML=`0-1 km: ${(rE*100).toFixed(1)}% symptomer (n=${a+b}) &nbsp;|&nbsp; 10+ km: ${(rU*100).toFixed(1)}% symptomer (n=${c+d2}).`;
-  document.getElementById('rr-formula').textContent=
-    `RR = P(sym | 0-1 km) / P(sym | 10+ km)\n`+
-    `   = ${a}/${a+b} / ${c}/${c+d2} = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'-'}\n`+
-    (se?`SE(ln RR) = ${se.toFixed(4)}\n95% KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper.');
-
-  // 3. Chi-squared (near 0-3km vs far 10+ km)
-  const near=docs.filter(d=>d.dist_band==='0-1 km'||d.dist_band==='1-3 km');
-  const far =docs.filter(d=>d.dist_band==='10-20 km'||d.dist_band==='20+ km');
-  const cA=near.filter(hasSym).length,cB=near.length-cA;
-  const cC=far.filter(hasSym).length,cD=far.length-cC;
-  const cN=cA+cB+cC+cD;
-  const denom=(cA+cB)*(cC+cD)*(cA+cC)*(cB+cD);
-  const chi2=cN>0&&denom>0?cN*Math.pow(cA*cD-cB*cC,2)/denom:0;
-  const pv=chiP(chi2,1);
-  document.getElementById('chi-v').textContent=chi2.toFixed(2);
-  document.getElementById('chi-p').textContent=pFmt(pv);
-  const verd=document.getElementById('chi-verdict');
-  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>For få data endnu (n=${cN} i ydergrupperne)</strong><br>Del linket for at samle svar fra 0-3 km og 10+ km.</span></div>`;
-  else if(pv<0.001) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p < 0,001)</strong><br>Stærkt statistisk signifikant — sammenhængen er meget usandsynlig at skyldes tilfældighed.</span></div>`;
-  else if(pv<0.05) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p = ${pFmt(pv)} &lt; 0,05)</strong><br>Statistisk signifikant sammenhæng mellem nærhed til lufthavnen og helbredsgener.</span></div>`;
-  else verd.innerHTML=`<div class="verdict verdict-ns">⚠️ <span><strong>H₀ kan endnu ikke forkastes (p = ${pFmt(pv)})</strong><br>Endnu for få svar — resultat kan ændre sig markant med flere besvarelser.</span></div>`;
-  const rNear=(cA+cB)?`${(cA/(cA+cB)*100).toFixed(1)}%`:'-';
-  const rFar =(cC+cD)?`${(cC/(cC+cD)*100).toFixed(1)}%`:'-';
-  document.getElementById('chi-tbl').innerHTML=`<table class="dose-table"><thead><tr>
-    <th></th><th>Symptomer: Ja</th><th>Symptomer: Nej</th><th>I alt</th><th>Rate</th></tr></thead><tbody>
-    <tr><td class="dzone">Nær (0-3 km)</td><td>${cA}</td><td>${cB}</td><td>${cA+cB}</td><td class="drate">${rNear}</td></tr>
-    <tr><td class="dzone">Fjern (10+ km)</td><td>${cC}</td><td>${cD}</td><td>${cC+cD}</td><td class="drate">${rFar}</td></tr>
-    <tr style="font-weight:600"><td>I alt</td><td>${cA+cC}</td><td>${cB+cD}</td><td>${cN}</td><td></td></tr>
-    </tbody></table>
-    <div style="font-size:.77rem;color:var(--muted);margin-top:.5rem;font-family:'IBM Plex Mono',monospace">χ² = N·(ad−bc)² / [(a+b)(c+d)(a+c)(b+d)] = ${chi2.toFixed(4)}, p = ${pv<0.001?'< 0,001':pv.toFixed(6)}</div>`;
-
-  // 4. Conclusion
-  const withD=dd.filter(d=>d.n>=3);
-  const hasGrad=withD.length>=2&&withD[0].rate>withD[withD.length-1].rate;
-  const rrStr=rr?rr.toFixed(2):'-';
-  const kiStr=(lo&&hi)?`[${lo.toFixed(2)}-${hi.toFixed(2)}]`:'[-]';
-  document.getElementById('concl-body').innerHTML=`
-  <p style="color:var(--muted);font-size:.88rem;line-height:1.8;margin-bottom:1rem">
-    Analysen af <strong>${n} respondenter</strong> viser:</p>
-  <div class="concl-grid">
-    <div class="concl-item"><div class="concl-n">1.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Dosis-respons</div>
-      <div class="concl-desc">${hasGrad?`Symptomraten falder fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) — overensstemmelse med Bradford Hill-kriterierne.`:'Gradienten er under dannelse — del linket for at styrke dette signal.'}</div>
-    </div>
-    <div class="concl-item"><div class="concl-n">2.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Relativ Risiko</div>
-      <div class="concl-desc">RR = ${rrStr} ${kiStr}. ${lo&&lo>1?'KI inkluderer ikke 1,0 — statistisk signifikant.':'Kræver flere svar fra referencezonen.'}</div>
-    </div>
-    <div class="concl-item"><div class="concl-n">3.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">χ²-test</div>
-      <div class="concl-desc">${cN>=10?`χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}`:`Kræver flere svar (n = ${cN} i ydergrupperne).`}</div>
-    </div>
-  </div>
-  <div class="notice notice-warn" style="margin:0">
-    <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af':'er på vej mod at opfylde'} Bradford Hill-kriterierne for en potentiel kausalsammenhæng og bør præsenteres for kommunen med krav om officiel luftkvalitetsmåling og epidemiologisk undersøgelse.
-    ${n<50?' <em>Undersøgelsen har endnu få svar — del linket for at styrke evidensen.</em>':''}
-  </div>`;
-}
-</script>
 </body>
 </html>
