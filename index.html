@@ -8,16 +8,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#0d1e36;--navy-mid:#1a3660;--navy-light:#2a4f8c;
-  --amber:#c8860a;--amber-light:#fdf3dc;
+  --amber:#c8860a;--amber-light:#fdf6e3;
   --red:#b03020;--green:#0a8c5a;--emp:#155a2e;--emp-bg:#eafaf1;
-  --bg:#f5f4f1;--white:#fff;--text:#0d1e36;--muted:#596070;--border:#dbd8d0;
-  --stoj:#2a4f8c;--stoj-bg:#eef3fc;
+  --bg:#eef1f6;--white:#fff;--text:#0d1e36;--muted:#55637a;--border:#d0d7e3;
+  --stoj:#2a4f8c;--stoj-bg:#eaf1fc;
   --luft:#b05010;--luft-bg:#fdf0e6;
-  --kronisk:#a03020;--psyko:#4a2a7c;--psyko-bg:#f4eeff;--r:3px;
+  --kronisk:#a03020;--psyko:#4a2a7c;--psyko-bg:#f2eeff;--r:4px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px}
@@ -25,8 +25,8 @@ header{background:var(--navy);color:white;padding:2.8rem 2rem 2.2rem;border-bott
 .h-inner{max-width:920px;margin:0 auto;position:relative}
 .h-label{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
 .h-label::before{content:'';width:20px;height:1px;background:var(--amber);flex-shrink:0}
-header h1{font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:400;line-height:1.15;margin-bottom:.65rem;letter-spacing:-.01em}
-header h1 em{color:var(--amber);font-style:italic}
+header h1{font-family:'IBM Plex Sans',sans-serif;font-size:clamp(1.5rem,3vw,2rem);font-weight:700;line-height:1.15;margin-bottom:.65rem;letter-spacing:-.02em}
+header h1 em{color:var(--amber);font-style:normal;font-weight:300}
 header p{color:rgba(255,255,255,.65);max-width:520px;font-size:.87rem;line-height:1.75}
 nav.tabs{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;display:flex;justify-content:center}
 nav.tabs button{padding:.9rem 1.8rem;border:none;background:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:.8rem;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;letter-spacing:.05em;text-transform:uppercase}
@@ -40,12 +40,12 @@ main{max-width:920px;margin:0 auto;padding:2rem 1.25rem 4rem}
 .tab-content.active{display:block;animation:fadeIn .25s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;margin-bottom:1rem}
-.card-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--navy);margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.card-title{font-family:'IBM Plex Sans',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .card-title small{font-family:'IBM Plex Sans',sans-serif;font-size:.71rem;color:var(--muted);font-weight:400;margin-left:auto;letter-spacing:.02em}
 .sym-card{border-radius:var(--r);margin-bottom:1rem;overflow:hidden;border:1px solid var(--border)}
 .sym-card-header{padding:.9rem 1.4rem;display:flex;align-items:center;gap:.75rem}
 .sym-card-icon{width:3px;height:2rem;border-radius:1px;flex-shrink:0}
-.sym-card-title{font-family:'DM Serif Display',serif;font-size:1rem;font-weight:400;margin-bottom:.1rem}
+.sym-card-title{font-family:'IBM Plex Sans',sans-serif;font-size:.92rem;font-weight:700;margin-bottom:.1rem;letter-spacing:.01em}
 .sym-card-desc{font-size:.77rem;opacity:.72;line-height:1.45}
 .sym-card-body{background:var(--white);padding:1.1rem 1.4rem}
 .sym-card.stoj .sym-card-header{background:var(--stoj-bg);border-bottom:1px solid #c7d8f7;color:var(--stoj)}
@@ -81,10 +81,13 @@ select:focus,input:focus{border-color:var(--navy-light)}
 .chk:hover{background:#f5f4f0}
 .chk input[type=checkbox]{width:14px;height:14px;margin-top:4px;cursor:pointer;accent-color:var(--navy-mid);flex-shrink:0}
 .chk span{font-size:.86rem;line-height:1.5}
-.sev-row{display:flex;align-items:center;gap:.75rem;margin-top:.5rem;padding:.5rem .75rem;background:#f5f4f1;border-radius:var(--r)}
-.sev-row label{font-size:.7rem;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.sev-row input[type=range]{flex:1;accent-color:var(--navy)}
-.sev-val{font-family:'IBM Plex Mono',monospace;font-size:.88rem;font-weight:500;color:var(--navy);min-width:1.5rem;text-align:center}
+.annoyance-block{margin:1rem 0;padding:1rem 1.1rem;background:#f0f4fa;border:1px solid #c8d5ea;border-radius:var(--r)}
+.annoyance-label{font-size:.82rem;font-weight:600;color:var(--navy);margin-bottom:.6rem;line-height:1.45}
+.annoyance-label em{font-style:normal}
+.sev-row{display:flex;align-items:center;gap:.6rem}
+.sev-row input[type=range]{flex:1;accent-color:var(--navy);height:4px}
+.sev-anchor{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);min-width:1rem;text-align:center}
+.sev-val{font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--navy);min-width:2rem;text-align:center;background:white;border:1px solid var(--border);border-radius:var(--r);padding:.1rem .3rem}
 .custom-sym-area{margin-top:.75rem;border-top:1px dashed var(--border);padding-top:.7rem}
 .custom-sym-label{font-size:.65rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
 .custom-sym-row{display:flex;gap:.5rem;align-items:center}
@@ -146,7 +149,7 @@ footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.73rem;bord
 .verdict-ns{background:var(--amber-light);border-left:3px solid var(--amber);color:#5a3a00}
 .concl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:1rem}
 .concl-item{padding:.9rem;background:var(--bg);border-radius:var(--r);border:1px solid var(--border)}
-.concl-n{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--navy);margin-bottom:.2rem}
+.concl-n{font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:500;color:var(--navy);margin-bottom:.2rem}
 .concl-desc{font-size:.78rem;color:var(--muted);line-height:1.55}
 details summary{cursor:pointer;font-size:.77rem;font-weight:700;color:var(--muted);list-style:none;display:flex;align-items:center;gap:.4rem;padding:.5rem 0;text-transform:uppercase;letter-spacing:.05em}
 details summary::-webkit-details-marker{display:none}
@@ -190,7 +193,7 @@ details[open] summary{color:var(--text)}
       <div class="card-title">🗺 Din placering <span class="req">*</span></div>
       <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> — kun afstandszone og retning registreres.</p>
       <div id="map-picker"></div>
-      <div id="map-feedback">👆 Klik på kortet for at angive din placering</div>
+      <div id="map-feedback">👆 Klik på kortet for at angive det valgte område</div>
       <input type="hidden" id="f-dist-band">
       <input type="hidden" id="f-dist-km">
       <input type="hidden" id="f-dir">
@@ -222,23 +225,15 @@ details[open] summary{color:var(--text)}
           </select>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
-        <div class="form-group" style="margin:0">
-          <label>Hjemmeboende børn under 18?</label>
-          <select id="f-kids">
-            <option value="">— Valgfri —</option><option>Ja</option><option>Nej</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>Ryger du (eller har røget regelmæssigt)?</label>
-          <select id="f-smoking">
-            <option value="">— Valgfri —</option>
-            <option value="Nej, aldrig">Nej, aldrig</option>
-            <option value="Ex-ryger, stoppet for over 5 år siden">Ex-ryger, stoppet &gt;5 år</option>
-            <option value="Ex-ryger, stoppet for under 5 år siden">Ex-ryger, stoppet &lt;5 år</option>
-            <option value="Ja, nuværende ryger">Ja, nuværende ryger</option>
-          </select>
-        </div>
+      <div class="form-group" style="margin-bottom:.9rem">
+        <label>Ryger du (eller har røget regelmæssigt)?</label>
+        <select id="f-smoking">
+          <option value="">— Valgfri —</option>
+          <option value="Nej, aldrig">Nej, aldrig</option>
+          <option value="Ex-ryger, stoppet for mere end 5 år siden">Ex-ryger — stoppet for mere end 5 år siden</option>
+          <option value="Ex-ryger, stoppet inden for de sidste 5 år">Ex-ryger — stoppet inden for de sidste 5 år</option>
+          <option value="Ja, nuværende ryger">Ja, nuværende ryger</option>
+        </select>
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Er din bolig eksponeret for kraftig vejtrafikstøj?</label>
@@ -251,10 +246,13 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
+    <!-- Resident-only sections (hidden for airport employees) -->
+    <div id="resident-sections">
+
     <!-- 🔊 STØJGENER -->
     <div class="sym-card stoj">
       <div class="sym-card-header">
-        <div class="sym-card-icon">🔊</div>
+        <div class="sym-card-icon"></div>
         <div>
           <div class="sym-card-title">Støjgener fra lufthavnen</div>
           <div class="sym-card-desc">Markér de gener du oplever regelmæssigt (mindst ugentligt) og vurderer skyldes flystøj</div>
@@ -271,11 +269,14 @@ details[open] summary{color:var(--text)}
         <label class="chk"><input type="checkbox" name="stoj" value="Ubehag eller angstreaktioner ved kraftige flystøjshændelser"><span>Ubehag eller angstreaktioner ved kraftige flystøjshændelser</span></label>
         <label class="chk"><input type="checkbox" name="stoj" value="Forhindret i at føre samtale indendørs eller udendørs"><span>Forhindret i at føre samtale indendørs eller udendørs</span></label>
 
-        <div class="sev-row" id="stoj-sev-row" style="display:none">
-          <label style="white-space:nowrap;font-size:.78rem">Samlet støjgene (ICBEN-skala):</label>
-          <input type="range" min="0" max="10" value="5" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value">
-          <span class="sev-val" id="stoj-sev-val">5</span>
-          <span style="font-size:.71rem;color:var(--muted)">/10</span>
+        <div class="annoyance-block">
+          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af flystøj? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span></div>
+          <div class="sev-row">
+            <span class="sev-anchor">0</span>
+            <input type="range" min="0" max="10" value="5" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value">
+            <span class="sev-anchor">10</span>
+            <span class="sev-val" id="stoj-sev-val">5</span>
+          </div>
         </div>
         <div class="custom-sym-area">
           <div class="custom-sym-label">Tilføj andet støjrelateret symptom</div>
@@ -292,7 +293,7 @@ details[open] summary{color:var(--text)}
     <!-- 💨 LUFTFORURENING -->
     <div class="sym-card luft">
       <div class="sym-card-header">
-        <div class="sym-card-icon">💨</div>
+        <div class="sym-card-icon"></div>
         <div>
           <div class="sym-card-title">Luftkvalitet og lugtgener</div>
           <div class="sym-card-desc">Markér de gener du oplever regelmæssigt og vurderer skyldes luftforurening eller lugt fra lufthavnen</div>
@@ -309,11 +310,14 @@ details[open] summary{color:var(--text)}
         <label class="chk"><input type="checkbox" name="luft" value="Begrænser udendørs ophold pga. luftkvalitet"><span>Begrænser udendørs ophold pga. luftkvalitet</span></label>
         <label class="chk"><input type="checkbox" name="luft" value="Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening"><span>Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening</span></label>
 
-        <div class="sev-row" id="luft-sev-row" style="display:none">
-          <label style="white-space:nowrap;font-size:.78rem">Samlet luftgeneskala (ICBEN):</label>
-          <input type="range" min="0" max="10" value="5" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value">
-          <span class="sev-val" id="luft-sev-val">5</span>
-          <span style="font-size:.71rem;color:var(--muted)">/10</span>
+        <div class="annoyance-block">
+          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af lugt og luftforurening fra lufthavnen? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span></div>
+          <div class="sev-row">
+            <span class="sev-anchor">0</span>
+            <input type="range" min="0" max="10" value="5" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value">
+            <span class="sev-anchor">10</span>
+            <span class="sev-val" id="luft-sev-val">5</span>
+          </div>
         </div>
         <div class="custom-sym-area">
           <div class="custom-sym-label">Tilføj andet luftkvalitetssymptom</div>
@@ -330,7 +334,7 @@ details[open] summary{color:var(--text)}
     <!-- 🧠 PSYKOSOCIAL BELASTNING -->
     <div class="sym-card psyko">
       <div class="sym-card-header">
-        <div class="sym-card-icon">🧠</div>
+        <div class="sym-card-icon"></div>
         <div>
           <div class="sym-card-title">Psykosocial belastning og livskvalitet</div>
           <div class="sym-card-desc">Markér påvirkninger på din trivsel og dagligdag du direkte tilskriver at bo i nærheden af lufthavnen</div>
@@ -356,11 +360,18 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- 🏥 KRONISKE SYGDOMME — vises kun ved ≥2 år på adressen -->
+    </div><!-- /resident-sections -->
+
+    <!-- Employee notice (hidden by default) -->
+    <div id="employee-notice" style="display:none" class="notice notice-success" style="margin-bottom:1rem">
+      <strong>Du er registreret i lufthavnsområdet.</strong> Vi indsamler kun data om kroniske sygdomme og kræft for ansatte — de øvrige spørgsmål er ikke relevante for din eksponeringstype.
+    </div>
+
+    <!-- 🏥 KRONISKE SYGDOMME — vises ved ≥2 år (beboere) eller altid (ansatte) -->
     <div id="kronisk-wrap" style="display:none">
       <div class="sym-card kronisk">
         <div class="sym-card-header">
-          <div class="sym-card-icon">🏥</div>
+          <div class="sym-card-icon"></div>
           <div>
             <div class="sym-card-title">Kroniske og alvorlige sygdomme</div>
             <div class="sym-card-desc">Angiv kun lægediagnosticerede tilstande hos dig eller hjemmeboende familiemedlemmer der opstod <strong>efter</strong> I flyttede hertil, og som du mistænker kan have sammenhæng med luftkvalitet, støj eller luftforurening fra lufthavnen.</div>
@@ -434,26 +445,6 @@ details[open] summary{color:var(--text)}
           <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Oplever du generne særligt ved bestemte <strong>vindretninger</strong>?</label>
-        <select id="f-wind-sens">
-          <option value="">— Ved ikke / har ikke lagt mærke til det —</option>
-          <option value="Ja - vind fra vest eller sydvest">Ja — vind fra vest / sydvest</option>
-          <option value="Ja - vind fra syd">Ja — vind fra syd</option>
-          <option value="Ja - vind fra øst eller nordøst">Ja — vind fra øst / nordøst</option>
-          <option value="Ja - vind fra nord">Ja — vind fra nord</option>
-          <option value="Nej - uafhængigt af vindretning">Nej — sker uafhængigt af vindretning</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Oplever du en <strong>sæsonmæssig forskel</strong> i genernes styrke?</label>
-        <select id="f-seasonal">
-          <option value="">— Ingen tydelig forskel / ved ikke —</option>
-          <option value="Ja, klart værst om sommeren">Ja — klart værst om sommeren</option>
-          <option value="Ja, klart værst om vinteren">Ja — klart værst om vinteren</option>
-          <option value="Afhænger af vejr og vind, ikke årstid">Afhænger af vejr og vind, ikke årstid</option>
-        </select>
-      </div>
     </div>
 
     <div id="err-msg" style="color:var(--red);font-size:.84rem;text-align:center;margin-bottom:.75rem;display:none">
@@ -465,7 +456,7 @@ details[open] summary{color:var(--text)}
 
   <div id="success-wrap" style="display:none">
     <div class="card" style="text-align:center;padding:2.5rem">
-      <div style="font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--navy);margin-bottom:.5rem">Tak for dit bidrag!</div>
+      <div style="font-family:'IBM Plex Sans',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Tak for dit bidrag!</div>
       <p style="color:var(--muted);font-size:.87rem;margin-bottom:1.5rem">Du er med til at skabe evidensbaseret dokumentation til brug over for myndighederne.</p>
       <a href="#" onclick="showTab('results');return false;" style="display:inline-block;background:var(--navy);color:white;padding:.65rem 1.7rem;border-radius:var(--r);font-weight:600;text-decoration:none;font-size:.87rem;letter-spacing:.04em">Se de live resultater →</a>
     </div>

@@ -53,11 +53,21 @@ sMap.on('click', e => {
 
   const fb = document.getElementById('map-feedback');
 
+  document.getElementById('resident-sections').style.display = isEmp ? 'none' : 'block';
+  document.getElementById('employee-notice').style.display  = isEmp ? 'block' : 'none';
+  document.getElementById('kronisk-wrap').style.display     = isEmp ? 'block' : 'none';
+  // For residents: restore gating (years check overrides the above)
+  if (!isEmp) {
+    const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
+    document.getElementById('kronisk-wrap').style.display =
+      YEARS_FOR_KRONISK.has(document.getElementById('f-years').value) ? 'block' : 'none';
+  }
+
   if (isEmp) {
-    fb.innerHTML = `✈️ <strong>Inde i lufthavnsområdet.</strong> Du placerer dig inden for lufthavnens afgrænsning — din besvarelse behandles som <em>erhvervseksponering</em> og analyseres separat.`;
+    fb.innerHTML = `✈️ <strong>Lufthavnsområdet valgt.</strong> Kun kroniske sygdomme og kræft er relevante for denne zone.`;
     fb.className = 'employee-notice';
   } else {
-    fb.textContent = `📍 ${band} fra lufthavnen · Retning: ${dir} (${km.toFixed(1)} km)`;
+    fb.textContent = `📍 Det valgte område: ${band} · Retning ${dir} (${km.toFixed(1)} km fra lufthavnen)`;
     fb.className = 'ok';
   }
 
@@ -92,15 +102,6 @@ document.querySelectorAll('input[name=kronisk]').forEach(cb => {
   }
 });
 
-// ── Severity toggles ──────────────────────────────────────────
-['stoj','luft'].forEach(cat => {
-  document.querySelectorAll(`input[name=${cat}]`).forEach(cb => {
-    cb.addEventListener('change', () => {
-      document.getElementById(`${cat}-sev-row`).style.display =
-        document.querySelector(`input[name=${cat}]:checked`) ? 'flex' : 'none';
-    });
-  });
-});
 
 // ── Kronisk-sektion: vis kun ved ≥2 år på adressen ───────────
 const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
@@ -159,17 +160,14 @@ window.submitSurvey = async () => {
       lng_z:       parseFloat(document.getElementById('f-lng-z').value)  || null,
       years:       document.getElementById('f-years').value,
       age:         document.getElementById('f-age').value      || null,
-      kids:        document.getElementById('f-kids').value     || null,
       smoking:     document.getElementById('f-smoking').value  || null,
       traffic:     document.getElementById('f-traffic').value  || null,
       is_employee,
       stoj, luft, psyko, kronisk,
-      stoj_sev:    stoj.length  ? parseInt(document.getElementById('stoj-sev').value)  : null,
-      luft_sev:    luft.length  ? parseInt(document.getElementById('luft-sev').value)  : null,
+      stoj_sev:    parseInt(document.getElementById('stoj-sev').value),
+      luft_sev:    parseInt(document.getElementById('luft-sev').value),
       onset:       document.getElementById('f-onset').value,
       got_worse:   document.getElementById('f-got-worse').value  || null,
-      wind_sens:   document.getElementById('f-wind-sens').value  || null,
-      seasonal:    document.getElementById('f-seasonal').value   || null,
       ts:          serverTimestamp()
     });
     console.log('[Survey] ✅ Gemt med ID:', ref.id);
