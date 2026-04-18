@@ -54,13 +54,8 @@ sMap.on('click', e => {
   const fb = document.getElementById('map-feedback');
 
   if (isEmp) {
-    fb.innerHTML = `✈️ <strong>Ansatzone (0–1,25 km).</strong> Du placerer dig i lufthavnens umiddelbare nærhed — denne zone antages at indeholde ansatte, ikke beboere. Din besvarelse behandles som <em>erhvervseksponering</em>, ikke som naboeksponering. Korrekt, hvis du arbejder i lufthavnen.`;
+    fb.innerHTML = `✈️ <strong>Inde i lufthavnsområdet.</strong> Du placerer dig inden for lufthavnens afgrænsning — din besvarelse behandles som <em>erhvervseksponering</em> og analyseres separat.`;
     fb.className = 'employee-notice';
-    const empCb = document.getElementById('f-is-employee');
-    if (empCb && !empCb.checked) {
-      empCb.checked = true;
-      empCb.dispatchEvent(new Event('change'));
-    }
   } else {
     fb.textContent = `📍 ${band} fra lufthavnen · Retning: ${dir} (${km.toFixed(1)} km)`;
     fb.className = 'ok';
@@ -86,12 +81,6 @@ sMap.on('click', e => {
     .bindTooltip(isEmp ? `✈️ Ansatzone · ${dir}` : `${band} · ${dir}`,
       { permanent: true, direction: 'top', offset: [0,-12] })
     .addTo(sMap);
-});
-
-// ── Ansatte toggle ────────────────────────────────────────────
-document.getElementById('f-is-employee')?.addEventListener('change', e => {
-  const wrap = document.getElementById('ansatte-symp-wrap');
-  if (wrap) wrap.style.display = e.target.checked ? 'block' : 'none';
 });
 
 // ── "Anden kræft" toggle ──────────────────────────────────────
@@ -133,7 +122,8 @@ window.submitSurvey = async () => {
   const btn = document.getElementById('btn-sub');
   btn.disabled = true; btn.textContent = 'Sender …';
 
-  const is_employee = !!(document.getElementById('f-is-employee')?.checked);
+  const dist_band   = document.getElementById('f-dist-band').value;
+  const is_employee = dist_band === '0-1.25 km';
 
   const stoj    = Array.from(document.querySelectorAll('input[name=stoj]:checked')).map(c=>c.value)
                   .concat(window._chips.stoj);
@@ -143,10 +133,7 @@ window.submitSurvey = async () => {
                   .concat(window._chips.psyko);
   const kronisk = Array.from(document.querySelectorAll('input[name=kronisk]:checked')).map(c=>c.value)
                   .concat(window._chips.kronisk);
-  const ansatte = is_employee
-    ? Array.from(document.querySelectorAll('input[name=ansatte]:checked')).map(c=>c.value)
-      .concat(window._chips.ansatte)
-    : [];
+  const ansatte = [];
 
   const cType = document.getElementById('f-cancer-type').value.trim();
   if (cType) { const i=kronisk.indexOf('Anden kræfttype'); if(i>-1) kronisk[i]=`Anden kræft: ${cType}`; }
@@ -155,7 +142,7 @@ window.submitSurvey = async () => {
 
   try {
     const ref = await addDoc(collection(db, 'responses'), {
-      dist_band: document.getElementById('f-dist-band').value,
+      dist_band,
       dist_km:   parseFloat(document.getElementById('f-dist-km').value) || null,
       dir:       document.getElementById('f-dir').value,
       lat_z:     parseFloat(document.getElementById('f-lat-z').value)  || null,
