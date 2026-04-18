@@ -185,13 +185,12 @@ details[open] summary{color:var(--text)}
 
   <div id="form-wrap">
 
-
     <!-- 🗺 Placering -->
     <div class="card">
-      <div class="card-title">Din placering <span class="req">*</span></div>
-      <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl (eller arbejdsplads, hvis du er ansat). <strong>Det præcise klik gemmes ikke</strong> — kun afstandsinterval og retning beregnes og gemmes.</p>
+      <div class="card-title">🗺 Din placering <span class="req">*</span></div>
+      <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> — kun afstandszone og retning registreres.</p>
       <div id="map-picker"></div>
-      <div id="map-feedback">Klik på kortet for at angive din placering</div>
+      <div id="map-feedback">👆 Klik på kortet for at angive din placering</div>
       <input type="hidden" id="f-dist-band">
       <input type="hidden" id="f-dist-km">
       <input type="hidden" id="f-dir">
@@ -199,31 +198,55 @@ details[open] summary{color:var(--text)}
       <input type="hidden" id="f-lng-z">
     </div>
 
-    <!-- Baggrund -->
+    <!-- 👤 Baggrundsinformation -->
     <div class="card">
-      <div class="card-title">Baggrund <small>valgfri — kun til statistik</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+      <div class="card-title">👤 Baggrundsinformation <span class="req">*</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
         <div class="form-group" style="margin:0">
-          <label>År på nuværende adresse</label>
-          <select id="f-years">
-            <option value="">-</option>
-            <option>Under 1 år</option><option>1-3 år</option>
-            <option>3-10 år</option><option>Over 10 år</option>
+          <label>Hvor længe har du boet på din nuværende adresse? <span class="req">*</span></label>
+          <select id="f-years" required>
+            <option value="">— Vælg venligst —</option>
+            <option value="Under 1 år">Under 1 år</option>
+            <option value="1-2 år">1–2 år</option>
+            <option value="2-5 år">2–5 år</option>
+            <option value="5-10 år">5–10 år</option>
+            <option value="Over 10 år">Over 10 år</option>
           </select>
         </div>
         <div class="form-group" style="margin:0">
           <label>Aldersgruppe</label>
           <select id="f-age">
-            <option value="">-</option>
-            <option>Under 18</option><option>18-30 år</option>
-            <option>31-45 år</option><option>46-60 år</option><option>Over 60 år</option>
+            <option value="">— Valgfri —</option>
+            <option>Under 18</option><option>18–30 år</option>
+            <option>31–45 år</option><option>46–60 år</option><option>Over 60 år</option>
           </select>
         </div>
       </div>
-      <div class="form-group" style="margin-top:.9rem;margin-bottom:0">
-        <label>Hjemmeboende børn under 18?</label>
-        <select id="f-kids">
-          <option value="">-</option><option>Ja</option><option>Nej</option>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
+        <div class="form-group" style="margin:0">
+          <label>Hjemmeboende børn under 18?</label>
+          <select id="f-kids">
+            <option value="">— Valgfri —</option><option>Ja</option><option>Nej</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Ryger du (eller har røget regelmæssigt)?</label>
+          <select id="f-smoking">
+            <option value="">— Valgfri —</option>
+            <option value="Nej, aldrig">Nej, aldrig</option>
+            <option value="Ex-ryger, stoppet for over 5 år siden">Ex-ryger, stoppet &gt;5 år</option>
+            <option value="Ex-ryger, stoppet for under 5 år siden">Ex-ryger, stoppet &lt;5 år</option>
+            <option value="Ja, nuværende ryger">Ja, nuværende ryger</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Er din bolig eksponeret for kraftig vejtrafikstøj?</label>
+        <select id="f-traffic">
+          <option value="">— Valgfri —</option>
+          <option value="Nej">Nej / ubetydelig</option>
+          <option value="Lettere trafikstøj">Lettere trafikstøj (rolig vej)</option>
+          <option value="Kraftig trafikstøj">Kraftig trafikstøj (travl vej / motorvej)</option>
         </select>
       </div>
     </div>
@@ -231,30 +254,33 @@ details[open] summary{color:var(--text)}
     <!-- 🔊 STØJGENER -->
     <div class="sym-card stoj">
       <div class="sym-card-header">
-        <div class="sym-card-icon"></div>
+        <div class="sym-card-icon">🔊</div>
         <div>
           <div class="sym-card-title">Støjgener fra lufthavnen</div>
-          <div class="sym-card-desc">Sæt kryds ved de støjrelaterede symptomer du oplever til daglig — søvn, koncentration, tinnitus og stress</div>
+          <div class="sym-card-desc">Markér de gener du oplever regelmæssigt (mindst ugentligt) og vurderer skyldes flystøj</div>
         </div>
       </div>
       <div class="sym-card-body">
-        <label class="chk"><input type="checkbox" name="stoj" value="Søvnbesvær / svært ved at falde i søvn"><span>Søvnbesvær / svært ved at falde i søvn</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Tidlig opvågning eller fragmenteret søvn pga. støj"><span>Tidlig opvågning eller fragmenteret søvn pga. støj</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Konstant træthed pga. forstyrret søvn"><span>Konstant træthed pga. forstyrret søvn</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Koncentrationsbesvær (hjemmearbejde / lektier)"><span>Koncentrationsbesvær (hjemmearbejde / lektier)</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Tinnitus / konstant ringen eller brummen i ørerne"><span>Tinnitus / konstant ringen eller brummen i ørerne</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Hovedpine fra støj"><span>Hovedpine fra støj</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Stress og irritabilitet fra vedvarende støjniveau"><span>Stress og irritabilitet fra vedvarende støjniveau</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Besvær med at falde i søvn pga. flystøj"><span>Besvær med at falde i søvn pga. flystøj</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Tidlig opvågning eller afbrudt søvn pga. flystøj"><span>Tidlig opvågning eller afbrudt søvn pga. flystøj</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Vedvarende træthed som følge af dårlig søvn"><span>Vedvarende træthed som følge af dårlig søvn</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)"><span>Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Tinnitus eller vedvarende ringen/brummen i ørerne"><span>Tinnitus eller vedvarende ringen/brummen i ørerne</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Forhøjet stressniveau eller irritabilitet fra støjbelastning"><span>Forhøjet stressniveau eller irritabilitet fra støjbelastning</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Hovedpine eller trykfornemmelse ved kraftig flystøj"><span>Hovedpine eller trykfornemmelse ved kraftig flystøj</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Ubehag eller angstreaktioner ved kraftige flystøjshændelser"><span>Ubehag eller angstreaktioner ved kraftige flystøjshændelser</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Forhindret i at føre samtale indendørs eller udendørs"><span>Forhindret i at føre samtale indendørs eller udendørs</span></label>
 
         <div class="sev-row" id="stoj-sev-row" style="display:none">
-          <label>Alvorlighed:</label>
-          <input type="range" min="1" max="5" value="3" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value">
-          <span class="sev-val" id="stoj-sev-val">3</span><span style="font-size:.74rem;color:var(--muted)">/5</span>
+          <label style="white-space:nowrap;font-size:.78rem">Samlet støjgene (ICBEN-skala):</label>
+          <input type="range" min="0" max="10" value="5" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value">
+          <span class="sev-val" id="stoj-sev-val">5</span>
+          <span style="font-size:.71rem;color:var(--muted)">/10</span>
         </div>
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj eget støjsymptom</div>
+          <div class="custom-sym-label">Tilføj andet støjrelateret symptom</div>
           <div class="custom-sym-row">
-            <input type="text" id="custom-stoj-input" list="dl-stoj" placeholder="Skriv symptom og tryk Tilføj…" autocomplete="off">
+            <input type="text" id="custom-stoj-input" list="dl-stoj" placeholder="Beskriv symptom…" autocomplete="off">
             <datalist id="dl-stoj"></datalist>
             <button type="button" onclick="addCustomSym('stoj')">Tilføj</button>
           </div>
@@ -266,32 +292,33 @@ details[open] summary{color:var(--text)}
     <!-- 💨 LUFTFORURENING -->
     <div class="sym-card luft">
       <div class="sym-card-header">
-        <div class="sym-card-icon"></div>
+        <div class="sym-card-icon">💨</div>
         <div>
-          <div class="sym-card-title">Luftforurening og lugtgener</div>
-          <div class="sym-card-desc">Åndedrætsproblemer, øjenirritationer, lugtgener fra jetbrændstof og luftvejssygdomme forårsaget af luftkvaliteten</div>
+          <div class="sym-card-title">Luftkvalitet og lugtgener</div>
+          <div class="sym-card-desc">Markér de gener du oplever regelmæssigt og vurderer skyldes luftforurening eller lugt fra lufthavnen</div>
         </div>
       </div>
       <div class="sym-card-body">
-        <label class="chk"><input type="checkbox" name="luft" value="Vejtrækningsbesvær / åndenød"><span>Vejtrækningsbesvær / åndenød</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Vejrtrækningsbesvær eller åndenød i hjemmet eller haven"><span>Vejrtrækningsbesvær eller åndenød i hjemmet eller haven</span></label>
         <label class="chk"><input type="checkbox" name="luft" value="Vedvarende eller tilbagevendende hoste"><span>Vedvarende eller tilbagevendende hoste</span></label>
         <label class="chk"><input type="checkbox" name="luft" value="Irritation i øjne, næse eller svælg"><span>Irritation i øjne, næse eller svælg</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Løbende næse / hyppige forkølelseslignende symptomer"><span>Løbende næse / hyppige forkølelseslignende symptomer</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Kvalme ved lugtgener fra jetbrændstof"><span>Kvalme ved lugtgener fra jetbrændstof</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Hovedpine fra luftforurening eller lugt"><span>Hovedpine fra luftforurening / lugt</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Kan ikke lufte hjemmet pga. lugtgener"><span>Kan ikke lufte hjemmet pga. lugtgener</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Holder børn inde pga. dårlig udeluft"><span>Holder børn inde pga. dårlig udeluft</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Forværring af eksisterende luftvejssygdom ved lugtgener"><span>Forværring af eksisterende luftvejssygdom ved lugtgener</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Hyppige luftvejsinfektioner (3 eller flere pr. år)"><span>Hyppige luftvejsinfektioner (3 eller flere pr. år)</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Lugt af jetbrændstof indendørs eller i haven"><span>Lugt af jetbrændstof indendørs eller i haven</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Kvalme eller utilpashed ved lugtgener fra lufthavnen"><span>Kvalme eller utilpashed ved lugtgener fra lufthavnen</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet"><span>Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Begrænser udendørs ophold pga. luftkvalitet"><span>Begrænser udendørs ophold pga. luftkvalitet</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening"><span>Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening</span></label>
 
         <div class="sev-row" id="luft-sev-row" style="display:none">
-          <label>Alvorlighed:</label>
-          <input type="range" min="1" max="5" value="3" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value">
-          <span class="sev-val" id="luft-sev-val">3</span><span style="font-size:.74rem;color:var(--muted)">/5</span>
+          <label style="white-space:nowrap;font-size:.78rem">Samlet luftgeneskala (ICBEN):</label>
+          <input type="range" min="0" max="10" value="5" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value">
+          <span class="sev-val" id="luft-sev-val">5</span>
+          <span style="font-size:.71rem;color:var(--muted)">/10</span>
         </div>
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj eget luftkvalitetssymptom</div>
+          <div class="custom-sym-label">Tilføj andet luftkvalitetssymptom</div>
           <div class="custom-sym-row">
-            <input type="text" id="custom-luft-input" list="dl-luft" placeholder="Skriv symptom og tryk Tilføj…" autocomplete="off">
+            <input type="text" id="custom-luft-input" list="dl-luft" placeholder="Beskriv symptom…" autocomplete="off">
             <datalist id="dl-luft"></datalist>
             <button type="button" onclick="addCustomSym('luft')">Tilføj</button>
           </div>
@@ -300,27 +327,27 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- 🧠 PSYKOSOCIALE GENER -->
+    <!-- 🧠 PSYKOSOCIAL BELASTNING -->
     <div class="sym-card psyko">
       <div class="sym-card-header">
-        <div class="sym-card-icon"></div>
+        <div class="sym-card-icon">🧠</div>
         <div>
-          <div class="sym-card-title">Psykosociale og livskvalitetsmæssige gener</div>
-          <div class="sym-card-desc">Forringelse af livskvalitet, magtesløshed, fremtidsbekymringer og sociale konsekvenser af at bo tæt på lufthavnen</div>
+          <div class="sym-card-title">Psykosocial belastning og livskvalitet</div>
+          <div class="sym-card-desc">Markér påvirkninger på din trivsel og dagligdag du direkte tilskriver at bo i nærheden af lufthavnen</div>
         </div>
       </div>
       <div class="sym-card-body">
-        <label class="chk"><input type="checkbox" name="psyko" value="Betydelig forringelse af livskvalitet"><span>Betydelig forringelse af livskvalitet</span></label>
-        <label class="chk"><input type="checkbox" name="psyko" value="Magtesløshed ift. myndighedernes passivitet"><span>Magtesløshed ift. myndighedernes passivitet</span></label>
-        <label class="chk"><input type="checkbox" name="psyko" value="Bekymringer for min eller familiens langsigtede helbred"><span>Bekymringer for min / familiens langsigtede helbred</span></label>
-        <label class="chk"><input type="checkbox" name="psyko" value="Søvnmanglen påvirker min arbejds- eller skoleevne"><span>Søvnmanglen påvirker min arbejds- eller skoleevne</span></label>
-        <label class="chk"><input type="checkbox" name="psyko" value="Overvejer kraftigt at flytte alene pga. lufthavnen"><span>Overvejer kraftigt at flytte — alene pga. lufthavnen</span></label>
-        <label class="chk"><input type="checkbox" name="psyko" value="Kender naboer hvis hussalg er mislykket pga. støj eller lugt"><span>Kender naboer hvis hussalg er mislykket pga. støj/lugt</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft"><span>Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Vedvarende bekymring for eget eller families helbred pga. lufthavnen"><span>Vedvarende bekymring for eget eller families helbred pga. lufthavnen</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Søvnunderskud påvirker evnen til at arbejde eller studere"><span>Søvnunderskud påvirker evnen til at arbejde eller studere</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Følelse af magtesløshed over for myndighedernes passivitet"><span>Følelse af magtesløshed over for myndighedernes passivitet</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Seriøst overvejet at flytte pga. generne fra lufthavnen"><span>Seriøst overvejet at flytte pga. generne fra lufthavnen</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne"><span>Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne</span></label>
 
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj anden psykosocial gene</div>
+          <div class="custom-sym-label">Tilføj anden psykosocial påvirkning</div>
           <div class="custom-sym-row">
-            <input type="text" id="custom-psyko-input" list="dl-psyko" placeholder="Skriv symptom og tryk Tilføj…" autocomplete="off">
+            <input type="text" id="custom-psyko-input" list="dl-psyko" placeholder="Beskriv påvirkning…" autocomplete="off">
             <datalist id="dl-psyko"></datalist>
             <button type="button" onclick="addCustomSym('psyko')">Tilføj</button>
           </div>
@@ -329,111 +356,102 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- ✈️ ANSATTE — vises kun hvis is_employee er tjekket -->
-    <div id="ansatte-symp-wrap" style="display:none">
-      <div class="sym-card emp">
+    <!-- 🏥 KRONISKE SYGDOMME — vises kun ved ≥2 år på adressen -->
+    <div id="kronisk-wrap" style="display:none">
+      <div class="sym-card kronisk">
         <div class="sym-card-header">
-          <div class="sym-card-icon"></div>
+          <div class="sym-card-icon">🏥</div>
           <div>
-            <div class="sym-card-title">Arbejdsmiljørelaterede symptomer (ansatte)</div>
-            <div class="sym-card-desc">Symptomer specifikt relateret til dit arbejde i lufthavnsområdet — direkte eksponering for brændstof, støj og vibration på arbejdspladsen</div>
+            <div class="sym-card-title">Kroniske og alvorlige sygdomme</div>
+            <div class="sym-card-desc">Angiv kun lægediagnosticerede tilstande hos dig eller hjemmeboende familiemedlemmer der opstod <strong>efter</strong> I flyttede hertil, og som du mistænker kan have sammenhæng med luftkvalitet, støj eller luftforurening fra lufthavnen.</div>
           </div>
         </div>
         <div class="sym-card-body">
           <div class="sym-section">
-            <div class="sym-header sym-emp">Direkte erhvervseksponering</div>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Kerosindampe / brændstofdampe på arbejdspladsen"><span>Kerosindampe / brændstofdampe på arbejdspladsen</span></label>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Kraftig støjeksponering tæt på fly og motorer"><span>Kraftig støjeksponering tæt på fly og motorer</span></label>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Vibrationsgener fra fly eller ground equipment"><span>Vibrationsgener fra fly eller ground equipment</span></label>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Hudirritationer eller øjenirritationer pga. arbejdsmiljø"><span>Hudirritationer eller øjenirritationer pga. arbejdsmiljø</span></label>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Hørenedsættelse/tinnitus relateret til arbejde"><span>Hørenedsættelse / tinnitus relateret til arbejde</span></label>
-            <label class="chk"><input type="checkbox" name="ansatte" value="Kroniske luftvejsproblemer relateret til arbejde"><span>Kroniske luftvejsproblemer relateret til arbejde</span></label>
+            <div class="sym-header sym-kronisk">Hjerte-kar (stærkest epidemiologisk evidens)</div>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Hypertension (forhøjet blodtryk) — nyopstået efter flytning hertil"><span>Hypertension (forhøjet blodtryk) — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret efter flytning hertil"><span>Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Hjertearytmi — nyopstået efter flytning hertil"><span>Hjertearytmi — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Slagtilfælde — diagnosticeret efter flytning hertil"><span>Slagtilfælde — diagnosticeret <em>efter</em> flytning hertil</span></label>
+          </div>
+          <div class="sym-section">
+            <div class="sym-header sym-kronisk">Luftveje</div>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma — nyopstået efter flytning til adressen"><span>Astma — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma hos hjemmeboende barn — nyopstået efter flytning hertil"><span>Astma hos hjemmeboende barn — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma — eksisterede, men tydeligt forværret efter flytning hertil"><span>Astma — eksisterede, men <em>tydeligt forværret</em> efter flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="KOL eller kronisk bronkitis — nyopstået efter flytning hertil"><span>KOL eller kronisk bronkitis — nyopstået <em>efter</em> flytning hertil</span></label>
+          </div>
+          <div class="sym-section">
+            <div class="sym-header sym-kronisk">Kræft (diagnosticeret efter flytning hertil)</div>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Lungekræft — diagnosticeret efter flytning hertil"><span>Lungekræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Brystkræft — diagnosticeret efter flytning hertil"><span>Brystkræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Blærekræft — diagnosticeret efter flytning hertil"><span>Blærekræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Anden kræfttype — diagnosticeret efter flytning hertil"><span>Anden kræfttype</span></label>
+            <div id="andre-kraeft-wrap" style="display:none;margin:.2rem 0 0 2.1rem">
+              <input type="text" id="f-cancer-type" placeholder="Angiv type, fx tarmkræft, hudkræft …">
+            </div>
+          </div>
+          <div class="sym-section">
+            <div class="sym-header sym-kronisk">Øvrige</div>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Diabetes type 2 — nyopstået efter flytning hertil"><span>Diabetes type 2 — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Ingen relevante diagnoser at angive"><span>Ingen relevante diagnoser at angive</span></label>
           </div>
           <div class="custom-sym-area">
-            <div class="custom-sym-label">Tilføj andet arbejdsmiljøsymptom</div>
+            <div class="custom-sym-label">Tilføj anden relevant diagnose</div>
             <div class="custom-sym-row">
-              <input type="text" id="custom-ansatte-input" list="dl-ansatte" placeholder="Fx støveksponering, kemikalier, ergonomi…" autocomplete="off">
-              <datalist id="dl-ansatte"></datalist>
-              <button type="button" onclick="addCustomSym('ansatte')">Tilføj</button>
+              <input type="text" id="custom-kronisk-input" list="dl-kronisk" placeholder="Fx neuropati, autoimmun sygdom …" autocomplete="off">
+              <datalist id="dl-kronisk"></datalist>
+              <button type="button" onclick="addCustomSym('kronisk')">Tilføj</button>
             </div>
-            <div class="chips" id="chips-ansatte"></div>
+            <div class="chips" id="chips-kronisk"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 🏥 Kronisk sygdom -->
-    <div class="sym-card kronisk">
-      <div class="sym-card-header">
-        <div class="sym-card-icon"></div>
-        <div>
-          <div class="sym-card-title">Kroniske og alvorlige sygdomme</div>
-          <div class="sym-card-desc">Lægediagnosticerede tilstande hos dig eller hjemmeboende familiemedlemmer — inkl. kræft, luftvejssygdom og hjerte-kar-sygdom</div>
-        </div>
-      </div>
-      <div class="sym-card-body">
-        <div class="sym-section">
-          <div class="sym-header sym-kronisk">Luftveje</div>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Astma (nyopstået efter flytning til nuværende adresse)"><span>Astma — nyopstået <em>efter</em> flytning til nuværende adresse</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Astma (eksisterede før flytning, evt. forværret)"><span>Astma — eksisterede inden flytning (evt. forværret)</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Astma hos hjemmeboende barn (nyopstået)"><span>Astma hos hjemmeboende barn — nyopstået</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="KOL (kronisk obstruktiv lungesygdom)"><span>KOL (kronisk obstruktiv lungesygdom)</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Kronisk bronkitis eller hyppige lungebetændelser"><span>Kronisk bronkitis / hyppige lungebetændelser</span></label>
-        </div>
-        <div class="sym-section">
-          <div class="sym-header sym-kronisk">Kræft (diagnosticeret)</div>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Lungekræft"><span>Lungekræft</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Brystkræft"><span>Brystkræft</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Blærekræft"><span>Blærekræft</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Anden kræfttype"><span>Anden kræfttype</span></label>
-          <div id="andre-kraeft-wrap" style="display:none;margin:.2rem 0 0 2.1rem">
-            <input type="text" id="f-cancer-type" placeholder="Angiv type, fx tarmkræft, hudkræft, blodkræft …">
-          </div>
-        </div>
-        <div class="sym-section">
-          <div class="sym-header sym-kronisk">Øvrige</div>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Hjerte-kar-sygdom"><span>Hjerte-kar-sygdom</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Diabetes type 2"><span>Diabetes type 2</span></label>
-          <label class="chk"><input type="checkbox" name="kronisk" value="Ingen af ovenstående"><span>Ingen af ovenstående</span></label>
-        </div>
-        <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj anden kronisk sygdom / diagnose</div>
-          <div class="custom-sym-row">
-            <input type="text" id="custom-kronisk-input" list="dl-kronisk" placeholder="Fx neuropati, Parkinsons, autoimmun sygdom…" autocomplete="off">
-            <datalist id="dl-kronisk"></datalist>
-            <button type="button" onclick="addCustomSym('kronisk')">Tilføj</button>
-          </div>
-          <div class="chips" id="chips-kronisk"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tidspunkt og mønstre -->
+    <!-- ⏱ EKSPONERINGSTIDSLINJE -->
     <div class="card">
-      <div class="card-title">Tidspunkt og mønstre</div>
+      <div class="card-title">⏱ Eksponeringstidslinje <span class="req">*</span></div>
       <div class="form-group">
-        <label>Hvornår begyndte du at bemærke generne? <span class="req">*</span></label>
+        <label>Hvornår begyndte du at mærke generne — <strong>i forhold til hvornår du flyttede til adressen</strong>? <span class="req">*</span></label>
         <select id="f-onset" required>
-          <option value="">- Vælg venligst -</option>
+          <option value="">— Vælg venligst —</option>
           <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
-          <option value="Siden jeg flyttede til området">Siden jeg flyttede til området (husker ikke præcist hvornår)</option>
-          <option value="Før 2015">Før 2015</option>
-          <option value="2015-2019">2015-2019</option>
-          <option value="2020-2022">2020-2022</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
+          <option value="Fra starten — straks efter indflytning">Fra starten — straks efter indflytning</option>
+          <option value="Inden for det første år">Inden for det første år efter indflytning</option>
+          <option value="1-3 år efter flytning">1–3 år efter flytning</option>
+          <option value="Mere end 3 år efter flytning">Mere end 3 år efter flytning</option>
+          <option value="Husker ikke præcist">Husker ikke præcist</option>
         </select>
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Oplever du generne særligt ved bestemte vindretninger?</label>
+      <div class="form-group">
+        <label>Er generne <strong>forværret</strong> over den periode du har boet her?</label>
+        <select id="f-got-worse">
+          <option value="">— Vælg —</option>
+          <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
+          <option value="Ja, lettere forværret">Ja, lettere forværret</option>
+          <option value="Uændrede siden de startede">Uændrede siden de startede</option>
+          <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Oplever du generne særligt ved bestemte <strong>vindretninger</strong>?</label>
         <select id="f-wind-sens">
-          <option value="">- Ved ikke / har ikke lagt mærke til det -</option>
+          <option value="">— Ved ikke / har ikke lagt mærke til det —</option>
           <option value="Ja - vind fra vest eller sydvest">Ja — vind fra vest / sydvest</option>
           <option value="Ja - vind fra syd">Ja — vind fra syd</option>
           <option value="Ja - vind fra øst eller nordøst">Ja — vind fra øst / nordøst</option>
           <option value="Ja - vind fra nord">Ja — vind fra nord</option>
           <option value="Nej - uafhængigt af vindretning">Nej — sker uafhængigt af vindretning</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Oplever du en <strong>sæsonmæssig forskel</strong> i genernes styrke?</label>
+        <select id="f-seasonal">
+          <option value="">— Ingen tydelig forskel / ved ikke —</option>
+          <option value="Ja, klart værst om sommeren">Ja — klart værst om sommeren</option>
+          <option value="Ja, klart værst om vinteren">Ja — klart værst om vinteren</option>
+          <option value="Afhænger af vejr og vind, ikke årstid">Afhænger af vejr og vind, ikke årstid</option>
         </select>
       </div>
     </div>

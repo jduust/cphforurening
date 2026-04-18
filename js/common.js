@@ -45,28 +45,30 @@ export const DIRS8 = ['N','NØ','Ø','SØ','S','SV','V','NV'];
 export const COL   = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c', ansatte:'#155a2e' };
 
 export const ALL_SYMS = [
-  {v:'Søvnbesvær / svært ved at falde i søvn',                       k:'stoj'},
-  {v:'Tidlig opvågning eller fragmenteret søvn pga. støj',           k:'stoj'},
-  {v:'Konstant træthed pga. forstyrret søvn',                        k:'stoj'},
-  {v:'Koncentrationsbesvær (hjemmearbejde / lektier)',                k:'stoj'},
-  {v:'Tinnitus / konstant ringen eller brummen i ørerne',            k:'stoj'},
-  {v:'Hovedpine fra støj',                                           k:'stoj'},
-  {v:'Stress og irritabilitet fra vedvarende støjniveau',            k:'stoj'},
-  {v:'Vejtrækningsbesvær / åndenød',                                 k:'luft'},
-  {v:'Vedvarende eller tilbagevendende hoste',                       k:'luft'},
-  {v:'Irritation i øjne, næse eller svælg',                          k:'luft'},
-  {v:'Løbende næse / hyppige forkølelseslignende symptomer',         k:'luft'},
-  {v:'Kvalme ved lugtgener fra jetbrændstof',                        k:'luft'},
-  {v:'Hovedpine fra luftforurening eller lugt',                      k:'luft'},
-  {v:'Kan ikke lufte hjemmet pga. lugtgener',                        k:'luft'},
-  {v:'Holder børn inde pga. dårlig udeluft',                        k:'luft'},
-  {v:'Forværring af eksisterende luftvejssygdom ved lugtgener',      k:'luft'},
-  {v:'Betydelig forringelse af livskvalitet',                        k:'psyko'},
-  {v:'Magtesløshed ift. myndighedernes passivitet',                  k:'psyko'},
-  {v:'Bekymringer for min eller familiens langsigtede helbred',      k:'psyko'},
-  {v:'Søvnmanglen påvirker min arbejds- eller skoleevne',            k:'psyko'},
-  {v:'Overvejer kraftigt at flytte alene pga. lufthavnen',           k:'psyko'},
-  {v:'Kender naboer hvis hussalg er mislykket pga. støj eller lugt', k:'psyko'},
+  {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj'},
+  {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj'},
+  {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj'},
+  {v:'Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)',           k:'stoj'},
+  {v:'Tinnitus eller vedvarende ringen/brummen i ørerne',                    k:'stoj'},
+  {v:'Forhøjet stressniveau eller irritabilitet fra støjbelastning',         k:'stoj'},
+  {v:'Hovedpine eller trykfornemmelse ved kraftig flystøj',                  k:'stoj'},
+  {v:'Ubehag eller angstreaktioner ved kraftige flystøjshændelser',          k:'stoj'},
+  {v:'Forhindret i at føre samtale indendørs eller udendørs',                k:'stoj'},
+  {v:'Vejrtrækningsbesvær eller åndenød i hjemmet eller haven',              k:'luft'},
+  {v:'Vedvarende eller tilbagevendende hoste',                               k:'luft'},
+  {v:'Irritation i øjne, næse eller svælg',                                  k:'luft'},
+  {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft'},
+  {v:'Lugt af jetbrændstof indendørs eller i haven',                         k:'luft'},
+  {v:'Kvalme eller utilpashed ved lugtgener fra lufthavnen',                 k:'luft'},
+  {v:'Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet',       k:'luft'},
+  {v:'Begrænser udendørs ophold pga. luftkvalitet',                          k:'luft'},
+  {v:'Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening', k:'luft'},
+  {v:'Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft', k:'psyko'},
+  {v:'Vedvarende bekymring for eget eller families helbred pga. lufthavnen', k:'psyko'},
+  {v:'Søvnunderskud påvirker evnen til at arbejde eller studere',            k:'psyko'},
+  {v:'Følelse af magtesløshed over for myndighedernes passivitet',           k:'psyko'},
+  {v:'Seriøst overvejet at flytte pga. generne fra lufthavnen',              k:'psyko'},
+  {v:'Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne', k:'psyko'},
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -92,7 +94,7 @@ export function toBand(km)   {
   return '20+ km';
 }
 export function symCount(d)   { return (d.stoj?.length||0) + (d.luft?.length||0) + (d.psyko?.length||0); }
-export function hasKronisk(d) { return d.kronisk?.length > 0 && !d.kronisk.every(v => v === 'Ingen af ovenstående'); }
+export function hasKronisk(d) { return d.kronisk?.length > 0 && !d.kronisk.every(v => v === 'Ingen relevante diagnoser at angive'); }
 export function isEmployee(d) { return !!(d.is_employee || d.dist_band === EMPLOYEE_BAND); }
 
 // ── Zone geometry helpers ─────────────────────────────────────

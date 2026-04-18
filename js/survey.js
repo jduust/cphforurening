@@ -102,6 +102,14 @@ document.querySelectorAll('input[name=kronisk]').forEach(cb => {
   });
 });
 
+// ── Kronisk-sektion: vis kun ved ≥2 år på adressen ───────────
+const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
+document.getElementById('f-years')?.addEventListener('change', e => {
+  const show = YEARS_FOR_KRONISK.has(e.target.value);
+  const wrap = document.getElementById('kronisk-wrap');
+  if (wrap) wrap.style.display = show ? 'block' : 'none';
+});
+
 // ── Duplicate check ───────────────────────────────────────────
 if (localStorage.getItem('lh_v3_done')) {
   console.log('[Survey] Allerede besvaret (localStorage).');
@@ -113,6 +121,9 @@ if (localStorage.getItem('lh_v3_done')) {
 window.submitSurvey = async () => {
   if (!document.getElementById('f-dist-band').value) {
     alert('Klik venligst på kortet for at angive din placering'); return;
+  }
+  if (!document.getElementById('f-years').value) {
+    alert('Angiv venligst hvor længe du har boet på adressen'); return;
   }
   if (!document.getElementById('f-onset').value) {
     alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
@@ -133,30 +144,33 @@ window.submitSurvey = async () => {
                   .concat(window._chips.psyko);
   const kronisk = Array.from(document.querySelectorAll('input[name=kronisk]:checked')).map(c=>c.value)
                   .concat(window._chips.kronisk);
-  const ansatte = [];
 
-  const cType = document.getElementById('f-cancer-type').value.trim();
-  if (cType) { const i=kronisk.indexOf('Anden kræfttype'); if(i>-1) kronisk[i]=`Anden kræft: ${cType}`; }
+  const cType = document.getElementById('f-cancer-type')?.value.trim();
+  if (cType) { const i=kronisk.indexOf('Anden kræfttype — diagnosticeret efter flytning hertil'); if(i>-1) kronisk[i]+= ` (${cType})`; }
 
-  console.log('[Survey] Indsender:', { is_employee, stoj, luft, psyko, kronisk, ansatte });
+  console.log('[Survey] Indsender:', { is_employee, stoj, luft, psyko, kronisk });
 
   try {
     const ref = await addDoc(collection(db, 'responses'), {
       dist_band,
-      dist_km:   parseFloat(document.getElementById('f-dist-km').value) || null,
-      dir:       document.getElementById('f-dir').value,
-      lat_z:     parseFloat(document.getElementById('f-lat-z').value)  || null,
-      lng_z:     parseFloat(document.getElementById('f-lng-z').value)  || null,
-      years:     document.getElementById('f-years').value    || null,
-      age:       document.getElementById('f-age').value      || null,
-      kids:      document.getElementById('f-kids').value     || null,
+      dist_km:     parseFloat(document.getElementById('f-dist-km').value) || null,
+      dir:         document.getElementById('f-dir').value,
+      lat_z:       parseFloat(document.getElementById('f-lat-z').value)  || null,
+      lng_z:       parseFloat(document.getElementById('f-lng-z').value)  || null,
+      years:       document.getElementById('f-years').value,
+      age:         document.getElementById('f-age').value      || null,
+      kids:        document.getElementById('f-kids').value     || null,
+      smoking:     document.getElementById('f-smoking').value  || null,
+      traffic:     document.getElementById('f-traffic').value  || null,
       is_employee,
-      stoj, luft, kronisk, psyko, ansatte,
-      stoj_sev:  stoj.length  ? parseInt(document.getElementById('stoj-sev').value)  : null,
-      luft_sev:  luft.length  ? parseInt(document.getElementById('luft-sev').value)  : null,
-      onset:     document.getElementById('f-onset').value,
-      wind_sens: document.getElementById('f-wind-sens').value || null,
-      ts:        serverTimestamp()
+      stoj, luft, psyko, kronisk,
+      stoj_sev:    stoj.length  ? parseInt(document.getElementById('stoj-sev').value)  : null,
+      luft_sev:    luft.length  ? parseInt(document.getElementById('luft-sev').value)  : null,
+      onset:       document.getElementById('f-onset').value,
+      got_worse:   document.getElementById('f-got-worse').value  || null,
+      wind_sens:   document.getElementById('f-wind-sens').value  || null,
+      seasonal:    document.getElementById('f-seasonal').value   || null,
+      ts:          serverTimestamp()
     });
     console.log('[Survey] ✅ Gemt med ID:', ref.id);
     localStorage.setItem('lh_v3_done', '1');
