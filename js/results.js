@@ -461,7 +461,7 @@ function updateScientific(docs) {
     <tr><td class="dzone">Fjern (10+ km)</td><td>${cC}</td><td>${cD}</td><td>${cC+cD}</td><td class="drate">${rFar}</td></tr>
     <tr style="font-weight:600"><td>I alt</td><td>${cA+cC}</td><td>${cB+cD}</td><td>${cN}</td><td></td></tr>
     </tbody></table>
-    <div style="font-size:.77rem;color:var(--muted);margin-top:.5rem;font-family:'IBM Plex Mono',monospace">χ² = ${chi2.toFixed(4)}, p = ${pv<0.001?'< 0,001':pv.toFixed(6)}</div>`;
+    <div style="font-size:.77rem;color:var(--muted);margin-top:.5rem;font-family:'Space Mono',monospace">χ² = ${chi2.toFixed(4)}, p = ${pv<0.001?'< 0,001':pv.toFixed(6)}</div>`;
 
   // ── 5. Conclusion ─────────────────────────────────────────
   const withD=dd.filter(d=>d.n>=3);
