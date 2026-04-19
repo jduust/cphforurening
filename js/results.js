@@ -267,10 +267,10 @@ function updateAll(docs) {
     }
   });
   const onsetBands = AB.filter(b => bandStojLists[b].length > 0 || bandLuftLists[b].length > 0);
-  const avg = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length*10)/10 : null;
+  const avgYear = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length*10)/10 : null;
   const allYears = [
-    ...onsetBands.map(b=>avg(bandStojLists[b])),
-    ...onsetBands.map(b=>avg(bandLuftLists[b]))
+    ...onsetBands.map(b=>avgYear(bandStojLists[b])),
+    ...onsetBands.map(b=>avgYear(bandLuftLists[b]))
   ].filter(Boolean);
   const xMin = allYears.length ? Math.floor(Math.min(...allYears)) - 1 : 2012;
   const xMax = 2026;
@@ -282,14 +282,14 @@ function updateAll(docs) {
       datasets:[
         {
           label: '🔊 Flystøj (gns. debut-år)',
-          data: onsetBands.map(b => avg(bandStojLists[b])),
+          data: onsetBands.map(b => avgYear(bandStojLists[b])),
           backgroundColor: 'rgba(42,79,140,.75)',
           borderRadius: 3,
           barThickness: 16,
         },
         {
           label: '💨 Luft/lugt (gns. debut-år)',
-          data: onsetBands.map(b => avg(bandLuftLists[b])),
+          data: onsetBands.map(b => avgYear(bandLuftLists[b])),
           backgroundColor: 'rgba(176,80,16,.7)',
           borderRadius: 3,
           barThickness: 16,
