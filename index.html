@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lufthavnen & Sundhed — Borgerundersøgelse</title>
+<title>Lufthavnen & Sundhed - Borgerundersøgelse</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
@@ -184,7 +184,7 @@ details[open] summary{color:var(--text)}
 <div id="tab-survey" class="tab-content active">
 
   <div id="notice-done" class="notice notice-warn" style="display:none">
-    Du har allerede besvaret undersøgelsen — tak!
+    Du har allerede besvaret undersøgelsen - tak!
     <a href="#" onclick="showTab('results');return false;" style="color:#5a3a00;font-weight:600"> Se resultater →</a>
   </div>
 
@@ -193,7 +193,7 @@ details[open] summary{color:var(--text)}
     <!-- 🗺 Placering -->
     <div class="card">
       <div class="card-title">🗺 Din placering <span class="req">*</span></div>
-      <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> — kun afstandszone og retning registreres.</p>
+      <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> - kun afstandszone og retning registreres.</p>
       <div id="map-picker"></div>
       <div id="map-feedback">👆 Klik på kortet for at angive det valgte område</div>
       <input type="hidden" id="f-dist-band">
@@ -208,9 +208,9 @@ details[open] summary{color:var(--text)}
       <div class="card-title">👤 Baggrundsinformation <span class="req">*</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
         <div class="form-group" style="margin:0">
-          <label>Hvor længe har du boet på din nuværende adresse? <span class="req">*</span></label>
+          <label>Hvor længe har du boet i det valgte område? <span class="req">*</span></label>
           <select id="f-years" required>
-            <option value="">— Vælg venligst —</option>
+            <option value="">- Vælg venligst -</option>
             <option value="Under 1 år">Under 1 år</option>
             <option value="1-2 år">1–2 år</option>
             <option value="2-5 år">2–5 år</option>
@@ -221,7 +221,7 @@ details[open] summary{color:var(--text)}
         <div class="form-group" style="margin:0">
           <label>Aldersgruppe</label>
           <select id="f-age">
-            <option value="">— Valgfri —</option>
+            <option value="">- Valgfri -</option>
             <option>Under 18</option><option>18–30 år</option>
             <option>31–45 år</option><option>46–60 år</option><option>Over 60 år</option>
           </select>
@@ -230,17 +230,17 @@ details[open] summary{color:var(--text)}
       <div class="form-group" style="margin-bottom:.9rem">
         <label>Ryger du (eller har røget regelmæssigt)?</label>
         <select id="f-smoking">
-          <option value="">— Valgfri —</option>
+          <option value="">- Valgfri -</option>
           <option value="Nej, aldrig">Nej, aldrig</option>
-          <option value="Ex-ryger, stoppet for mere end 5 år siden">Ex-ryger — stoppet for mere end 5 år siden</option>
-          <option value="Ex-ryger, stoppet inden for de sidste 5 år">Ex-ryger — stoppet inden for de sidste 5 år</option>
+          <option value="Ex-ryger, stoppet for mere end 5 år siden">Ex-ryger - stoppet for mere end 5 år siden</option>
+          <option value="Ex-ryger, stoppet inden for de sidste 5 år">Ex-ryger - stoppet inden for de sidste 5 år</option>
           <option value="Ja, nuværende ryger">Ja, nuværende ryger</option>
         </select>
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Er din bolig eksponeret for kraftig vejtrafikstøj?</label>
         <select id="f-traffic">
-          <option value="">— Valgfri —</option>
+          <option value="">- Valgfri -</option>
           <option value="Nej">Nej / ubetydelig</option>
           <option value="Lettere trafikstøj">Lettere trafikstøj (rolig vej)</option>
           <option value="Kraftig trafikstøj">Kraftig trafikstøj (travl vej / motorvej)</option>
@@ -352,7 +352,7 @@ details[open] summary{color:var(--text)}
       </div>
       <div class="sym-card-body">
         <div class="sub-hdr" style="color:var(--psyko)">Symptomer</div>
-        <label class="chk"><input type="checkbox" name="psyko" value="Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne"><span>Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne</span></label>
+        <label class="chk"><input type="checkbox" name="psyko" value="Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne"><span>Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne</span></label>
         <div class="gen-subsection">
           <div class="sub-hdr">Gener og adfærdspåvirkning</div>
           <label class="chk"><input type="checkbox" name="psyko" value="Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft"><span>Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft</span></label>
@@ -378,10 +378,10 @@ details[open] summary{color:var(--text)}
 
     <!-- Employee notice (hidden by default) -->
     <div id="employee-notice" style="display:none;margin-bottom:1rem" class="notice notice-success">
-      <strong>Du er registreret i lufthavnsområdet (ansatzone).</strong> Angiv venligst dine helbredsmæssige symptomer ovenfor — adresse- og boligspørgsmål er ikke relevante. Kroniske diagnoser nedenfor er særligt vigtige.
+      <strong>Du er registreret i lufthavnsområdet (ansatzone).</strong> Angiv venligst dine helbredsmæssige symptomer ovenfor - adresse- og boligspørgsmål er ikke relevante. Kroniske diagnoser nedenfor er særligt vigtige.
     </div>
 
-    <!-- 🏥 KRONISKE SYGDOMME — vises ved ≥2 år (beboere) eller altid (ansatte) -->
+    <!-- 🏥 KRONISKE SYGDOMME - vises ved ≥2 år (beboere) eller altid (ansatte) -->
     <div id="kronisk-wrap" style="display:none">
       <div class="sym-card kronisk">
         <div class="sym-card-header">
@@ -394,31 +394,31 @@ details[open] summary{color:var(--text)}
         <div class="sym-card-body">
           <div class="sym-section">
             <div class="sym-header sym-kronisk">Hjerte-kar (stærkest epidemiologisk evidens)</div>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Hypertension (forhøjet blodtryk) — nyopstået efter flytning hertil"><span>Hypertension (forhøjet blodtryk) — nyopstået <em>efter</em> flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret efter flytning hertil"><span>Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret <em>efter</em> flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Hjertearytmi — nyopstået efter flytning hertil"><span>Hjertearytmi — nyopstået <em>efter</em> flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Slagtilfælde — diagnosticeret efter flytning hertil"><span>Slagtilfælde — diagnosticeret <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Hypertension (forhøjet blodtryk) - nyopstået efter flytning hertil"><span>Hypertension (forhøjet blodtryk) - nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Iskæmisk hjertesygdom eller hjerteinfarkt - diagnosticeret efter flytning hertil"><span>Iskæmisk hjertesygdom eller hjerteinfarkt - diagnosticeret <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Hjertearytmi - nyopstået efter flytning hertil"><span>Hjertearytmi - nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Slagtilfælde - diagnosticeret efter flytning hertil"><span>Slagtilfælde - diagnosticeret <em>efter</em> flytning hertil</span></label>
           </div>
           <div class="sym-section">
             <div class="sym-header sym-kronisk">Luftveje</div>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Astma — nyopstået efter flytning til adressen"><span>Astma — nyopstået <em>efter</em> flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Astma hos hjemmeboende barn — nyopstået efter flytning hertil"><span>Astma hos hjemmeboende barn — nyopstået <em>efter</em> flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Astma — eksisterede, men tydeligt forværret efter flytning hertil"><span>Astma — eksisterede, men <em>tydeligt forværret</em> efter flytning hertil</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="KOL eller kronisk bronkitis — nyopstået efter flytning hertil"><span>KOL eller kronisk bronkitis — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma - nyopstået efter flytning til adressen"><span>Astma - nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma hos hjemmeboende barn - nyopstået efter flytning hertil"><span>Astma hos hjemmeboende barn - nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Astma - eksisterede, men tydeligt forværret efter flytning hertil"><span>Astma - eksisterede, men <em>tydeligt forværret</em> efter flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="KOL eller kronisk bronkitis - nyopstået efter flytning hertil"><span>KOL eller kronisk bronkitis - nyopstået <em>efter</em> flytning hertil</span></label>
           </div>
           <div class="sym-section">
             <div class="sym-header sym-kronisk">Kræft (diagnosticeret efter flytning hertil)</div>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Lungekræft — diagnosticeret efter flytning hertil"><span>Lungekræft</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Brystkræft — diagnosticeret efter flytning hertil"><span>Brystkræft</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Blærekræft — diagnosticeret efter flytning hertil"><span>Blærekræft</span></label>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Anden kræfttype — diagnosticeret efter flytning hertil"><span>Anden kræfttype</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Lungekræft - diagnosticeret efter flytning hertil"><span>Lungekræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Brystkræft - diagnosticeret efter flytning hertil"><span>Brystkræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Blærekræft - diagnosticeret efter flytning hertil"><span>Blærekræft</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Anden kræfttype - diagnosticeret efter flytning hertil"><span>Anden kræfttype</span></label>
             <div id="andre-kraeft-wrap" style="display:none;margin:.2rem 0 0 2.1rem">
               <input type="text" id="f-cancer-type" placeholder="Angiv type, fx tarmkræft, hudkræft …">
             </div>
           </div>
           <div class="sym-section">
             <div class="sym-header sym-kronisk">Øvrige</div>
-            <label class="chk"><input type="checkbox" name="kronisk" value="Diabetes type 2 — nyopstået efter flytning hertil"><span>Diabetes type 2 — nyopstået <em>efter</em> flytning hertil</span></label>
+            <label class="chk"><input type="checkbox" name="kronisk" value="Diabetes type 2 - nyopstået efter flytning hertil"><span>Diabetes type 2 - nyopstået <em>efter</em> flytning hertil</span></label>
             <label class="chk"><input type="checkbox" name="kronisk" value="Ingen relevante diagnoser at angive"><span>Ingen relevante diagnoser at angive</span></label>
           </div>
           <div class="custom-sym-area">
@@ -440,7 +440,7 @@ details[open] summary{color:var(--text)}
       <div class="form-group">
         <label>Hvornår begyndte du første gang at mærke generne? <span class="req">*</span></label>
         <select id="f-onset" required>
-          <option value="">— Vælg venligst —</option>
+          <option value="">- Vælg venligst -</option>
           <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
           <option value="Før 2015">Før 2015</option>
           <option value="2015-2019">2015–2019</option>
@@ -455,7 +455,7 @@ details[open] summary{color:var(--text)}
       <div class="form-group">
         <label>Er generne <strong>forværret</strong> over den periode du har boet her?</label>
         <select id="f-got-worse">
-          <option value="">— Vælg —</option>
+          <option value="">- Vælg -</option>
           <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
           <option value="Ja, lettere forværret">Ja, lettere forværret</option>
           <option value="Uændrede siden de startede">Uændrede siden de startede</option>
@@ -468,7 +468,7 @@ details[open] summary{color:var(--text)}
       Noget gik galt. Tjek din forbindelse og prøv igen.
     </div>
     <button class="btn-primary" id="btn-sub" onclick="submitSurvey()">Send mit svar ›</button>
-    <p style="text-align:center;color:var(--muted);font-size:.76rem;margin-top:.7rem">Alle svar er anonyme — ingen personoplysninger gemmes</p>
+    <p style="text-align:center;color:var(--muted);font-size:.76rem;margin-top:.7rem">Alle svar er anonyme - ingen personoplysninger gemmes</p>
   </div>
 
   <div id="success-wrap" style="display:none">
@@ -493,7 +493,7 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">Geografisk symptombyrde
-      <span class="analysis-badge">Analyse 1 — Geografisk klyngning</span>
+      <span class="analysis-badge">Analyse 1 - Geografisk klyngning</span>
     </div>
     <div class="chart-sub">Cirklernes størrelse = antal besvarelser. Farven går fra blå (få symptomer) til rød (mange). Et klart mønster med rødere cirkler tæt på lufthavnen er stærkt kausalitetsbevis. Grøn ring = ansatzone (0–1,25 km).</div>
     <div id="map-results"></div>
@@ -501,7 +501,7 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">Symptombyrde vs. afstand
-      <span class="analysis-badge">Analyse 2 — Dosis-respons</span>
+      <span class="analysis-badge">Analyse 2 - Dosis-respons</span>
     </div>
     <div class="chart-sub">Gennemsnitligt antal rapporterede symptomer pr. person opdelt på afstandszone (beboere). Et systematisk fald fra venstre mod højre er det klassiske eksponerings-respons-signal.</div>
     <div class="chart-wrap" style="height:280px"><canvas id="c-dist"></canvas></div>
@@ -525,7 +525,7 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">Kronisk sygdom og kræft vs. afstand
-      <span class="analysis-badge">Analyse 4 — Kronisk morbiditet</span>
+      <span class="analysis-badge">Analyse 4 - Kronisk morbiditet</span>
     </div>
     <div class="chart-sub">Andel af respondenter med mindst én kronisk diagnose (inkl. kræft) pr. afstandszone.</div>
     <div class="chart-wrap" style="height:260px"><canvas id="c-kronisk"></canvas></div>
@@ -533,10 +533,10 @@ details[open] summary{color:var(--text)}
 
   <div class="card" style="border:2px solid #c03030">
     <div class="card-title" style="border-bottom-color:#e0c0c0;color:#7b0000">
-      ⚠ Lægediagnosticerede sygdomme — opstået efter flytning til området
+      ⚠ Lægediagnosticerede sygdomme - opstået efter flytning til området
       <span class="analysis-badge" style="background:#fdf0f0;color:#7b0000;border-color:#e0a0a0">Alle respondenter</span>
     </div>
-    <div class="chart-sub">Alle angivne tilstande er <strong>lægediagnosticerede</strong> og opstod <strong>efter</strong> flytning til denne adresse. Lungekræft, hjertesygdom og slagtilfælde er de stærkest evidensbaserede endpoints for kronisk støj- og luftforureningseksponering (WHO, HYENA-studiet, Health Effects Institute). Selv 1–2% udgør en markant overrepræsentation: den alderstandardiserede baggrundsrate for lungekræft i Danmark er ~0,15% pr. år — enhver koncentration i et geografisk defineret nærområde er et alvorligt signal.</div>
+    <div class="chart-sub">Alle angivne tilstande er <strong>lægediagnosticerede</strong> og opstod <strong>efter</strong> flytning til denne adresse. Lungekræft, hjertesygdom og slagtilfælde er de stærkest evidensbaserede endpoints for kronisk støj- og luftforureningseksponering (WHO, HYENA-studiet, Health Effects Institute). Selv 1–2% udgør en markant overrepræsentation: den alderstandardiserede baggrundsrate for lungekræft i Danmark er ~0,15% pr. år - enhver koncentration i et geografisk defineret nærområde er et alvorligt signal.</div>
     <div id="kd-summary"></div>
     <div class="leg-row">
       <span class="leg"><span class="leg-dot" style="background:#5c0a0a"></span>Kræft</span>
@@ -548,7 +548,7 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">Symptomhyppighed — beboere
+    <div class="card-title">Symptomhyppighed - beboere
       <span class="analysis-badge">Kun kliniske symptomer</span>
     </div>
     <div class="chart-sub">Andel af beboerrespondenter der rapporterer hvert symptom. Disse tal indgår i Bradford Hill-beregningerne. Beboere = respondenter udenfor 0–1,25 km-zonen.</div>
@@ -561,7 +561,7 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">Generhyppighed — beboere
+    <div class="card-title">Generhyppighed - beboere
       <span class="analysis-badge" style="background:#f5ede0;color:#7a3e00;border-color:#e0c090">Adfærdspåvirkning</span>
     </div>
     <div class="chart-sub">Andel der rapporterer adfærdsmæssige og sociale konsekvenser (gener). Indgår <em>ikke</em> i Bradford Hill-beregningerne, men belyser den samlede belastning.</div>
@@ -574,8 +574,8 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">Hvornår begyndte generne? — gennemsnit pr. afstandszone</div>
-    <div class="chart-sub">Gennemsnitligt årstal for debut af gener, opdelt på afstandszone (beboere). Hvis lufthavnens påvirkning breder sig udad over tid — i takt med stigende trafik, nye ruter og ændrede flyveveje — forventes det inderste bælte at have det tidligste gennemsnitsår, og tallene stiger gradvist ud mod periferien.</div>
+    <div class="card-title">Hvornår begyndte generne? - gennemsnit pr. afstandszone</div>
+    <div class="chart-sub">Gennemsnitligt årstal for debut af gener, opdelt på afstandszone (beboere). Hvis lufthavnens påvirkning breder sig udad over tid - i takt med stigende trafik, nye ruter og ændrede flyveveje - forventes det inderste bælte at have det tidligste gennemsnitsår, og tallene stiger gradvist ud mod periferien.</div>
     <div class="chart-wrap" style="height:260px"><canvas id="c-onset"></canvas></div>
   </div>
 
@@ -583,9 +583,9 @@ details[open] summary{color:var(--text)}
   <div class="sci-divider"><span>Statistisk analyse (beboere)</span></div>
 
   <details class="card" style="padding:1.4rem 1.6rem">
-    <summary>Metodologisk note — klik for at læse inden fortolkning</summary>
+    <summary>Metodologisk note - klik for at læse inden fortolkning</summary>
     <p style="font-size:.85rem;color:var(--muted);margin-top:.75rem;line-height:1.75">
-      <strong style="color:var(--text)">Udvalgsbias:</strong> Selvvalgt sample — respondenter med stærke symptomer er sandsynligvis overrepræsenterede.<br>
+      <strong style="color:var(--text)">Udvalgsbias:</strong> Selvvalgt sample - respondenter med stærke symptomer er sandsynligvis overrepræsenterede.<br>
       <strong style="color:var(--text)">Ansatte ekskluderet:</strong> Besvarelser markeret som ansatte (eller fra 0–1,25 km-zonen) indgår ikke i beboeranalyserne.<br>
       <strong style="color:var(--text)">Hvad analysen KAN vise:</strong> Dosis-respons-mønstre er robuste overfor udvalgsbias.<br>
       <strong style="color:var(--text)">Hvad analysen IKKE kan bevise:</strong> Kausalitet alene. Brug resultaterne som argument for en officiel undersøgelse.
@@ -601,8 +601,8 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">2. Lineær gradient — alle zoner</div>
-    <div class="chart-sub">Vægtet lineær regression af symptomraten på afstand (midpunkt pr. zone, vægtet med n). En negativ hældning og høj R² bekræfter et stærkt dosis-respons-signal på tværs af <em>alle</em> afstandszoner — ikke blot de to yderste.</div>
+    <div class="card-title">2. Lineær gradient - alle zoner</div>
+    <div class="chart-sub">Vægtet lineær regression af symptomraten på afstand (midpunkt pr. zone, vægtet med n). En negativ hældning og høj R² bekræfter et stærkt dosis-respons-signal på tværs af <em>alle</em> afstandszoner - ikke blot de to yderste.</div>
     <div id="gradient-body"><div style="height:80px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 
@@ -648,29 +648,25 @@ details[open] summary{color:var(--text)}
   <div class="card about-body">
     <div class="card-title">Om undersøgelsen</div>
     <p>Dette er en <strong>borgerdrevet epidemiologisk undersøgelse</strong> med formålet at dokumentere en statistisk sammenhæng mellem eksponering for støj og luftforurening fra lufthavnen og de symptomer beboere oplever.</p>
-    <p>Metoden er inspireret af en lignende undersøgelse fra Prøvestenen i København, hvor blot 124 besvarelser viste et klart og reproducerbart eksponerings-respons-mønster — det klassiske epidemiologiske signal for kausal sammenhæng.</p>
+    <p>Metoden er udarbejdet af Jakob Duus Terkelsen, i samspil med en læge, en folkesundhedsvidenskaber og en epidemiolog. Jakob har udført en lignende undersøgelse ift. luftforureningen omkring Prøvestenen, der viste et klart og reproducerbart eksponerings-respons-mønster - det klassiske epidemiologiske signal for kausal sammenhæng.</p>
     <p>Fire analytiske søjler er designet ind: <strong>(1)</strong> geografisk klyngning tæt på lufthavnen, <strong>(2)</strong> systematisk symptomfald med stigende afstand (lineær gradient), <strong>(3)</strong> korrelation med vindretning for luftbårne stoffer, og <strong>(4)</strong> overrepræsentation af kronisk sygdom og kræft hos naboerne.</p>
   </div>
   <div class="card about-body">
-    <div class="card-title">Ansatte vs. beboere</div>
-    <p>Inden for <strong>0–1,25 km</strong> fra lufthavnen er der ingen beboere. Respondenter fra denne zone — eller der markerer sig som ansatte — behandles som en <strong>separat erhvervsgruppe</strong> og indgår ikke i beboeranalyserne. Ansattes data analyseres dog selvstændigt og bidrager til forståelsen af arbejdsmiljøpåvirkninger.</p>
-  </div>
-  <div class="card about-body">
     <div class="card-title">Anonymitet</div>
-    <p>Der gemmes <strong>ingen personhenførbare oplysninger</strong>. Det præcise klik bruges kun lokalt til at beregne afstand og retning — koordinaterne afrundes til ~700 m præcision, og kun afstandsinterval og retning gemmes.</p>
+    <p>Der gemmes <strong>ingen personhenførbare oplysninger</strong>. Klikket på kortet bruges kun lokalt til at beregne afstand og retning, kun afstandsinterval og retning gemmes.</p>
   </div>
   <div class="card about-body">
     <div class="card-title">Teknisk opsætning</div>
-    <p>GitHub Pages + Firebase Firestore (gratis). Filstruktur:</p>
-    <p><code>index.html</code> — HTML-markup<br>
-    <code>js/common.js</code> — Firebase, konstanter, hjælpefunktioner, navigation<br>
-    <code>js/survey.js</code> — Spørgeskema, kort, indsendelse<br>
-    <code>js/results.js</code> — Live-lytter, grafer, kort, statistisk analyse</p>
+    <p>GitHub Pages + Firebase Firestore. Koden og metoden er open source, og kan tilgås på <a href="https://github.com/jduust/cphforurening">GitHub</a></p>
+    <p><code>index.html</code> - HTML-markup<br>
+    <code>js/common.js</code> - Firebase, konstanter, hjælpefunktioner, navigation<br>
+    <code>js/survey.js</code> - Spørgeskema, kort, indsendelse<br>
+    <code>js/results.js</code> - Live-lytter, grafer, kort, statistisk analyse</p>
   </div>
 </div>
 
 </main>
-<footer>Borgerundersøgelse · Alle svar er anonyme · Realtidsdata via Firebase · GitHub Pages</footer>
+<footer>Borgerundersøgelse · Alle svar er anonyme · Livedata via Firebase · GitHub Pages · <a href="https://github.com/jduust/cphforurening">Open Source på GitHub</a></footer>
 
 <script type="module" src="js/common.js"></script>
 <script type="module" src="js/survey.js"></script>

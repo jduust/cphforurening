@@ -590,7 +590,7 @@ function updateScientific(docs) {
   document.getElementById('chi-v').textContent=chi2.toFixed(2);
   document.getElementById('chi-p').textContent=pFmt(pv);
   const verd=document.getElementById('chi-verdict');
-  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>For få data endnu (n=${cN})</strong><br>Del linket for at samle svar fra nær- og fjernzone.</span></div>`;
+  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>Lille datamængde (n=${cN})</strong><br>Del linket for at samle svar fra nær- og fjernzone.</span></div>`;
   else if(pv<0.001) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p < 0,001)</strong><br>Stærkt statistisk signifikant.</span></div>`;
   else if(pv<0.05)  verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p = ${pFmt(pv)})</strong><br>Statistisk signifikant sammenhæng.</span></div>`;
   else              verd.innerHTML=`<div class="verdict verdict-ns">⚠️ <span><strong>H₀ kan endnu ikke forkastes (p = ${pFmt(pv)})</strong><br>Endnu for få svar.</span></div>`;
