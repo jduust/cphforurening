@@ -53,16 +53,15 @@ sMap.on('click', e => {
 
   const fb = document.getElementById('map-feedback');
 
-  // Always show symptom sections; toggle nuisance subsections and extra cards
-  document.getElementById('resident-sections').style.display = 'block';
+  // Employees: only background (age + smoking) + kronisk; residents: everything
+  document.getElementById('background-card').style.display  = '';          // always show
+  document.getElementById('f-years-row').style.display      = isEmp ? 'none' : '';
+  document.getElementById('f-traffic-row').style.display    = isEmp ? 'none' : '';
+  document.getElementById('resident-sections').style.display = isEmp ? 'none' : 'block';
   document.getElementById('employee-notice').style.display  = isEmp ? 'block' : 'none';
-  document.getElementById('background-card').style.display  = isEmp ? 'none' : '';
   document.getElementById('timing-card').style.display      = isEmp ? 'none' : '';
-  // Employees see symptom checkboxes only — hide nuisance subsections
-  document.querySelectorAll('.gen-subsection').forEach(el =>
-    el.style.display = isEmp ? 'none' : '');
+  // Kronisk: always for employees; gated by years for residents
   document.getElementById('kronisk-wrap').style.display     = isEmp ? 'block' : 'none';
-  // For residents: kronisk gated by years (overrides above)
   if (!isEmp) {
     const YEARS_FOR_KRONISK = new Set(['2-5 år','5-10 år','Over 10 år']);
     document.getElementById('kronisk-wrap').style.display =
@@ -154,11 +153,11 @@ window.submitSurvey = async () => {
   if (!_isEmpSubmit && !document.getElementById('f-onset').value) {
     alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
   }
-  if (!window._sliderTouched.stoj) {
+  if (!_isEmpSubmit && !window._sliderTouched.stoj) {
     document.getElementById('stoj-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
     alert('Angiv venligst din samlede støjgene-vurdering (flyt slideren)'); return;
   }
-  if (!window._sliderTouched.luft) {
+  if (!_isEmpSubmit && !window._sliderTouched.luft) {
     document.getElementById('luft-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
     alert('Angiv venligst din samlede luftkvalitetsvurdering (flyt slideren)'); return;
   }
@@ -187,24 +186,24 @@ window.submitSurvey = async () => {
   try {
     const ref = await addDoc(collection(db, 'responses'), {
       dist_band,
-      dist_km:     parseFloat(document.getElementById('f-dist-km').value) || null,
-      dir:         document.getElementById('f-dir').value,
-      lat_z:       parseFloat(document.getElementById('f-lat-z').value)  || null,
-      lng_z:       parseFloat(document.getElementById('f-lng-z').value)  || null,
-      years:       document.getElementById('f-years').value,
-      age:         document.getElementById('f-age').value      || null,
-      smoking:     document.getElementById('f-smoking').value  || null,
-      smoking_years: document.getElementById('f-smoking-years')?.value || null,
-      traffic:     document.getElementById('f-traffic').value  || null,
+      dist_km:        parseFloat(document.getElementById('f-dist-km').value) || null,
+      dir:            document.getElementById('f-dir').value,
+      lat_z:          parseFloat(document.getElementById('f-lat-z').value)  || null,
+      lng_z:          parseFloat(document.getElementById('f-lng-z').value)  || null,
+      years:          is_employee ? null : (document.getElementById('f-years').value || null),
+      age:            document.getElementById('f-age').value      || null,
+      smoking:        document.getElementById('f-smoking').value  || null,
+      smoking_years:  document.getElementById('f-smoking-years')?.value || null,
+      traffic:        is_employee ? null : (document.getElementById('f-traffic').value || null),
       is_employee,
       stoj, luft, psyko, kronisk,
-      stoj_sev:    parseInt(document.getElementById('stoj-sev').value),
-      luft_sev:    parseInt(document.getElementById('luft-sev').value),
-      onset:       document.getElementById('f-onset').value,
-      onset_luft:  document.getElementById('f-onset-luft').value  || null,
-      got_worse:   document.getElementById('f-got-worse').value   || null,
-      got_worse_luft: document.getElementById('f-got-worse-luft').value || null,
-      ts:          serverTimestamp()
+      stoj_sev:       is_employee ? null : parseInt(document.getElementById('stoj-sev').value),
+      luft_sev:       is_employee ? null : parseInt(document.getElementById('luft-sev').value),
+      onset:          is_employee ? null : (document.getElementById('f-onset').value || null),
+      onset_luft:     is_employee ? null : (document.getElementById('f-onset-luft').value || null),
+      got_worse:      is_employee ? null : (document.getElementById('f-got-worse').value   || null),
+      got_worse_luft: is_employee ? null : (document.getElementById('f-got-worse-luft').value || null),
+      ts:             serverTimestamp()
     });
     console.log('[Survey] ✅ Gemt med ID:', ref.id);
     localStorage.setItem('lh_v3_done', '1');

@@ -133,8 +133,8 @@ function updateAll(docs) {
   resDocs.forEach(d => {
     const b = d.dist_band; if (!b || !B[b]) return;
     B[b].n++; B[b].sum += symCount(d);
-    if (d.stoj_sev) B[b].ss.push(d.stoj_sev);
-    if (d.luft_sev) B[b].ls.push(d.luft_sev);
+    if (d.stoj_sev != null) B[b].ss.push(d.stoj_sev);
+    if (d.luft_sev != null) B[b].ls.push(d.luft_sev);
     if (hasKronisk(d)) B[b].kn++;
   });
   const AB      = RES_BANDS.filter(b => B[b].n > 0);
@@ -267,10 +267,10 @@ function updateAll(docs) {
     }
   });
   const onsetBands = AB.filter(b => bandStojLists[b].length > 0 || bandLuftLists[b].length > 0);
-  const avgYear = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length*10)/10 : null;
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length*10)/10 : null;
   const allYears = [
-    ...onsetBands.map(b=>avgYear(bandStojLists[b])),
-    ...onsetBands.map(b=>avgYear(bandLuftLists[b]))
+    ...onsetBands.map(b=>avg(bandStojLists[b])),
+    ...onsetBands.map(b=>avg(bandLuftLists[b]))
   ].filter(Boolean);
   const xMin = allYears.length ? Math.floor(Math.min(...allYears)) - 1 : 2012;
   const xMax = 2026;
@@ -282,14 +282,14 @@ function updateAll(docs) {
       datasets:[
         {
           label: '🔊 Flystøj (gns. debut-år)',
-          data: onsetBands.map(b => avgYear(bandStojLists[b])),
+          data: onsetBands.map(b => avg(bandStojLists[b])),
           backgroundColor: 'rgba(42,79,140,.75)',
           borderRadius: 3,
           barThickness: 16,
         },
         {
           label: '💨 Luft/lugt (gns. debut-år)',
-          data: onsetBands.map(b => avgYear(bandLuftLists[b])),
+          data: onsetBands.map(b => avg(bandLuftLists[b])),
           backgroundColor: 'rgba(176,80,16,.7)',
           borderRadius: 3,
           barThickness: 16,

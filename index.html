@@ -210,7 +210,7 @@ details[open] summary{color:var(--text)}
     <!-- 👤 Baggrundsinformation -->
     <div class="card" id="background-card">
       <div class="card-title">👤 Baggrundsinformation <span class="req">*</span></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
+      <div id="f-years-row" style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
         <div class="form-group" style="margin:0">
           <label>Hvor længe har du boet i det valgte område? <span class="req">*</span></label>
           <select id="f-years" required>
@@ -250,7 +250,7 @@ details[open] summary{color:var(--text)}
           <option value="Over 20 år">Over 20 år</option>
         </select>
       </div>
-      <div class="form-group" style="margin-bottom:0">
+      <div class="form-group" id="f-traffic-row" style="margin-bottom:0">
         <label>Er du udsat for vejtrafikstøj der hvor du er bosat?</label>
         <select id="f-traffic">
           <option value="">- Valgfri -</option>
@@ -394,7 +394,7 @@ details[open] summary{color:var(--text)}
 
     <!-- Employee notice (hidden by default) -->
     <div id="employee-notice" style="display:none;margin-bottom:1rem" class="notice notice-success">
-      <strong>Du er registreret i lufthavnsområdet (ansatzone).</strong> Angiv venligst dine helbredsmæssige symptomer ovenfor - adresse- og boligspørgsmål er ikke relevante. Kroniske diagnoser nedenfor er særligt vigtige.
+      <strong>✈️ Du er registreret som ansat i lufthavnsområdet.</strong> For ansatte er kun alder, rygning og kroniske diagnoser relevante — spørgsmål om boligstøj, luftgener og eksponeringstidslinje vises ikke. Kroniske diagnoser nedenfor er særligt vigtige for undersøgelsen.
     </div>
 
     <!-- 🏥 KRONISKE SYGDOMME - vises ved ≥2 år (beboere) eller altid (ansatte) -->
