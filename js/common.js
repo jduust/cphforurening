@@ -177,6 +177,11 @@ export function addDirOverlay(map, labelKm, lineKm) {
   });
 }
 
+// ── Airport polygon clipping (requires Turf.js loaded globally) ───────────
+// Returns a GeoJSON Feature (Polygon/MultiPolygon) with the airport area
+// subtracted, or null if turf is unavailable / sector fully inside airport.
+// Use with L.geoJSON(result, { style:{...} }) instead of L.polygon().
+
 let _airportGJ = null;
 export async function loadAirportGeoJSON() {
   if (_airportGJ !== null) return _airportGJ;
@@ -206,3 +211,23 @@ window.showTab = tab => {
     _refreshResults();
   }
 };
+
+// ── Airport polygon clipping (requires Turf.js loaded globally) ───────────
+// Returns a GeoJSON Feature (Polygon/MultiPolygon) with the airport area
+// subtracted, or null if turf is unavailable / sector is fully inside airport.
+// Consume with L.geoJSON(result, { style:{...} }) instead of L.polygon().
+export function clipSector(latLngs, airportGJ) {
+  if (!airportGJ || typeof turf === 'undefined') return null;
+  try {
+    // Leaflet [lat,lng] → GeoJSON/Turf [lng,lat]
+    const ring = latLngs.map(([la, lo]) => [lo, la]);
+    ring.push(ring[0]); // close ring
+    const sector  = turf.polygon([ring]);
+    const airport = airportGJ.features?.[0];
+    if (!airport) return null;
+    return turf.difference(sector, airport); // null when sector ⊆ airport
+  } catch(e) {
+    console.warn('[clipSector]', e.message);
+    return null;
+  }
+}

@@ -4,7 +4,7 @@
 
 import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand,
          destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, DIRS8,
-         pointInPolygon } from './common.js';
+         pointInPolygon, clipSector } from './common.js';
 import { collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -85,9 +85,17 @@ sMap.on('click', e => {
   } else {
     const [inner, outer] = BAND_RADII[band];
     const dirIdx = DIRS8.indexOf(dir);
-    _zoneHL = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
-      color:'#c0392b', weight:2, fillColor:'#c0392b', fillOpacity:.18, dashArray:'5 3'
-    }).addTo(sMap);
+    const latLngs = sectorLatLngs(AIRPORT, inner, outer, dirIdx);
+    const clipped = _airportGJData ? clipSector(latLngs, _airportGJData) : null;
+    if (clipped) {
+      _zoneHL = L.geoJSON(clipped, {
+        style:{ color:'#c0392b', weight:2, fillColor:'#c0392b', fillOpacity:.18, dashArray:'5 3' }
+      }).addTo(sMap);
+    } else {
+      _zoneHL = L.polygon(latLngs, {
+        color:'#c0392b', weight:2, fillColor:'#c0392b', fillOpacity:.18, dashArray:'5 3'
+      }).addTo(sMap);
+    }
   }
 
   if (uMarker) uMarker.remove();
@@ -137,6 +145,14 @@ window.submitSurvey = async () => {
   }
   if (!_isEmpSubmit && !document.getElementById('f-onset').value) {
     alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
+  }
+  if (!window._sliderTouched.stoj) {
+    document.getElementById('stoj-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst din samlede støjgene-vurdering (flyt skyderen)'); return;
+  }
+  if (!window._sliderTouched.luft) {
+    document.getElementById('luft-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst din samlede luftkvalitetsvurdering (flyt skyderen)'); return;
   }
   if (!db) { alert('Firebase ikke konfigureret endnu.'); return; }
 
@@ -192,6 +208,14 @@ window.submitSurvey = async () => {
 
 // ── Custom symptom chips ──────────────────────────────────────
 window._chips = { stoj:[], luft:[], psyko:[], kronisk:[], ansatte:[] };
+
+// ── Slider touch tracking ─────────────────────────────────────
+window._sliderTouched = { stoj: false, luft: false };
+window.markSliderTouched = cat => {
+  if (window._sliderTouched[cat]) return;
+  window._sliderTouched[cat] = true;
+  document.getElementById(`${cat}-sev-block`)?.classList.remove('untouched');
+};
 
 window.addCustomSym = cat => {
   const inp = document.getElementById(`custom-${cat}-input`);

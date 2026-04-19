@@ -5,7 +5,7 @@
 import { db, AIRPORT, DIST_BANDS, BAND_MIDPOINTS, DIRS8, COL,
          ALL_SYMS, symCount, genCount, hasKronisk, isEmployee,
          EMPLOYEE_BAND, registerResultsRefresh,
-         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay }
+         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, clipSector }
   from './common.js';
 import { collection, onSnapshot, query }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -34,6 +34,7 @@ const KRONISK_ITEMS = [
 ];
 
 let _latestDocs = null;
+let _rAirportGJ = null; // cached airport GeoJSON for polygon clipping
 
 // ── Results map ───────────────────────────────────────────────
 let rMap = null;
@@ -56,8 +57,11 @@ function initResultsMap() {
   airportPane.style.zIndex = 450;
   loadAirportGeoJSON().then(gj => {
     if (!gj) return;
+    _rAirportGJ = gj;
     L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.2 },
       pane:'rAirportPane' }).addTo(rMap);
+    // Re-draw zones now that clipping data is available
+    if (_latestDocs !== null) updateResultsMap(_latestDocs);
   });
 }
 
@@ -84,13 +88,17 @@ function updateResultsMap(docs) {
     if (dirIdx < 0) return;
     const [inner, outer] = BAND_RADII[z.band] || [0, 3];
     const pct  = Math.round(z.syms.filter(s=>s>0).length / z.n * 100);
-    const m = L.polygon(sectorLatLngs(AIRPORT, inner, outer, dirIdx), {
-      color:'white', weight:1, fillColor:col, fillOpacity:.68
-    }).bindPopup(
+    const latLngs = sectorLatLngs(AIRPORT, inner, outer, dirIdx);
+    const clipped = _rAirportGJ ? clipSector(latLngs, _rAirportGJ) : null;
+    const popup =
       `<b>${z.band}</b> &nbsp;·&nbsp; retning <b>${z.dir}</b><br>` +
       `${z.n} svar &nbsp;·&nbsp; gns. <b>${avg.toFixed(1)}</b> symptomer<br>` +
-      `${pct}% med mindst ét symptom`
-    ).addTo(rMap);
+      `${pct}% med mindst ét symptom`;
+    const m = clipped
+      ? L.geoJSON(clipped, { style:{ color:'white', weight:1, fillColor:col, fillOpacity:.68 } })
+          .bindPopup(popup).addTo(rMap)
+      : L.polygon(latLngs, { color:'white', weight:1, fillColor:col, fillOpacity:.68 })
+          .bindPopup(popup).addTo(rMap);
     window._rMarkers.push(m);
   });
 

@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
 <style>
@@ -81,7 +82,10 @@ select:focus,input:focus{border-color:var(--navy-light)}
 .chk:hover{background:#f5f4f0}
 .chk input[type=checkbox]{width:14px;height:14px;margin-top:4px;cursor:pointer;accent-color:var(--navy-mid);flex-shrink:0}
 .chk span{font-size:.86rem;line-height:1.5}
-.annoyance-block{margin:1rem 0;padding:1rem 1.1rem;background:#f0f4fa;border:1px solid #c8d5ea;border-radius:var(--r)}
+.annoyance-block{margin:1rem 0;padding:1rem 1.1rem;background:#f0f4fa;border:1px solid #c8d5ea;border-radius:var(--r);transition:border-color .2s,background .2s}
+.annoyance-block.untouched{border-color:var(--amber);background:var(--amber-light)}
+.sev-required-hint{font-size:.72rem;color:var(--amber);font-weight:600;margin-top:.45rem;display:flex;align-items:center;gap:.3rem}
+.annoyance-block:not(.untouched) .sev-required-hint{display:none}
 .annoyance-label{font-size:.82rem;font-weight:600;color:var(--navy);margin-bottom:.6rem;line-height:1.45}
 .annoyance-label em{font-style:normal}
 .sev-row{display:flex;align-items:center;gap:.6rem}
@@ -275,14 +279,15 @@ details[open] summary{color:var(--text)}
           <label class="chk"><input type="checkbox" name="stoj" value="Forhindret i at føre samtale indendørs eller udendørs"><span>Forhindret i at føre samtale indendørs eller udendørs</span></label>
         </div>
 
-        <div class="annoyance-block">
-          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af flystøj? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span></div>
+        <div class="annoyance-block untouched" id="stoj-sev-block">
+          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af flystøj? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span> <span class="req">*</span></div>
           <div class="sev-row">
             <span class="sev-anchor">0</span>
-            <input type="range" min="0" max="10" value="5" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value">
+            <input type="range" min="0" max="10" value="5" id="stoj-sev" oninput="document.getElementById('stoj-sev-val').textContent=this.value;window.markSliderTouched('stoj')">
             <span class="sev-anchor">10</span>
-            <span class="sev-val" id="stoj-sev-val">5</span>
+            <span class="sev-val" id="stoj-sev-val">?</span>
           </div>
+          <div class="sev-required-hint">↑ Flyt skyderen for at besvare</div>
         </div>
         <div class="custom-sym-area">
           <div class="custom-sym-label">Tilføj andet støjrelateret symptom</div>
@@ -320,14 +325,15 @@ details[open] summary{color:var(--text)}
           <label class="chk"><input type="checkbox" name="luft" value="Begrænser udendørs ophold pga. luftkvalitet"><span>Begrænser udendørs ophold pga. luftkvalitet</span></label>
         </div>
 
-        <div class="annoyance-block">
-          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af lugt og luftforurening fra lufthavnen? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span></div>
+        <div class="annoyance-block untouched" id="luft-sev-block">
+          <div class="annoyance-label">Hvor generet er du <em>samlet set</em> af lugt og luftforurening fra lufthavnen? <span style="font-weight:400;color:var(--muted)">(0 = slet ikke, 10 = ekstremt)</span> <span class="req">*</span></div>
           <div class="sev-row">
             <span class="sev-anchor">0</span>
-            <input type="range" min="0" max="10" value="5" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value">
+            <input type="range" min="0" max="10" value="5" id="luft-sev" oninput="document.getElementById('luft-sev-val').textContent=this.value;window.markSliderTouched('luft')">
             <span class="sev-anchor">10</span>
-            <span class="sev-val" id="luft-sev-val">5</span>
+            <span class="sev-val" id="luft-sev-val">?</span>
           </div>
+          <div class="sev-required-hint">↑ Flyt skyderen for at besvare</div>
         </div>
         <div class="custom-sym-area">
           <div class="custom-sym-label">Tilføj andet luftkvalitetssymptom</div>
