@@ -148,11 +148,11 @@ window.submitSurvey = async () => {
   }
   if (!window._sliderTouched.stoj) {
     document.getElementById('stoj-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
-    alert('Angiv venligst din samlede støjgene-vurdering (flyt skyderen)'); return;
+    alert('Angiv venligst din samlede støjgene-vurdering (flyt slideren)'); return;
   }
   if (!window._sliderTouched.luft) {
     document.getElementById('luft-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
-    alert('Angiv venligst din samlede luftkvalitetsvurdering (flyt skyderen)'); return;
+    alert('Angiv venligst din samlede luftkvalitetsvurdering (flyt slideren)'); return;
   }
   if (!db) { alert('Firebase ikke konfigureret endnu.'); return; }
 
