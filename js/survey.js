@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  survey.js  —  Spørgeskema: kort, formular, chips, indsendelse
+//  survey.js  -  Spørgeskema: kort, formular, chips, indsendelse
 // ════════════════════════════════════════════════════════════
 
 import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand,
@@ -179,7 +179,7 @@ window.submitSurvey = async () => {
                   .concat(window._chips.kronisk);
 
   const cType = document.getElementById('f-cancer-type')?.value.trim();
-  if (cType) { const i=kronisk.indexOf('Anden kræfttype — diagnosticeret efter flytning hertil'); if(i>-1) kronisk[i]+= ` (${cType})`; }
+  if (cType) { const i=kronisk.indexOf('Anden kræfttype - diagnosticeret efter flytning hertil'); if(i>-1) kronisk[i]+= ` (${cType})`; }
 
   console.log('[Survey] Indsender:', { is_employee, stoj, luft, psyko, kronisk });
 

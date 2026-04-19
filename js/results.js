@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  results.js  —  Live-listener, kort, grafer, statistisk analyse
+//  results.js  -  Live-listener, kort, grafer, statistisk analyse
 // ════════════════════════════════════════════════════════════
 
 import { db, AIRPORT, DIST_BANDS, BAND_MIDPOINTS, DIRS8, COL,
@@ -12,25 +12,25 @@ import { collection, onSnapshot, query }
 
 console.log('[Results] Modul indlæst.');
 
-// Ordered from most to least alarming — controls chart sort and colors
+// Ordered from most to least alarming - controls chart sort and colors
 const KRONISK_ITEMS = [
   // ── Kræft ───────────────────────────────────────────────────
-  {s:'Lungekræft',                     full:'Lungekræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
-  {s:'Blærekræft',                     full:'Blærekræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
-  {s:'Brystkræft',                     full:'Brystkræft — diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
-  {s:'Anden kræfttype',                full:'Anden kræfttype — diagnosticeret efter flytning hertil', prefix:true,                grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Lungekræft',                     full:'Lungekræft - diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Blærekræft',                     full:'Blærekræft - diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Brystkræft',                     full:'Brystkræft - diagnosticeret efter flytning hertil',                                  grp:'Kræft',      col:'#5c0a0a'},
+  {s:'Anden kræfttype',                full:'Anden kræfttype - diagnosticeret efter flytning hertil', prefix:true,                grp:'Kræft',      col:'#5c0a0a'},
   // ── Hjerte-kar ──────────────────────────────────────────────
-  {s:'Slagtilfælde',                   full:'Slagtilfælde — diagnosticeret efter flytning hertil',                                grp:'Hjerte-kar', col:'#922020'},
-  {s:'Iskæmisk hjertesygdom / infarkt',full:'Iskæmisk hjertesygdom eller hjerteinfarkt — diagnosticeret efter flytning hertil',  grp:'Hjerte-kar', col:'#922020'},
-  {s:'Hjertearytmi',                   full:'Hjertearytmi — nyopstået efter flytning hertil',                                    grp:'Hjerte-kar', col:'#922020'},
-  {s:'Hypertension (nyopstået)',       full:'Hypertension (forhøjet blodtryk) — nyopstået efter flytning hertil',               grp:'Hjerte-kar', col:'#922020'},
+  {s:'Slagtilfælde',                   full:'Slagtilfælde - diagnosticeret efter flytning hertil',                                grp:'Hjerte-kar', col:'#922020'},
+  {s:'Iskæmisk hjertesygdom / infarkt',full:'Iskæmisk hjertesygdom eller hjerteinfarkt - diagnosticeret efter flytning hertil',  grp:'Hjerte-kar', col:'#922020'},
+  {s:'Hjertearytmi',                   full:'Hjertearytmi - nyopstået efter flytning hertil',                                    grp:'Hjerte-kar', col:'#922020'},
+  {s:'Hypertension (nyopstået)',       full:'Hypertension (forhøjet blodtryk) - nyopstået efter flytning hertil',               grp:'Hjerte-kar', col:'#922020'},
   // ── Luftveje ────────────────────────────────────────────────
-  {s:'KOL / kronisk bronkitis',        full:'KOL eller kronisk bronkitis — nyopstået efter flytning hertil',                     grp:'Luftveje',   col:'#2a4f8c'},
-  {s:'Astma — barn (nyopstået)',       full:'Astma hos hjemmeboende barn — nyopstået efter flytning hertil',                    grp:'Luftveje',   col:'#2a4f8c'},
-  {s:'Astma (nyopstået)',              full:'Astma — nyopstået efter flytning til adressen',                                     grp:'Luftveje',   col:'#2a4f8c'},
-  {s:'Astma (tydeligt forværret)',     full:'Astma — eksisterede, men tydeligt forværret efter flytning hertil',                 grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'KOL / kronisk bronkitis',        full:'KOL eller kronisk bronkitis - nyopstået efter flytning hertil',                     grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma - barn (nyopstået)',       full:'Astma hos hjemmeboende barn - nyopstået efter flytning hertil',                    grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma (nyopstået)',              full:'Astma - nyopstået efter flytning til adressen',                                     grp:'Luftveje',   col:'#2a4f8c'},
+  {s:'Astma (tydeligt forværret)',     full:'Astma - eksisterede, men tydeligt forværret efter flytning hertil',                 grp:'Luftveje',   col:'#2a4f8c'},
   // ── Øvrige ──────────────────────────────────────────────────
-  {s:'Diabetes type 2 (nyopstået)',    full:'Diabetes type 2 — nyopstået efter flytning hertil',                                 grp:'Øvrige',     col:'#5a6880'},
+  {s:'Diabetes type 2 (nyopstået)',    full:'Diabetes type 2 - nyopstået efter flytning hertil',                                 grp:'Øvrige',     col:'#5a6880'},
 ];
 
 let _latestDocs = null;
@@ -208,7 +208,7 @@ function updateAll(docs) {
                x:{grid:{display:false}} } }
   });
 
-  // Symptom frequency (residents only — symptom-type items only)
+  // Symptom frequency (residents only - symptom-type items only)
   const SC = {}; ALL_SYMS.filter(s=>s.t==='sym').forEach(s=>SC[s.v]=0);
   resDocs.forEach(d=>['stoj','luft','psyko'].forEach(cat=>(d[cat]||[]).forEach(v=>{if(v in SC)SC[v]++;})));
   const sorted = ALL_SYMS.filter(s=>s.t==='sym').map(s=>({...s, pct:n?Math.round(SC[s.v]/n*100):0})).sort((a,b)=>b.pct-a.pct);
@@ -245,7 +245,7 @@ function updateAll(docs) {
     });
   }
 
-  // Onset chart — average onset year per distance band, split by støj vs luft
+  // Onset chart - average onset year per distance band, split by støj vs luft
   const ONSET_YEAR = {
     'Før 2015':   2013,
     '2015-2019':  2017,
@@ -356,7 +356,7 @@ function updateAll(docs) {
       summaryEl.innerHTML = `
         <div style="background:#fdf0f0;border:1px solid #e0a0a0;border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
           <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7b0000;margin-bottom:.7rem">
-            ⚠ ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)}%) rapporterer én eller flere af nedenstående diagnoser — opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
+            ⚠ ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)}%) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
             ${GRP_META.map(m => `
@@ -457,7 +457,7 @@ function chiP(chi2,df) { return Math.max(0,Math.min(1,1-gammaIncP(df/2,chi2/2)))
 function pFmt(p)       { return p<0.001?'< 0,001':p.toFixed(4); }
 function hasSym(d)     { return symCount(d) > 0; }
 
-// Weighted linear regression — returns {slope, intercept, r2}
+// Weighted linear regression - returns {slope, intercept, r2}
 function weightedLinReg(xy) {
   // xy = [{x, y, w}]
   const pts = xy.filter(p=>p.w>0 && p.y!==null);
@@ -511,8 +511,8 @@ function updateScientific(docs) {
     const first=withData[0].rate, last=withData[withData.length-1].rate;
     doseNote.className = first>last?'notice notice-success':'notice notice-warn';
     doseNote.innerHTML = first>last
-      ? `📈 <strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)}% (nærmeste zone) til ${last.toFixed(1)}% (fjerneste zone) — understøtter biologisk plausibel årsagssammenhæng.`
-      : `⚠ Gradienten er endnu ikke entydig — sandsynligvis pga. få svar i visse zoner.`;
+      ? `📈 <strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)}% (nærmeste zone) til ${last.toFixed(1)}% (fjerneste zone) - understøtter biologisk plausibel årsagssammenhæng.`
+      : `⚠ Gradienten er endnu ikke entydig - sandsynligvis pga. få svar i visse zoner.`;
   }
 
   // Dose bar chart
@@ -552,7 +552,7 @@ function updateScientific(docs) {
       </div>
       <div class="rr-interp" style="border-left-color:var(--navy-light)">
         ${slopeDir} gradient på <strong>${reg.slope.toFixed(2)} procentpoint pr. km</strong> med vægtede mindste kvadraters regression (R² = ${(reg.r2*100).toFixed(1)}%).
-        ${reg.slope<0&&reg.r2>0.5?'<strong>Stærk negativ gradient</strong> — stærkt indicium for dosis-respons-sammenhæng med afstand som eksponering.':reg.slope<0?'Negativ gradient — retning som forventet, men R² kræver flere svar for at styrke signalet.':'Gradienten er endnu ikke negativ — del linket for at indhente svar fra alle zoner.'}
+        ${reg.slope<0&&reg.r2>0.5?'<strong>Stærk negativ gradient</strong> - stærkt indicium for dosis-respons-sammenhæng med afstand som eksponering.':reg.slope<0?'Negativ gradient - retning som forventet, men R² kræver flere svar for at styrke signalet.':'Gradienten er endnu ikke negativ - del linket for at indhente svar fra alle zoner.'}
       </div>
       <details style="margin-top:.9rem">
         <summary>🔍 Regressionsgrundlag (alle zoner)</summary>
@@ -583,7 +583,7 @@ function updateScientific(docs) {
   document.getElementById('rr-bands').textContent = innerBand&&outerBand ? `${innerBand} vs. ${outerBand}` : '';
   const rrI = document.getElementById('rr-interp');
   if(rr&&lo&&hi)
-    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. ${outerBand}. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 — kræver flere svar.'}`;
+    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. ${outerBand}. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] - ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 - kræver flere svar.'}`;
   else if(!(a+b)||!(c+d2))
     rrI.innerHTML=`Mangler svar fra inderste <em>eller</em> yderste zone for at beregne RR.`;
   else
@@ -632,7 +632,7 @@ function updateScientific(docs) {
   <div class="concl-grid">
     <div class="concl-item"><div class="concl-n">1.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Dosis-respons</div>
-      <div class="concl-desc">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) — Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
+      <div class="concl-desc">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
     </div>
     <div class="concl-item"><div class="concl-n">2.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Lineær gradient</div>
@@ -719,26 +719,26 @@ function updateConfounders(docs) {
           <td>${gSmoke.n}</td>
           <td class="drate">${gSmoke.reg ? gSmoke.reg.slope.toFixed(2)+' %/km' : '-'}</td>
           <td>${gSmoke.reg ? (gSmoke.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gSmoke.reg && gSmoke.reg.slope < 0 ? '✅ Signal bevaret — rygning ikke forklaring' : gSmoke.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gSmoke.reg && gSmoke.reg.slope < 0 ? '✅ Signal bevaret - rygning ikke forklaring' : gSmoke.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
         </tr>
         <tr>
           <td class="dzone">Ingen/lav vejtrafikstøj</td>
           <td>${gTraff.n}</td>
           <td class="drate">${gTraff.reg ? gTraff.reg.slope.toFixed(2)+' %/km' : '-'}</td>
           <td>${gTraff.reg ? (gTraff.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gTraff.reg && gTraff.reg.slope < 0 ? '✅ Signal bevaret — trafikstøj ikke forklaring' : gTraff.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gTraff.reg && gTraff.reg.slope < 0 ? '✅ Signal bevaret - trafikstøj ikke forklaring' : gTraff.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
         </tr>
         <tr style="border-top:2px solid var(--border)">
           <td class="dzone"><strong>Dobbelt-justeret</strong><br><small style="font-weight:400;color:var(--muted)">Aldrigrygere + ingen/lav trafikstøj</small></td>
           <td>${gClean.n}</td>
           <td class="drate">${gClean.reg ? gClean.reg.slope.toFixed(2)+' %/km' : '-'}</td>
           <td>${gClean.reg ? (gClean.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gClean.reg && gClean.reg.slope < 0 ? '✅ Stærk indikation — confoundere udelukket' : gClean.n < 10 ? '⏳ Kræver flere svar med confounderbaggrundsinformation' : '⚠ Endnu ikke entydigt'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gClean.reg && gClean.reg.slope < 0 ? '✅ Stærk indikation - confoundere udelukket' : gClean.n < 10 ? '⏳ Kræver flere svar med confounderbaggrundsinformation' : '⚠ Endnu ikke entydigt'}</td>
         </tr>
       </tbody>
     </table>
     <div class="rr-interp" style="border-left-color:var(--stoj)">
-      <strong>Fortolkning:</strong> Hvis den negative gradient bevares — eller endda styrkes — i undergrupper uden rygning og uden vejtrafikstøj, er confounding fra disse faktorer usandsynlig som forklaring på det observerede dosis-respons-mønster.
+      <strong>Fortolkning:</strong> Hvis den negative gradient bevares - eller endda styrkes - i undergrupper uden rygning og uden vejtrafikstøj, er confounding fra disse faktorer usandsynlig som forklaring på det observerede dosis-respons-mønster.
       ${gClean.n < 15 ? '<br><em style="color:var(--amber)">⚠ Del linket for at opnå tilstrækkelig statistisk styrke i de justerede undergrupper (mindst 15-20 svar pr. undergruppe anbefales).</em>' : ''}
     </div>`;
 }
@@ -773,12 +773,12 @@ if (db) {
     populateDataLists(docs);
     const tab = document.getElementById('tab-results');
     if (tab?.classList.contains('active')) {
-      console.log('[Results] Tab aktiv — opdaterer live.');
+      console.log('[Results] Tab aktiv - opdaterer live.');
       updateAll(docs);
       updateScientific(docs);
       updateConfounders(docs);
     } else {
-      console.log('[Results] Tab skjult — data cached.');
+      console.log('[Results] Tab skjult - data cached.');
     }
   }, err => {
     console.error('[Results] ❌ onSnapshot fejl:', err.code, err.message);

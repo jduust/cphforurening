@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  common.js  —  Firebase, konstanter, hjælpere, fanebladnavigation
+//  common.js  -  Firebase, konstanter, hjælpere, fanebladnavigation
 // ════════════════════════════════════════════════════════════
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -27,7 +27,7 @@ try {
 // ── Constants ─────────────────────────────────────────────────
 export const AIRPORT = { lat: 55.6180, lng: 12.6560 };
 
-// 0-1.25 km = ansatzone (ingen beboere her — antages at være lufthavnsansatte)
+// 0-1.25 km = ansatzone (ingen beboere her - antages at være lufthavnsansatte)
 export const EMPLOYEE_BAND = '0-1.25 km';
 export const DIST_BANDS    = ['0-1.25 km','1.25-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
 
@@ -47,31 +47,31 @@ export const COL   = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c', ansatte:
 // t:'sym' = actual health symptom (used in Bradford Hill / dose-response calculations)
 // t:'gen' = nuisance / behavioural impact (visualised separately, NOT used in RR/χ²/regression)
 export const ALL_SYMS = [
-  // ── Støj — symptomer ──────────────────────────────────────────
+  // ── Støj - symptomer ──────────────────────────────────────────
   {v:'Tinnitus eller vedvarende ringen/brummen i ørerne',                    k:'stoj', t:'sym'},
   {v:'Forhøjet stressniveau eller irritabilitet fra støjbelastning',         k:'stoj', t:'sym'},
   {v:'Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj',        k:'stoj', t:'sym'},
   {v:'Uro eller angstreaktioner ved kraftige flystøjshændelser',             k:'stoj', t:'sym'},
-  // ── Støj — gener (adfærdspåvirkning) ─────────────────────────
+  // ── Støj - gener (adfærdspåvirkning) ─────────────────────────
   {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj', t:'gen'},
   {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj', t:'gen'},
   {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj', t:'gen'},
   {v:'Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)',           k:'stoj', t:'gen'},
   {v:'Forhindret i at føre samtale indendørs eller udendørs',                k:'stoj', t:'gen'},
-  // ── Luft — symptomer ──────────────────────────────────────────
+  // ── Luft - symptomer ──────────────────────────────────────────
   {v:'Vejrtrækningsbesvær eller åndenød i hjemmet eller haven',              k:'luft', t:'sym'},
   {v:'Vedvarende eller tilbagevendende hoste',                               k:'luft', t:'sym'},
   {v:'Irritation i øjne, næse eller svælg',                                  k:'luft', t:'sym'},
   {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft', t:'sym'},
   {v:'Kvalme eller utilpashed',                                               k:'luft', t:'sym'},
   {v:'Forværring af eksisterende luftvejssygdom',                             k:'luft', t:'sym'},
-  // ── Luft — gener (adfærdspåvirkning) ─────────────────────────
+  // ── Luft - gener (adfærdspåvirkning) ─────────────────────────
   {v:'Lugt af jetbrændstof indendørs',                                       k:'luft', t:'gen'},
   {v:'Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet',       k:'luft', t:'gen'},
   {v:'Begrænser udendørs ophold pga. luftkvalitet',                          k:'luft', t:'gen'},
-  // ── Psyko — symptomer ────────────────────────────────────────
+  // ── Psyko - symptomer ────────────────────────────────────────
   {v:'Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne', k:'psyko', t:'gen'},
-  // ── Psyko — gener (adfærdspåvirkning) ────────────────────────
+  // ── Psyko - gener (adfærdspåvirkning) ────────────────────────
   {v:'Nedsat livskvalitet',                                                   k:'psyko', t:'gen'},
   {v:'Vedvarende bekymring for eget eller families helbred',                  k:'psyko', t:'gen'},
   {v:'Søvnunderskud påvirker evnen til at arbejde eller studere',            k:'psyko', t:'gen'},
@@ -101,7 +101,7 @@ export function toBand(km)   {
   if (km < 20)   return '10-20 km';
   return '20+ km';
 }
-// Pre-computed set of nuisance values — anything NOT in this set is treated as a symptom
+// Pre-computed set of nuisance values - anything NOT in this set is treated as a symptom
 const _GEN_VALS = new Set(ALL_SYMS.filter(s => s.t === 'gen').map(s => s.v));
 
 // Counts only health symptoms (Bradford Hill / dose-response calculations use this)
