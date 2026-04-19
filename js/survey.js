@@ -127,6 +127,14 @@ document.getElementById('f-years')?.addEventListener('change', e => {
   if (wrap) wrap.style.display = YEARS_FOR_KRONISK.has(e.target.value) ? 'block' : 'none';
 });
 
+// ── Smoking follow-up: show/hide years field ──────────────────
+window.handleSmokingChange = () => {
+  const val  = document.getElementById('f-smoking').value;
+  const show = val === 'Ja, nuværende ryger' || val === 'Nej, men har røget';
+  document.getElementById('smoking-years-wrap').style.display = show ? '' : 'none';
+  if (!show) document.getElementById('f-smoking-years').value = '';
+};
+
 // ── Duplicate check ───────────────────────────────────────────
 if (localStorage.getItem('lh_v3_done')) {
   console.log('[Survey] Allerede besvaret (localStorage).');
@@ -186,13 +194,16 @@ window.submitSurvey = async () => {
       years:       document.getElementById('f-years').value,
       age:         document.getElementById('f-age').value      || null,
       smoking:     document.getElementById('f-smoking').value  || null,
+      smoking_years: document.getElementById('f-smoking-years')?.value || null,
       traffic:     document.getElementById('f-traffic').value  || null,
       is_employee,
       stoj, luft, psyko, kronisk,
       stoj_sev:    parseInt(document.getElementById('stoj-sev').value),
       luft_sev:    parseInt(document.getElementById('luft-sev').value),
       onset:       document.getElementById('f-onset').value,
-      got_worse:   document.getElementById('f-got-worse').value  || null,
+      onset_luft:  document.getElementById('f-onset-luft').value  || null,
+      got_worse:   document.getElementById('f-got-worse').value   || null,
+      got_worse_luft: document.getElementById('f-got-worse-luft').value || null,
       ts:          serverTimestamp()
     });
     console.log('[Survey] ✅ Gemt med ID:', ref.id);

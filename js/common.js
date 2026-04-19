@@ -48,14 +48,14 @@ export const COL   = { stoj:'#2a4f8c', luft:'#c06010', psyko:'#5e3a8c', ansatte:
 // t:'gen' = nuisance / behavioural impact (visualised separately, NOT used in RR/χ²/regression)
 export const ALL_SYMS = [
   // ── Støj — symptomer ──────────────────────────────────────────
-  {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj', t:'sym'},
-  {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj', t:'sym'},
-  {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj', t:'sym'},
   {v:'Tinnitus eller vedvarende ringen/brummen i ørerne',                    k:'stoj', t:'sym'},
   {v:'Forhøjet stressniveau eller irritabilitet fra støjbelastning',         k:'stoj', t:'sym'},
-  {v:'Hovedpine eller trykfornemmelse ved kraftig flystøj',                  k:'stoj', t:'sym'},
-  {v:'Ubehag eller angstreaktioner ved kraftige flystøjshændelser',          k:'stoj', t:'sym'},
+  {v:'Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj',        k:'stoj', t:'sym'},
+  {v:'Uro eller angstreaktioner ved kraftige flystøjshændelser',             k:'stoj', t:'sym'},
   // ── Støj — gener (adfærdspåvirkning) ─────────────────────────
+  {v:'Besvær med at falde i søvn pga. flystøj',                              k:'stoj', t:'gen'},
+  {v:'Tidlig opvågning eller afbrudt søvn pga. flystøj',                     k:'stoj', t:'gen'},
+  {v:'Vedvarende træthed som følge af dårlig søvn',                          k:'stoj', t:'gen'},
   {v:'Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)',           k:'stoj', t:'gen'},
   {v:'Forhindret i at føre samtale indendørs eller udendørs',                k:'stoj', t:'gen'},
   // ── Luft — symptomer ──────────────────────────────────────────
@@ -63,17 +63,17 @@ export const ALL_SYMS = [
   {v:'Vedvarende eller tilbagevendende hoste',                               k:'luft', t:'sym'},
   {v:'Irritation i øjne, næse eller svælg',                                  k:'luft', t:'sym'},
   {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft', t:'sym'},
-  {v:'Kvalme eller utilpashed ved lugtgener fra lufthavnen',                 k:'luft', t:'sym'},
-  {v:'Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening', k:'luft', t:'sym'},
+  {v:'Kvalme eller utilpashed',                                               k:'luft', t:'sym'},
+  {v:'Forværring af eksisterende luftvejssygdom',                             k:'luft', t:'sym'},
   // ── Luft — gener (adfærdspåvirkning) ─────────────────────────
-  {v:'Lugt af jetbrændstof indendørs eller i haven',                         k:'luft', t:'gen'},
+  {v:'Lugt af jetbrændstof indendørs',                                       k:'luft', t:'gen'},
   {v:'Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet',       k:'luft', t:'gen'},
   {v:'Begrænser udendørs ophold pga. luftkvalitet',                          k:'luft', t:'gen'},
   // ── Psyko — symptomer ────────────────────────────────────────
-  {v:'Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne', k:'psyko', t:'sym'},
+  {v:'Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne', k:'psyko', t:'gen'},
   // ── Psyko — gener (adfærdspåvirkning) ────────────────────────
-  {v:'Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft', k:'psyko', t:'gen'},
-  {v:'Vedvarende bekymring for eget eller families helbred pga. lufthavnen', k:'psyko', t:'gen'},
+  {v:'Nedsat livskvalitet',                                                   k:'psyko', t:'gen'},
+  {v:'Vedvarende bekymring for eget eller families helbred',                  k:'psyko', t:'gen'},
   {v:'Søvnunderskud påvirker evnen til at arbejde eller studere',            k:'psyko', t:'gen'},
   {v:'Følelse af magtesløshed over for myndighedernes passivitet',           k:'psyko', t:'gen'},
   {v:'Seriøst overvejet at flytte pga. generne fra lufthavnen',              k:'psyko', t:'gen'},

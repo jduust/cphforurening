@@ -232,22 +232,32 @@ details[open] summary{color:var(--text)}
         </div>
       </div>
       <div class="form-group" style="margin-bottom:.9rem">
-        <label>Ryger du (eller har røget regelmæssigt)?</label>
-        <select id="f-smoking">
+        <label>Ryger du?</label>
+        <select id="f-smoking" onchange="handleSmokingChange()">
           <option value="">- Valgfri -</option>
+          <option value="Ja, nuværende ryger">Ja — ryger stadig</option>
+          <option value="Nej, men har røget">Nej — men har røget regelmæssigt</option>
           <option value="Nej, aldrig">Nej, aldrig</option>
-          <option value="Ex-ryger, stoppet for mere end 5 år siden">Ex-ryger - stoppet for mere end 5 år siden</option>
-          <option value="Ex-ryger, stoppet inden for de sidste 5 år">Ex-ryger - stoppet inden for de sidste 5 år</option>
-          <option value="Ja, nuværende ryger">Ja, nuværende ryger</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:.9rem;display:none" id="smoking-years-wrap">
+        <label>Hvor mange år har du røget samlet?</label>
+        <select id="f-smoking-years">
+          <option value="">- Valgfri -</option>
+          <option value="Under 5 år">Under 5 år</option>
+          <option value="5-10 år">5–10 år</option>
+          <option value="10-20 år">10–20 år</option>
+          <option value="Over 20 år">Over 20 år</option>
         </select>
       </div>
       <div class="form-group" style="margin-bottom:0">
-        <label>Er din bolig eksponeret for kraftig vejtrafikstøj?</label>
+        <label>Er du udsat for vejtrafikstøj der hvor du er bosat?</label>
         <select id="f-traffic">
           <option value="">- Valgfri -</option>
-          <option value="Nej">Nej / ubetydelig</option>
-          <option value="Lettere trafikstøj">Lettere trafikstøj (rolig vej)</option>
-          <option value="Kraftig trafikstøj">Kraftig trafikstøj (travl vej / motorvej)</option>
+          <option value="Ja, i høj grad">Ja, i høj grad</option>
+          <option value="Ja, i nogen grad">Ja, i nogen grad</option>
+          <option value="Ja, i lav grad">Ja, i lav grad</option>
+          <option value="Nej, slet ikke">Nej, slet ikke</option>
         </select>
       </div>
     </div>
@@ -260,21 +270,21 @@ details[open] summary{color:var(--text)}
       <div class="sym-card-header">
         <div class="sym-card-icon"></div>
         <div>
-          <div class="sym-card-title">Støjgener fra lufthavnen</div>
-          <div class="sym-card-desc">Markér de gener du oplever regelmæssigt (mindst ugentligt) og vurderer skyldes flystøj</div>
+          <div class="sym-card-title">Støjgener og -symptomer fra lufthavnen</div>
+          <div class="sym-card-desc">Markér de gener og symptomer du oplever regelmæssigt (mindst ugentligt) og vurderer skyldes flystøj</div>
         </div>
       </div>
       <div class="sym-card-body">
         <div class="sub-hdr" style="color:var(--stoj)">Symptomer</div>
-        <label class="chk"><input type="checkbox" name="stoj" value="Besvær med at falde i søvn pga. flystøj"><span>Besvær med at falde i søvn pga. flystøj</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Tidlig opvågning eller afbrudt søvn pga. flystøj"><span>Tidlig opvågning eller afbrudt søvn pga. flystøj</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Vedvarende træthed som følge af dårlig søvn"><span>Vedvarende træthed som følge af dårlig søvn</span></label>
         <label class="chk"><input type="checkbox" name="stoj" value="Tinnitus eller vedvarende ringen/brummen i ørerne"><span>Tinnitus eller vedvarende ringen/brummen i ørerne</span></label>
         <label class="chk"><input type="checkbox" name="stoj" value="Forhøjet stressniveau eller irritabilitet fra støjbelastning"><span>Forhøjet stressniveau eller irritabilitet fra støjbelastning</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Hovedpine eller trykfornemmelse ved kraftig flystøj"><span>Hovedpine eller trykfornemmelse ved kraftig flystøj</span></label>
-        <label class="chk"><input type="checkbox" name="stoj" value="Ubehag eller angstreaktioner ved kraftige flystøjshændelser"><span>Ubehag eller angstreaktioner ved kraftige flystøjshændelser</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj"><span>Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj</span></label>
+        <label class="chk"><input type="checkbox" name="stoj" value="Uro eller angstreaktioner ved kraftige flystøjshændelser"><span>Uro eller angstreaktioner ved kraftige flystøjshændelser</span></label>
         <div class="gen-subsection">
           <div class="sub-hdr">Gener og adfærdspåvirkning</div>
+          <label class="chk"><input type="checkbox" name="stoj" value="Besvær med at falde i søvn pga. flystøj"><span>Besvær med at falde i søvn pga. flystøj</span></label>
+          <label class="chk"><input type="checkbox" name="stoj" value="Tidlig opvågning eller afbrudt søvn pga. flystøj"><span>Tidlig opvågning eller afbrudt søvn pga. flystøj</span></label>
+          <label class="chk"><input type="checkbox" name="stoj" value="Vedvarende træthed som følge af dårlig søvn"><span>Vedvarende træthed som følge af dårlig søvn</span></label>
           <label class="chk"><input type="checkbox" name="stoj" value="Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)"><span>Koncentrationsbesvær i hjemmet (arbejde, lektier, samtale)</span></label>
           <label class="chk"><input type="checkbox" name="stoj" value="Forhindret i at føre samtale indendørs eller udendørs"><span>Forhindret i at føre samtale indendørs eller udendørs</span></label>
         </div>
@@ -290,7 +300,7 @@ details[open] summary{color:var(--text)}
           <div class="sev-required-hint">↑ Flyt slideren for at besvare</div>
         </div>
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj andet støjrelateret symptom</div>
+          <div class="custom-sym-label">Tilføj evt. andre støjrelaterede symptomer eller gener som du oplever ifm. flystøj</div>
           <div class="custom-sym-row">
             <input type="text" id="custom-stoj-input" list="dl-stoj" placeholder="Beskriv symptom…" autocomplete="off">
             <datalist id="dl-stoj"></datalist>
@@ -307,7 +317,7 @@ details[open] summary{color:var(--text)}
         <div class="sym-card-icon"></div>
         <div>
           <div class="sym-card-title">Luftkvalitet og lugtgener</div>
-          <div class="sym-card-desc">Markér de gener du oplever regelmæssigt og vurderer skyldes luftforurening eller lugt fra lufthavnen</div>
+          <div class="sym-card-desc">Markér de gener og symptomer du oplever regelmæssigt (mindst månedligt) og vurderer skyldes luftforurening eller lugt fra lufthavnen</div>
         </div>
       </div>
       <div class="sym-card-body">
@@ -316,11 +326,11 @@ details[open] summary{color:var(--text)}
         <label class="chk"><input type="checkbox" name="luft" value="Vedvarende eller tilbagevendende hoste"><span>Vedvarende eller tilbagevendende hoste</span></label>
         <label class="chk"><input type="checkbox" name="luft" value="Irritation i øjne, næse eller svælg"><span>Irritation i øjne, næse eller svælg</span></label>
         <label class="chk"><input type="checkbox" name="luft" value="Hyppige luftvejsinfektioner (3 eller flere pr. år)"><span>Hyppige luftvejsinfektioner (3 eller flere pr. år)</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Kvalme eller utilpashed ved lugtgener fra lufthavnen"><span>Kvalme eller utilpashed ved lugtgener fra lufthavnen</span></label>
-        <label class="chk"><input type="checkbox" name="luft" value="Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening"><span>Forværring af eksisterende luftvejssygdom ved lugt eller luftforurening</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Kvalme eller utilpashed"><span>Kvalme eller utilpashed</span></label>
+        <label class="chk"><input type="checkbox" name="luft" value="Forværring af eksisterende luftvejssygdom"><span>Forværring af eksisterende luftvejssygdom</span></label>
         <div class="gen-subsection">
           <div class="sub-hdr">Gener og adfærdspåvirkning</div>
-          <label class="chk"><input type="checkbox" name="luft" value="Lugt af jetbrændstof indendørs eller i haven"><span>Lugt af jetbrændstof indendørs eller i haven</span></label>
+          <label class="chk"><input type="checkbox" name="luft" value="Lugt af jetbrændstof indendørs"><span>Lugt af jetbrændstof indendørs</span></label>
           <label class="chk"><input type="checkbox" name="luft" value="Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet"><span>Forhindret i at ventilere hjemmet pga. lugt eller luftkvalitet</span></label>
           <label class="chk"><input type="checkbox" name="luft" value="Begrænser udendørs ophold pga. luftkvalitet"><span>Begrænser udendørs ophold pga. luftkvalitet</span></label>
         </div>
@@ -336,7 +346,7 @@ details[open] summary{color:var(--text)}
           <div class="sev-required-hint">↑ Flyt slideren for at besvare</div>
         </div>
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj andet luftkvalitetssymptom</div>
+          <div class="custom-sym-label">Tilføj evt. andre symptomer eller gener relateret til luftforureningen</div>
           <div class="custom-sym-row">
             <input type="text" id="custom-luft-input" list="dl-luft" placeholder="Beskriv symptom…" autocomplete="off">
             <datalist id="dl-luft"></datalist>
@@ -357,19 +367,19 @@ details[open] summary{color:var(--text)}
         </div>
       </div>
       <div class="sym-card-body">
-        <div class="sub-hdr" style="color:var(--psyko)">Symptomer</div>
-        <label class="chk"><input type="checkbox" name="psyko" value="Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne"><span>Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne</span></label>
-        <div class="gen-subsection">
-          <div class="sub-hdr">Gener og adfærdspåvirkning</div>
-          <label class="chk"><input type="checkbox" name="psyko" value="Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft"><span>Nedsat livskvalitet som direkte følge af lufthavnens støj eller luft</span></label>
-          <label class="chk"><input type="checkbox" name="psyko" value="Vedvarende bekymring for eget eller families helbred pga. lufthavnen"><span>Vedvarende bekymring for eget eller families helbred pga. lufthavnen</span></label>
+        <div class="gen-subsection" style="margin-top:0">
+          <div class="sub-hdr" style="color:var(--psyko)">Adfærd og medicinbrug</div>
+          <label class="chk"><input type="checkbox" name="psyko" value="Tager sovemedicin, beroligende eller blodtryksmedicin - relateret til generne"><span>Tager sovemedicin, beroligende eller blodtryksmedicin — relateret til generne</span></label>
+          <div class="sub-hdr" style="margin-top:.6rem">Gener og adfærdspåvirkning</div>
+          <label class="chk"><input type="checkbox" name="psyko" value="Nedsat livskvalitet"><span>Nedsat livskvalitet</span></label>
+          <label class="chk"><input type="checkbox" name="psyko" value="Vedvarende bekymring for eget eller families helbred"><span>Vedvarende bekymring for eget eller families helbred</span></label>
           <label class="chk"><input type="checkbox" name="psyko" value="Søvnunderskud påvirker evnen til at arbejde eller studere"><span>Søvnunderskud påvirker evnen til at arbejde eller studere</span></label>
           <label class="chk"><input type="checkbox" name="psyko" value="Følelse af magtesløshed over for myndighedernes passivitet"><span>Følelse af magtesløshed over for myndighedernes passivitet</span></label>
           <label class="chk"><input type="checkbox" name="psyko" value="Seriøst overvejet at flytte pga. generne fra lufthavnen"><span>Seriøst overvejet at flytte pga. generne fra lufthavnen</span></label>
         </div>
 
         <div class="custom-sym-area">
-          <div class="custom-sym-label">Tilføj anden psykosocial påvirkning</div>
+          <div class="custom-sym-label">Tilføj evt. anden psykosocial påvirkning som følge af støj eller luftforurening</div>
           <div class="custom-sym-row">
             <input type="text" id="custom-psyko-input" list="dl-psyko" placeholder="Beskriv påvirkning…" autocomplete="off">
             <datalist id="dl-psyko"></datalist>
@@ -443,30 +453,65 @@ details[open] summary{color:var(--text)}
     <!-- ⏱ EKSPONERINGSTIDSLINJE -->
     <div class="card" id="timing-card">
       <div class="card-title">⏱ Eksponeringstidslinje <span class="req">*</span></div>
-      <div class="form-group">
-        <label>Hvornår begyndte du første gang at mærke generne? <span class="req">*</span></label>
-        <select id="f-onset" required>
-          <option value="">- Vælg venligst -</option>
-          <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
-          <option value="Før 2015">Før 2015</option>
-          <option value="2015-2019">2015–2019</option>
-          <option value="2020-2022">2020–2022</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-          <option value="Husker ikke præcist">Husker ikke præcist</option>
-        </select>
+
+      <!-- Støj -->
+      <div style="padding:.6rem .8rem;background:var(--stoj-bg);border:1px solid #c7d8f7;border-radius:var(--r);margin-bottom:1rem">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--stoj);margin-bottom:.6rem">🔊 Flystøj</div>
+        <div class="form-group">
+          <label>Hvornår begyndte du første gang at mærke flystøjsgener? <span class="req">*</span></label>
+          <select id="f-onset" required>
+            <option value="">- Vælg venligst -</option>
+            <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare støjgener</option>
+            <option value="Før 2015">Før 2015</option>
+            <option value="2015-2019">2015–2019</option>
+            <option value="2020-2022">2020–2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="Husker ikke præcist">Husker ikke præcist</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Er støjgenerne <strong>forværret</strong> over den periode du har boet her?</label>
+          <select id="f-got-worse">
+            <option value="">- Vælg -</option>
+            <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
+            <option value="Ja, lettere forværret">Ja, lettere forværret</option>
+            <option value="Uændrede siden de startede">Uændrede siden de startede</option>
+            <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare støjgener</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Er generne <strong>forværret</strong> over den periode du har boet her?</label>
-        <select id="f-got-worse">
-          <option value="">- Vælg -</option>
-          <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
-          <option value="Ja, lettere forværret">Ja, lettere forværret</option>
-          <option value="Uændrede siden de startede">Uændrede siden de startede</option>
-          <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare gener</option>
-        </select>
+
+      <!-- Luft -->
+      <div style="padding:.6rem .8rem;background:var(--luft-bg);border:1px solid #f0ccaa;border-radius:var(--r)">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--luft);margin-bottom:.6rem">💨 Luftforurening og lugtgener</div>
+        <div class="form-group">
+          <label>Hvornår begyndte du første gang at mærke luft- eller lugtgener?</label>
+          <select id="f-onset-luft">
+            <option value="">- Vælg venligst -</option>
+            <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare luft-/lugtgener</option>
+            <option value="Før 2015">Før 2015</option>
+            <option value="2015-2019">2015–2019</option>
+            <option value="2020-2022">2020–2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="Husker ikke præcist">Husker ikke præcist</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Er luft-/lugtgenerne <strong>forværret</strong> over den periode du har boet her?</label>
+          <select id="f-got-worse-luft">
+            <option value="">- Vælg -</option>
+            <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
+            <option value="Ja, lettere forværret">Ja, lettere forværret</option>
+            <option value="Uændrede siden de startede">Uændrede siden de startede</option>
+            <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare luft-/lugtgener</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -518,7 +563,7 @@ details[open] summary{color:var(--text)}
       <div class="card-title" style="font-size:.95rem">Symptomer pr. retning
         <span class="analysis-badge" style="font-size:.57rem">Analyse 3</span>
       </div>
-      <div class="chart-sub" style="font-size:.76rem">Høje tal i nedstrøms retninger (typisk NØ/Ø ved vestenvind) indikerer luftbåren forurening frem for blot støj.</div>
+      <div class="chart-sub" style="font-size:.76rem">Høje tal i nedstrøms retninger indikerer luftbåren forurening frem for blot støj. Der er langt flere</div>
       <div class="chart-wrap" style="height:250px"><canvas id="c-radar"></canvas></div>
     </div>
     <div class="card" style="margin-bottom:0">
@@ -647,19 +692,25 @@ details[open] summary{color:var(--text)}
     <div id="concl-body"><div style="height:80px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 
+  <div class="card">
+    <div class="card-title">6. Confounderjustering <span class="analysis-badge" style="margin-left:.5rem">Rygning · Vejtrafikstøj</span></div>
+    <div class="chart-sub">For at vurdere om afstandsgradienten er ægte og ikke blot afspejler rygning eller vejtrafikstøj, beregnes gradienten separat i undergrupper. Hvis signalet består — også blandt aldrigrygere og dem uden vejtrafikstøj — styrkes den kausale fortolkning markant.</div>
+    <div id="confounder-body"><div style="height:100px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
+  </div>
+
 </div>
 
 <!-- ══ ABOUT ════════════════════════════════════════════════════ -->
 <div id="tab-about" class="tab-content">
   <div class="card about-body">
     <div class="card-title">Om undersøgelsen</div>
-    <p>Dette er en <strong>borgerdrevet epidemiologisk undersøgelse</strong> med formålet at dokumentere en statistisk sammenhæng mellem eksponering for støj og luftforurening fra lufthavnen og de symptomer beboere oplever.</p>
-    <p>Metoden er udarbejdet af Jakob Duus Terkelsen, i samspil med en læge, en folkesundhedsvidenskaber og en epidemiolog. Jakob har udført en lignende undersøgelse ift. luftforureningen omkring Prøvestenen, der viste et klart og reproducerbart eksponerings-respons-mønster - det klassiske epidemiologiske signal for kausal sammenhæng.</p>
+    <p>Dette er en <strong>borgerdrevet epidemiologisk undersøgelse</strong> med formål om at undersøge en mulig sammenhæng mellem eksponering for støj og luftforurening fra lufthavnen og de symptomer beboere oplever.</p>
+    <p>Undersøgelsen er udarbejdet af Jakob Duus Terkelsen, i samspil med en læge, en med baggrund inden for folkesundhedsvidenskab og en epidemiolog. Jakob har udført en lignende undersøgelse ift. luftforureningen omkring Prøvestenen, der viste et klart og reproducerbart eksponerings-respons-mønster - det klassiske epidemiologiske signal for kausal sammenhæng.</p>
     <p>Fire analytiske søjler er designet ind: <strong>(1)</strong> geografisk klyngning tæt på lufthavnen, <strong>(2)</strong> systematisk symptomfald med stigende afstand (lineær gradient), <strong>(3)</strong> korrelation med vindretning for luftbårne stoffer, og <strong>(4)</strong> overrepræsentation af kronisk sygdom og kræft hos naboerne.</p>
   </div>
   <div class="card about-body">
     <div class="card-title">Anonymitet</div>
-    <p>Der gemmes <strong>ingen personhenførbare oplysninger</strong>. Klikket på kortet bruges kun lokalt til at beregne afstand og retning, kun afstandsinterval og retning gemmes.</p>
+    <p>Der gemmes <strong>ingen personhenførbare oplysninger</strong>. Klikket på kortet bruges kun lokalt til at beregne afstand og retning, hvormed det kun er afstandsinterval og retning der gemmes.</p>
   </div>
   <div class="card about-body">
     <div class="card-title">Teknisk opsætning</div>

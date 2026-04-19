@@ -245,8 +245,7 @@ function updateAll(docs) {
     });
   }
 
-  // Onset chart — average onset year per distance band
-  // Map survey categories to representative year midpoints
+  // Onset chart — average onset year per distance band, split by støj vs luft
   const ONSET_YEAR = {
     'Før 2015':   2013,
     '2015-2019':  2017,
@@ -257,45 +256,56 @@ function updateAll(docs) {
     '2026':       2026,
     // 'Oplever ingen mærkbare gener' and 'Husker ikke præcist' are excluded
   };
-  const bandYearLists = {};
-  RES_BANDS.forEach(b => bandYearLists[b] = []);
+  const bandStojLists = {}, bandLuftLists = {};
+  RES_BANDS.forEach(b => { bandStojLists[b] = []; bandLuftLists[b] = []; });
   resDocs.forEach(d => {
-    const yr = ONSET_YEAR[d.onset];
-    if (yr && d.dist_band && bandYearLists[d.dist_band]) bandYearLists[d.dist_band].push(yr);
+    if (d.dist_band) {
+      const yrS = ONSET_YEAR[d.onset];
+      if (yrS && bandStojLists[d.dist_band]) bandStojLists[d.dist_band].push(yrS);
+      const yrL = ONSET_YEAR[d.onset_luft];
+      if (yrL && bandLuftLists[d.dist_band]) bandLuftLists[d.dist_band].push(yrL);
+    }
   });
-  // Only include bands that have at least 1 usable onset answer
-  const onsetBands = AB.filter(b => bandYearLists[b].length > 0);
-  const onsetAvg = b => {
-    const arr = bandYearLists[b];
-    return arr.length ? Math.round(arr.reduce((s,v) => s+v, 0) / arr.length * 10) / 10 : null;
-  };
-  const allYears = onsetBands.map(onsetAvg).filter(Boolean);
+  const onsetBands = AB.filter(b => bandStojLists[b].length > 0 || bandLuftLists[b].length > 0);
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length*10)/10 : null;
+  const allYears = [
+    ...onsetBands.map(b=>avg(bandStojLists[b])),
+    ...onsetBands.map(b=>avg(bandLuftLists[b]))
+  ].filter(Boolean);
   const xMin = allYears.length ? Math.floor(Math.min(...allYears)) - 1 : 2012;
   const xMax = 2026;
   del('onset');
   ch['onset'] = new Chart(document.getElementById('c-onset'), {
     type: 'bar',
     data:{
-      labels: onsetBands.map(b => `${b}  (n=${bandYearLists[b].length})`),
-      datasets:[{
-        data: onsetBands.map(onsetAvg),
-        backgroundColor: onsetBands.map((_, i) => {
-          const t = i / Math.max(onsetBands.length - 1, 1);
-          return `rgba(94,58,140,${(1 - t * 0.55).toFixed(2)})`;
-        }),
-        borderRadius: 4,
-        barThickness: 22,
-      }]
+      labels: onsetBands.map(b => b),
+      datasets:[
+        {
+          label: '🔊 Flystøj (gns. debut-år)',
+          data: onsetBands.map(b => avg(bandStojLists[b])),
+          backgroundColor: 'rgba(42,79,140,.75)',
+          borderRadius: 3,
+          barThickness: 16,
+        },
+        {
+          label: '💨 Luft/lugt (gns. debut-år)',
+          data: onsetBands.map(b => avg(bandLuftLists[b])),
+          backgroundColor: 'rgba(176,80,16,.7)',
+          borderRadius: 3,
+          barThickness: 16,
+        }
+      ]
     },
     options:{
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins:{
-        legend:{ display: false },
+        legend:{ display: true, position:'bottom', labels:{ font:{size:11}, boxWidth:12 } },
         tooltip:{ callbacks:{
           label: c => {
             const b = onsetBands[c.dataIndex];
-            const arr = bandYearLists[b];
+            const arr = c.datasetIndex === 0 ? bandStojLists[b] : bandLuftLists[b];
+            if (!arr.length) return ' Ingen data';
             const mn = Math.min(...arr), mx = Math.max(...arr);
             return ` Gns. ${c.raw?.toFixed(1)}  ·  spredning ${mn}–${mx}  ·  ${arr.length} svar`;
           }
@@ -639,6 +649,100 @@ function updateScientific(docs) {
   </div>`;
 }
 
+// ── Confounder analysis ───────────────────────────────────────
+function isSmoker(d) {
+  const s = d.smoking || '';
+  // Handle both old schema (Ex-ryger…) and new schema (Nej, men har røget / Ja, nuværende ryger)
+  return s.startsWith('Ja') || s.startsWith('Ex-ryger') || s === 'Nej, men har røget';
+}
+function isHighTraffic(d) {
+  const t = d.traffic || '';
+  // Handle both old schema (Kraftig trafikstøj) and new schema (Ja, i høj grad / Ja, i nogen grad)
+  return t === 'Kraftig trafikstøj' || t === 'Ja, i høj grad' || t === 'Ja, i nogen grad';
+}
+
+function updateConfounders(docs) {
+  const el = document.getElementById('confounder-body');
+  if (!el) return;
+
+  const resDocs   = docs.filter(d => !isEmployee(d));
+  const RES_BANDS = DIST_BANDS.filter(b => b !== EMPLOYEE_BAND);
+
+  // Subset: answered smoking/traffic questions
+  const withSmoking = resDocs.filter(d => d.smoking);
+  const withTraffic = resDocs.filter(d => d.traffic);
+  const neverSmoke  = withSmoking.filter(d => !isSmoker(d));
+  const noHighTraff = withTraffic.filter(d => !isHighTraffic(d));
+  const cleanSubset = resDocs.filter(d => d.smoking && !isSmoker(d) && d.traffic && !isHighTraffic(d));
+
+  function gradient(subset) {
+    const active = RES_BANDS.map(zone => {
+      const sub = subset.filter(d => d.dist_band === zone);
+      const nS  = sub.filter(hasSym).length;
+      return { zone, n: sub.length, rate: sub.length ? nS / sub.length * 100 : null,
+               mid: BAND_MIDPOINTS[zone] };
+    }).filter(d => d.n >= 2);
+    const reg = weightedLinReg(active.map(d => ({ x: d.mid, y: d.rate ?? 0, w: d.n })));
+    return { active, reg, n: subset.length };
+  }
+
+  const gAll    = gradient(resDocs);
+  const gSmoke  = gradient(neverSmoke);
+  const gTraff  = gradient(noHighTraff);
+  const gClean  = gradient(cleanSubset);
+
+  function fmtReg(g) {
+    if (!g.reg || g.active.length < 2) return `<em style="color:var(--muted)">Ikke nok data (n=${g.n})</em>`;
+    const dir = g.reg.slope < 0 ? '📉' : '📈';
+    return `${dir} Hældn. <strong>${g.reg.slope.toFixed(2)}</strong> %/km &nbsp;·&nbsp; R² <strong>${(g.reg.r2*100).toFixed(1)}%</strong> &nbsp;·&nbsp; n=${g.n}`;
+  }
+
+  el.innerHTML = `
+    <table class="dose-table" style="margin-bottom:1rem">
+      <thead><tr>
+        <th>Undergruppe</th>
+        <th>n</th>
+        <th>Gradient (hældning)</th>
+        <th>R²</th>
+        <th>Fortolkning</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="dzone">Alle beboere (ujusteret)</td>
+          <td>${gAll.n}</td>
+          <td class="drate">${gAll.reg ? gAll.reg.slope.toFixed(2)+' %/km' : '-'}</td>
+          <td>${gAll.reg ? (gAll.reg.r2*100).toFixed(1)+'%' : '-'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">Referencelinje</td>
+        </tr>
+        <tr>
+          <td class="dzone">Aldrigrygere kun</td>
+          <td>${gSmoke.n}</td>
+          <td class="drate">${gSmoke.reg ? gSmoke.reg.slope.toFixed(2)+' %/km' : '-'}</td>
+          <td>${gSmoke.reg ? (gSmoke.reg.r2*100).toFixed(1)+'%' : '-'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gSmoke.reg && gSmoke.reg.slope < 0 ? '✅ Signal bevaret — rygning ikke forklaring' : gSmoke.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
+        </tr>
+        <tr>
+          <td class="dzone">Ingen/lav vejtrafikstøj</td>
+          <td>${gTraff.n}</td>
+          <td class="drate">${gTraff.reg ? gTraff.reg.slope.toFixed(2)+' %/km' : '-'}</td>
+          <td>${gTraff.reg ? (gTraff.reg.r2*100).toFixed(1)+'%' : '-'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gTraff.reg && gTraff.reg.slope < 0 ? '✅ Signal bevaret — trafikstøj ikke forklaring' : gTraff.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border)">
+          <td class="dzone"><strong>Dobbelt-justeret</strong><br><small style="font-weight:400;color:var(--muted)">Aldrigrygere + ingen/lav trafikstøj</small></td>
+          <td>${gClean.n}</td>
+          <td class="drate">${gClean.reg ? gClean.reg.slope.toFixed(2)+' %/km' : '-'}</td>
+          <td>${gClean.reg ? (gClean.reg.r2*100).toFixed(1)+'%' : '-'}</td>
+          <td style="font-size:.79rem;color:var(--muted)">${gClean.reg && gClean.reg.slope < 0 ? '✅ Stærk indikation — confoundere udelukket' : gClean.n < 10 ? '⏳ Kræver flere svar med confounderbaggrundsinformation' : '⚠ Endnu ikke entydigt'}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="rr-interp" style="border-left-color:var(--stoj)">
+      <strong>Fortolkning:</strong> Hvis den negative gradient bevares — eller endda styrkes — i undergrupper uden rygning og uden vejtrafikstøj, er confounding fra disse faktorer usandsynlig som forklaring på det observerede dosis-respons-mønster.
+      ${gClean.n < 15 ? '<br><em style="color:var(--amber)">⚠ Del linket for at opnå tilstrækkelig statistisk styrke i de justerede undergrupper (mindst 15-20 svar pr. undergruppe anbefales).</em>' : ''}
+    </div>`;
+}
+
 // ── Full refresh ──────────────────────────────────────────────
 function refreshResults() {
   console.log('[Results] refreshResults() kaldt.');
@@ -651,6 +755,7 @@ function refreshResults() {
     console.log(`[Results] Genrenderer med ${_latestDocs.length} cached docs.`);
     updateAll(_latestDocs);
     updateScientific(_latestDocs);
+    updateConfounders(_latestDocs);
     if (rMap) updateResultsMap(_latestDocs);
   } else {
     console.warn('[Results] Ingen data i cache endnu.');
@@ -671,6 +776,7 @@ if (db) {
       console.log('[Results] Tab aktiv — opdaterer live.');
       updateAll(docs);
       updateScientific(docs);
+      updateConfounders(docs);
     } else {
       console.log('[Results] Tab skjult — data cached.');
     }
