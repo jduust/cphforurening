@@ -5,7 +5,8 @@
 import { db, AIRPORT, DIST_BANDS, BAND_MIDPOINTS, DIRS8, COL,
          ALL_SYMS, symCount, genCount, hasKronisk, isEmployee,
          EMPLOYEE_BAND, registerResultsRefresh,
-         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, clipSector }
+         destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, clipSector,
+         isBlockedZone, drawBlockedZoneOverlay }
   from './common.js';
 import { collection, onSnapshot, query }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -36,8 +37,21 @@ const KRONISK_ITEMS = [
 let _latestDocs = null;
 let _rAirportGJ = null; // cached airport GeoJSON for polygon clipping
 
+// ── Chart theme (light / dark mode aware) ────────────────────
+const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+const CT = {
+  grid:    dark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.07)',
+  tick:    dark ? '#7a8ba0'               : '#55637a',
+  text:    dark ? '#dce4f0'               : '#0d1e36',
+  legend:  dark ? '#9aaabb'               : '#55637a',
+  // Kronisk group colors: vivid in dark, deep in light
+  kCol: dark ? { 'Kræft':'#e05060','Hjerte-kar':'#d87060','Luftveje':'#5090e0','Øvrige':'#8090a8' }
+             : { 'Kræft':'#5c0a0a','Hjerte-kar':'#922020','Luftveje':'#2a4f8c','Øvrige':'#5a6880' },
+};
+
 // ── Results map ───────────────────────────────────────────────
 let rMap = null;
+let _rBlockedOverlay = null;
 function initResultsMap() {
   console.log('[Results] Initialiserer resultatkort…');
   rMap = L.map('map-results').setView([AIRPORT.lat, AIRPORT.lng], 10);
@@ -53,6 +67,8 @@ function initResultsMap() {
       .addTo(rMap)
   );
   addDirOverlay(rMap, 21, 21.5);
+  // Draw blocked zones immediately (no clipping yet)
+  _rBlockedOverlay = drawBlockedZoneOverlay(rMap, null);
   const airportPane = rMap.createPane('rAirportPane');
   airportPane.style.zIndex = 450;
   loadAirportGeoJSON().then(gj => {
@@ -60,6 +76,9 @@ function initResultsMap() {
     _rAirportGJ = gj;
     L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.2 },
       pane:'rAirportPane' }).addTo(rMap);
+    // Redraw blocked overlay with proper clipping
+    if (_rBlockedOverlay) _rBlockedOverlay.remove();
+    _rBlockedOverlay = drawBlockedZoneOverlay(rMap, gj);
     // Re-draw zones now that clipping data is available
     if (_latestDocs !== null) updateResultsMap(_latestDocs);
   });
@@ -142,7 +161,9 @@ function updateAll(docs) {
   const avgArr  = arr => arr.length ? +(arr.reduce((x,y)=>x+y,0)/arr.length).toFixed(2) : null;
   const distCols = AB.map((_,i) => {
     const t = i / Math.max(AB.length-1,1);
-    return `rgba(${Math.round(13+t*179)},${Math.round(30+t*129)},${Math.round(54+t*99)},${1-t*.5})`;
+    return dark
+      ? `rgba(${Math.round(80-t*25)},${Math.round(145-t*35)},${Math.round(240-t*40)},${0.92-t*0.32})`
+      : `rgba(${Math.round(13+t*179)},${Math.round(30+t*129)},${Math.round(54+t*99)},${1-t*.5})`;
   });
   console.log('[Results] Beboerbånd:', AB.map(b=>`${b}(n=${B[b].n})`).join(', '));
 
@@ -154,8 +175,9 @@ function updateAll(docs) {
            datasets:[{ data:AB.map(avg), backgroundColor:distCols, borderRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.raw} symptomer i gns.`}} },
-      scales:{ y:{ beginAtZero:true, title:{display:true,text:'Gns. antal symptomer',font:{size:11}}, grid:{color:'#f2f1ee'} },
-               x:{ grid:{display:false} } } }
+      scales:{ y:{ beginAtZero:true, title:{display:true,text:'Gns. antal symptomer',font:{size:11},color:CT.tick},
+                   ticks:{color:CT.tick}, grid:{color:CT.grid} },
+               x:{ grid:{display:false}, ticks:{color:CT.tick} } } }
   });
 
   // Radar chart
@@ -166,12 +188,16 @@ function updateAll(docs) {
     type:'radar',
     data:{ labels:DIRS8,
       datasets:[{ label:'Gns. symptomer', data:DIRS8.map(d=>DR[d].n?+(DR[d].s/DR[d].n).toFixed(2):0),
-        backgroundColor:'rgba(42,79,140,.15)', borderColor:'#2a4f8c',
-        pointBackgroundColor:'#2a4f8c', pointRadius:4 }] },
+        backgroundColor: dark ? 'rgba(80,140,240,.22)' : 'rgba(42,79,140,.15)',
+        borderColor: dark ? '#5090e0' : '#2a4f8c',
+        pointBackgroundColor: dark ? '#5090e0' : '#2a4f8c',
+        pointRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
       scales:{ r:{ beginAtZero:true,
-        ticks:{ font:{size:9}, stepSize:1, precision:0 },
-        pointLabels:{font:{size:11}} } } }
+        grid:{ color: CT.grid },
+        angleLines:{ color: CT.grid },
+        ticks:{ font:{size:9}, stepSize:1, precision:0, color:CT.tick, backdropColor:'transparent' },
+        pointLabels:{ font:{size:11}, color:CT.tick } } } }
   });
 
   // Severity chart
@@ -181,16 +207,16 @@ function updateAll(docs) {
     data:{ labels:AB, datasets:[
       { label:'Støj', data:AB.map(b=>avgArr(B[b].ss)), borderColor:COL.stoj,
         backgroundColor:'rgba(42,79,140,.08)', tension:.35, fill:true,
-        pointRadius:5, pointBackgroundColor:COL.stoj, pointBorderColor:'#fff', pointBorderWidth:2, spanGaps:true },
+        pointRadius:5, pointBackgroundColor:COL.stoj, pointBorderColor: dark?'#19243a':'#fff', pointBorderWidth:2, spanGaps:true },
       { label:'Luft', data:AB.map(b=>avgArr(B[b].ls)), borderColor:COL.luft,
         backgroundColor:'rgba(192,96,16,.07)', tension:.35, fill:true,
-        pointRadius:5, pointBackgroundColor:COL.luft, pointBorderColor:'#fff', pointBorderWidth:2, spanGaps:true }
+        pointRadius:5, pointBackgroundColor:COL.luft, pointBorderColor: dark?'#19243a':'#fff', pointBorderWidth:2, spanGaps:true }
     ] },
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}} },
-      scales:{ y:{ min:0, max:10, ticks:{stepSize:2},
-                   title:{display:true,text:'Gns. alvorlighed (0–10)',font:{size:10}}, grid:{color:'#f2f1ee'} },
-               x:{ grid:{display:false}, ticks:{font:{size:9}} } } }
+      plugins:{ legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8,color:CT.legend}} },
+      scales:{ y:{ min:0, max:10, ticks:{stepSize:2,color:CT.tick},
+                   title:{display:true,text:'Gns. alvorlighed (0–10)',font:{size:10},color:CT.tick}, grid:{color:CT.grid} },
+               x:{ grid:{display:false}, ticks:{font:{size:9},color:CT.tick} } } }
   });
 
   // Kronisk chart
@@ -200,12 +226,12 @@ function updateAll(docs) {
     data:{ labels:AB.map(b=>b+(B[b].n?` (n=${B[b].n})`:'')),
            datasets:[{ label:'% med kronisk sygdom/kræft',
              data:AB.map(b=>B[b].n?+(B[b].kn/B[b].n*100).toFixed(1):0),
-             backgroundColor:'rgba(192,57,43,.72)', borderRadius:4 }] },
+             backgroundColor: dark ? 'rgba(220,70,50,.85)' : 'rgba(192,57,43,.72)', borderRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%`}}},
-      scales:{ y:{max:100,title:{display:true,text:'% af respondenter',font:{size:11}},
-                  ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'}},
-               x:{grid:{display:false}} } }
+      scales:{ y:{max:100,title:{display:true,text:'% af respondenter',font:{size:11},color:CT.tick},
+                  ticks:{callback:v=>v+'%',color:CT.tick},grid:{color:CT.grid}},
+               x:{grid:{display:false},ticks:{color:CT.tick}} } }
   });
 
   // Symptom frequency (residents only - symptom-type items only)
@@ -219,9 +245,9 @@ function updateAll(docs) {
            datasets:[{ data:sorted.map(s=>s.pct), backgroundColor:sorted.map(s=>COL[s.k]), borderRadius:3 }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%  (${Math.round(c.raw*n/100)} ud af ${n})`}}},
-      scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},
-                  title:{display:true,text:'% af respondenter',font:{size:11}}},
-               y:{grid:{display:false},ticks:{font:{size:10},
+      scales:{ x:{max:100,ticks:{callback:v=>v+'%',color:CT.tick},grid:{color:CT.grid},
+                  title:{display:true,text:'% af respondenter',font:{size:11},color:CT.tick}},
+               y:{grid:{display:false},ticks:{font:{size:10},color:CT.tick,
                   callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
   });
 
@@ -238,9 +264,9 @@ function updateAll(docs) {
              datasets:[{ data:sortedGen.map(s=>s.pct), backgroundColor:sortedGen.map(s=>COL[s.k]), borderRadius:3 }] },
       options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%  (${Math.round(c.raw*n/100)} ud af ${n})`}}},
-        scales:{ x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f2f1ee'},
-                    title:{display:true,text:'% af respondenter',font:{size:11}}},
-                 y:{grid:{display:false},ticks:{font:{size:10},
+        scales:{ x:{max:100,ticks:{callback:v=>v+'%',color:CT.tick},grid:{color:CT.grid},
+                    title:{display:true,text:'% af respondenter',font:{size:11},color:CT.tick}},
+                 y:{grid:{display:false},ticks:{font:{size:10},color:CT.tick,
                     callback(v){const l=this.getLabelForValue(v);return l.length>44?l.slice(0,41)+'…':l;}}} } }
     });
   }
@@ -300,7 +326,7 @@ function updateAll(docs) {
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins:{
-        legend:{ display: true, position:'bottom', labels:{ font:{size:11}, boxWidth:12 } },
+        legend:{ display: true, position:'bottom', labels:{ font:{size:11}, boxWidth:12, color:CT.legend } },
         tooltip:{ callbacks:{
           label: c => {
             const b = onsetBands[c.dataIndex];
@@ -314,11 +340,11 @@ function updateAll(docs) {
       scales:{
         x:{
           min: xMin, max: xMax,
-          ticks:{ stepSize: 1, callback: v => v },
-          grid:{ color: '#f2f1ee' },
+          ticks:{ stepSize: 1, callback: v => v, color: CT.tick },
+          grid:{ color: CT.grid },
           title:{ display: true, text: 'Gennemsnitligt årstal for debut af gener', font:{ size: 11 } }
         },
-        y:{ grid:{ display: false }, ticks:{ font:{ size: 10 } } }
+        y:{ grid:{ display: false }, ticks:{ font:{ size: 10 }, color: CT.tick } }
       }
     }
   });
@@ -354,17 +380,17 @@ function updateAll(docs) {
   if (summaryEl) {
     if (nAll > 0 && totalWithAny > 0) {
       summaryEl.innerHTML = `
-        <div style="background:#fdf0f0;border:1px solid #e0a0a0;border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
-          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7b0000;margin-bottom:.7rem">
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
+          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:.7rem">
             ⚠ ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)}%) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
-            ${GRP_META.map(m => `
-              <div style="text-align:center;padding:.65rem .4rem;background:white;border-radius:3px;border-top:3px solid ${m.col}">
-                <div style="font-size:1.45rem;font-weight:700;color:${m.col};line-height:1.1">${grpCounts[m.g]}</div>
-                <div style="font-size:.68rem;color:${m.col};font-weight:600;margin-top:.15rem">${(nAll?grpCounts[m.g]/nAll*100:0).toFixed(1)}%</div>
-                <div style="font-size:.62rem;color:#888;margin-top:.1rem">${m.label}</div>
-              </div>`).join('')}
+            ${GRP_META.map(m => { const mc = CT.kCol[m.g]; return `
+              <div style="text-align:center;padding:.65rem .4rem;background:var(--bg);border-radius:3px;border-top:3px solid ${mc}">
+                <div style="font-size:1.45rem;font-weight:700;color:${mc};line-height:1.1">${grpCounts[m.g]}</div>
+                <div style="font-size:.68rem;color:${mc};font-weight:600;margin-top:.15rem">${(nAll?grpCounts[m.g]/nAll*100:0).toFixed(1)}%</div>
+                <div style="font-size:.62rem;color:var(--muted);margin-top:.1rem">${m.label}</div>
+              </div>`; }).join('')}
           </div>
         </div>`;
     } else if (nAll > 0) {
@@ -392,7 +418,7 @@ function updateAll(docs) {
           labels: groupedLabels,
           datasets:[{
             data: kVisible.map(k => k.pct),
-            backgroundColor: kVisible.map(k => k.col),
+            backgroundColor: kVisible.map(k => CT.kCol[k.grp] || k.col),
             borderRadius: 3,
             barThickness: 20,
           }]
@@ -406,11 +432,12 @@ function updateAll(docs) {
             }, title:c=>kVisible[c[0].dataIndex].s }}
           },
           scales:{
-            x:{ min:0, ticks:{callback:v=>v+'%'}, grid:{color:'#f2f1ee'},
-                title:{display:true,text:'% af alle respondenter',font:{size:10}} },
+            x:{ min:0, ticks:{callback:v=>v+'%',color:CT.tick}, grid:{color:CT.grid},
+                title:{display:true,text:'% af alle respondenter',font:{size:10},color:CT.tick} },
             y:{ grid:{display:false}, ticks:{font:{size:10.5}, color:ctx=>{
                   const lbl = groupedLabels[ctx.index]||'';
-                  return lbl.startsWith('[') ? '#5c0a0a' : '#0d1e36';
+                  if (lbl.startsWith('[')) return CT.kCol[Object.keys(CT.kCol).find(k=>lbl.includes(k))] || CT.tick;
+                  return CT.tick;
                 }}}
           }
         }
@@ -521,12 +548,12 @@ function updateScientific(docs) {
     type:'bar',
     data:{ labels:active.map(d=>d.zone),
       datasets:[{ label:'Symptomrate (%)', data:active.map(d=>d.rate??0),
-        backgroundColor:active.map((_,i)=>`rgba(192,57,43,${(1-i/Math.max(active.length-1,1)*.65).toFixed(2)})`),
+        backgroundColor:active.map((_,i)=>dark?`rgba(220,70,50,${(1-i/Math.max(active.length-1,1)*.55).toFixed(2)})`:`rgba(192,57,43,${(1-i/Math.max(active.length-1,1)*.65).toFixed(2)})`),
         borderRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw?.toFixed(1)}% (n=${active[c.dataIndex]?.n})`}}},
-      scales:{ y:{min:0,max:100,ticks:{callback:v=>v+'%'},title:{display:true,text:'Andel med ≥1 symptom (%)',font:{size:10}},grid:{color:'#f2f1ee'}},
-               x:{grid:{display:false}} } }
+      scales:{ y:{min:0,max:100,ticks:{callback:v=>v+'%',color:CT.tick},title:{display:true,text:'Andel med ≥1 symptom (%)',font:{size:10},color:CT.tick},grid:{color:CT.grid}},
+               x:{grid:{display:false},ticks:{color:CT.tick}} } }
   });
 
   // ── 2. Gradient regression across ALL zones ───────────────
@@ -538,15 +565,15 @@ function updateScientific(docs) {
     gradEl.innerHTML = `
       <div class="rr-grid" style="margin-bottom:.9rem">
         <div class="rr-box">
-          <div class="rr-num" style="color:var(--navy);font-size:1.2rem">${reg.slope.toFixed(2)}</div>
+          <div class="rr-num" style="color:var(--text);font-size:1.2rem">${reg.slope.toFixed(2)}</div>
           <div class="rr-lbl">Hældning (%/km)</div>
         </div>
         <div class="rr-box">
-          <div class="rr-num" style="color:var(--navy);font-size:1.2rem">${(reg.r2*100).toFixed(1)}%</div>
+          <div class="rr-num" style="color:var(--text);font-size:1.2rem">${(reg.r2*100).toFixed(1)}%</div>
           <div class="rr-lbl">R² (forklaret varians)</div>
         </div>
         <div class="rr-box">
-          <div class="rr-num" style="color:var(--navy);font-size:1.2rem">${active.length}</div>
+          <div class="rr-num" style="color:var(--text);font-size:1.2rem">${active.length}</div>
           <div class="rr-lbl">Zoner med data</div>
         </div>
       </div>
@@ -630,17 +657,17 @@ function updateScientific(docs) {
   document.getElementById('concl-body').innerHTML=`
   <p style="color:var(--muted);font-size:.88rem;line-height:1.8;margin-bottom:1rem">Analysen af <strong>${n} beboerrespondenter</strong> viser:</p>
   <div class="concl-grid">
-    <div class="concl-item"><div class="concl-n">1.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Dosis-respons</div>
-      <div class="concl-desc">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
+    <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">1.</div>
+      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Dosis-respons</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
     </div>
-    <div class="concl-item"><div class="concl-n">2.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">Lineær gradient</div>
-      <div class="concl-desc">${reg?`Hældning = ${reg.slope.toFixed(2)} %/km, R² = ${(reg.r2*100).toFixed(1)}% (${active.length} zoner).`:'Kræver svar fra ≥2 zoner.'}</div>
+    <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">2.</div>
+      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Lineær gradient</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${reg?`Hældning = ${reg.slope.toFixed(2)} %/km, R² = ${(reg.r2*100).toFixed(1)}% (${active.length} zoner).`:'Kræver svar fra ≥2 zoner.'}</div>
     </div>
-    <div class="concl-item"><div class="concl-n">3.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem">RR & χ²-test</div>
-      <div class="concl-desc">RR = ${rrStr} ${kiStr}. χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}</div>
+    <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">3.</div>
+      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">RR & χ²-test</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">RR = ${rrStr} ${kiStr}. χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}</div>
     </div>
   </div>
   <div class="notice notice-warn" style="margin:0">

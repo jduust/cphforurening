@@ -19,6 +19,7 @@
   --stoj:#2a4f8c;--stoj-bg:#eaf1fc;
   --luft:#b05010;--luft-bg:#fdf0e6;
   --kronisk:#a03020;--psyko:#4a2a7c;--psyko-bg:#f2eeff;--r:4px;
+  --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%235a6880' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
@@ -62,13 +63,15 @@ main{max-width:920px;margin:0 auto;padding:2rem 1.25rem 4rem}
 .form-group{margin-bottom:1rem}
 .form-group label{display:block;font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
 .req{color:var(--amber);margin-left:2px}
-select,input[type=text]{width:100%;padding:.58rem .8rem;border:1px solid var(--border);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.88rem;color:var(--text);background:white;outline:none;transition:border-color .15s}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%235a6880' d='M5 7L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .8rem center;padding-right:2rem}
+select,input[type=text]{width:100%;padding:.58rem .8rem;border:1px solid var(--border);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.88rem;color:var(--text);background:var(--white);outline:none;transition:border-color .15s}
+
+select{appearance:none;background-image:var(--select-arrow);background-repeat:no-repeat;background-position:right .8rem center;padding-right:2rem}
 input[type=text]{background-image:none}
 select:focus,input:focus{border-color:var(--navy-light)}
 #map-picker{height:300px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:.75rem}
 #map-feedback{font-size:.83rem;color:var(--muted);min-height:1.8rem;padding:.35rem 0}
 #map-feedback.ok{color:var(--navy);font-weight:500}
+#map-feedback.error{background:#fdf0ee;color:var(--red);border:1px solid #f0b8b0;border-radius:var(--r);padding:.65rem .85rem;font-size:.82rem;line-height:1.55;font-weight:500}
 #map-feedback.employee-notice{background:var(--emp-bg);color:var(--emp);border:1px solid #9fd8b8;border-radius:var(--r);padding:.65rem .85rem;font-size:.82rem;line-height:1.55}
 .map-hint{font-size:.78rem;color:var(--muted);margin-bottom:.55rem;line-height:1.6}
 .sym-section{margin-bottom:1rem}
@@ -132,6 +135,7 @@ footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.73rem;bord
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
   nav.tabs button{padding:.75rem .9rem;font-size:.73rem}
+  .intro-cards{grid-template-columns:1fr!important}
 }
 .sci-divider{display:flex;align-items:center;gap:.9rem;margin:1.8rem 0 1rem;color:var(--muted);font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
 .sci-divider::before,.sci-divider::after{content:'';flex:1;height:1px;background:var(--border)}
@@ -164,6 +168,113 @@ details[open] summary{color:var(--text)}
 .sub-hdr{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.4rem .6rem .25rem;margin:.4rem 0 .15rem;color:var(--muted);border-bottom:1px dashed var(--border)}
 .gen-subsection{margin-top:.35rem}
 .dir-label{font-size:11px;font-weight:700;color:#2a4f8c;text-align:center;background:rgba(255,255,255,.75);padding:1px 4px;border-radius:2px;letter-spacing:.04em;pointer-events:none;white-space:nowrap;font-family:'Inter',sans-serif}
+
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111927;--white:#19243a;--text:#dce4f0;--muted:#7a8ba0;--border:#28364f;
+    --amber-light:#111927;
+    --stoj-bg:#111e35;--luft-bg:#1e1005;--psyko-bg:#16102c;--emp-bg:#0a1c12;
+    --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%237a8ba0' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
+  }
+/* ── Navigation ── */
+  nav.tabs{background:var(--white);border-bottom-color:var(--border)}
+  nav.tabs button:hover{color:#e0e8f8}
+  nav.tabs button.active{color:#e0e8f8}
+  .live-pill{background:#0d2a1e;color:#4dd9a0}
+  .live-dot{background:#2dbd82}
+
+  /* ── Intro notice card (inline style needs !important) ── */
+  .intro-notice{background:var(--white)!important;border-left-color:var(--amber)!important}
+
+  /* ── Card titles & general text ── */
+  .card-title{color:var(--text)}
+  .card-title small{color:var(--muted)}
+  .sub-hdr{color:var(--muted);border-bottom-color:var(--border)}
+  .chart-sub{color:var(--muted)}
+  .map-hint{color:var(--muted)}
+  .form-group label{color:var(--muted)}
+  .about-body a{color:#7aaae0}
+
+  /* ── Sym-card headers: lighter text + dark-mode border ── */
+  .sym-card.stoj .sym-card-header{border-bottom-color:var(--border);color:#7aaae0}
+  .sym-card.luft .sym-card-header{border-bottom-color:var(--border);color:#e0935a}
+  .sym-card.psyko .sym-card-header{border-bottom-color:var(--border);color:#b090e0}
+  .sym-card.emp .sym-card-header{border-bottom-color:var(--border);color:#4dc87a}
+  .sym-card.kronisk .sym-card-header{border-bottom-color:var(--border);color:#e07878}
+
+  /* ── Sym headers (category pills) ── */
+  .sym-stoj{background:#1a2d4a;color:#7aaae0}
+  .sym-luft{background:#2a1a0e;color:#e0935a}
+  .sym-kronisk{background:#2a1010;color:#e07878}
+  .sym-psyko{background:#1e1035;color:#b090e0}
+  .sym-emp{background:#0a1c12;color:#4dc87a}
+
+  /* ── Checkboxes & chips ── */
+  .chk:hover{background:rgba(255,255,255,.05)}
+  .chip{background:#1e2d4a;color:#a0b8d8}
+
+  /* ── Annoyance/severity block ── */
+  .annoyance-block{background:#18243a;border-color:#2c4060}
+  .annoyance-block.untouched{background:rgba(200,134,10,.1);border-color:var(--amber)}
+  .annoyance-label{color:var(--text)}
+  .sev-anchor{color:var(--muted)}
+  .sev-val{background:var(--white);border-color:var(--border);color:var(--text)}
+  .sev-required-hint{color:var(--amber)}
+
+  /* ── Range slider ── */
+  input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:18px}
+  input[type=range]::-webkit-slider-runnable-track{background:#2a3d58;height:4px;border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;background:#7aaae0;width:18px;height:18px;border-radius:50%;margin-top:-7px;cursor:pointer;border:none}
+  input[type=range]::-moz-range-track{background:#2a3d58;height:4px;border-radius:2px;border:none}
+  input[type=range]::-moz-range-thumb{background:#7aaae0;width:18px;height:18px;border-radius:50%;border:none;cursor:pointer}
+
+  /* ── Map feedback ── */
+  #map-feedback.ok{color:var(--text)}
+  #map-feedback.error{background:rgba(176,48,32,.18);border-color:#8a3828}
+  #map-feedback.employee-notice{border-color:#1a4030}
+
+  /* ── Kronisk header (hardcoded bg) ── */
+  .sym-card.kronisk .sym-card-header{background:#2a1010}
+  .sym-card.emp .sym-card-header{border-bottom-color:var(--border)}
+
+  /* ── Notices ── */
+  .notice-warn{background:#1a1408;border-left-color:var(--amber);color:#d4a040}
+  .notice-success{background:#0a1c12;border-left-color:#0a9c62;color:#4dd9a0}
+  .verdict-ns{background:rgba(200,134,10,.12);border-left-color:var(--amber);color:#d4a040}
+
+  /* ── Stats boxes stay vivid — no change needed ── */
+
+  /* ── Results & analysis elements ── */
+  .rr-box,.chi-box,.concl-item{background:var(--bg);border-color:var(--border)}
+  .rr-lbl,.chi-lbl,.concl-desc{color:var(--muted)}
+  .chi-num{color:var(--text)}
+  .rr-interp{background:var(--bg);border-left-color:var(--border);color:var(--muted)}
+  .formula{background:var(--bg);color:var(--muted)}
+  .verdict-sig{background:#0d2a1e;border-left-color:#0a9c62;color:#4dd9a0}
+
+  /* ── Summary/details ── */
+  details summary{color:var(--muted)}
+  details[open] summary{color:var(--text)}
+
+  /* ── Badges ── */
+  .analysis-badge{background:#1a2a46;color:#7aaae0;border-color:#2a3e60}
+  .emp-badge{background:#0a1c12;color:#4dd9a0;border-color:#1a4030}
+
+  /* ── Misc ── */
+  .dir-label{color:#7aaae0;background:rgba(20,30,50,.85)}
+  code{background:#1e2d4a;color:#a0c0e0;border-radius:3px;padding:.1em .35em;font-size:.87em}
+  footer{background:var(--white);border-top-color:var(--border)}
+  .dose-table th{color:var(--muted);border-bottom-color:var(--border)}
+  .dose-table td{border-bottom-color:var(--border)}
+  /* ── Adfærdspåvirkning badge ── */
+  .badge-adfaerd{background:#1e1408!important;color:#d4a040!important;border-color:#4a3010!important}
+  /* ── OpenStreetMap dark mode: invert + hue-rotate restores natural colours ── */
+  .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.88) contrast(0.9)}
+  /* keep markers/overlays un-inverted */
+  .leaflet-overlay-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-popup-pane{filter:invert(1) hue-rotate(180deg)}
+  .sci-divider{color:var(--muted)}
+  .sci-divider::before,.sci-divider::after{background:var(--border)}
+}
 </style>
 </head>
 <body>
@@ -195,7 +306,7 @@ details[open] summary{color:var(--text)}
   <div id="form-wrap">
 
     <!-- 📋 Intro -->
-    <div class="card" style="border-left:3px solid var(--amber);background:var(--amber-light)">
+    <div class="card intro-notice" style="border-left:3px solid var(--amber);background:var(--amber-light)">
       <div class="card-title" style="border-bottom-color:#e8c870">📋 Inden du svarer - læs dette først</div>
       <p style="font-size:.88rem;line-height:1.8;margin-bottom:.9rem">
         Dette er en <strong>borgerdrevet epidemiologisk undersøgelse</strong> som undersøger, om der er en sammenhæng mellem nærhed til CPH Lufthavn og de helbredsgener beboere oplever. Undersøgelsen er udarbejdet i samarbejde med en læge, en med baggrund i folkesundhedsvidenskab og en epidemiolog - og bygger på den samme metode som en lignende undersøgelse ved Prøvestenen, der viste et klart og reproducerbart eksponerings-respons-mønster.
@@ -203,21 +314,21 @@ details[open] summary{color:var(--text)}
       <p style="font-size:.88rem;line-height:1.8;margin-bottom:.9rem">
         <strong>Sådan fungerer det:</strong> Jo flere der svarer, jo stærkere bliver evidensen. Dine svar indgår i en statistisk analyse, der ser på om symptomerne er hyppigere og mere alvorlige jo tættere man bor på lufthavnen. Det er præcis det mønster - kaldet en <em>biologisk gradient</em> - der er et af de stærkeste epidemiologiske signaler for ægte årsagssammenhæng.
       </p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.9rem">
-        <div style="background:white;border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
+      <div class="intro-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.9rem">
+        <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
           <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">⏱ Tidsforbbrug</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Ca. 3–5 minutter</div>
         </div>
-        <div style="background:white;border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
+        <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
           <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">🔒 Anonymitet</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Ingen persondata gemmes</div>
         </div>
-        <div style="background:white;border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
+        <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
           <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">📍 Præcision</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Kun zone + retning gemmes</div>
         </div>
       </div>
-      <div style="background:white;border:1px solid #e0c870;border-radius:var(--r);padding:.8rem 1rem;font-size:.83rem;line-height:1.7;color:var(--text)">
+      <div style="background:var(--white);border:1px solid #e0c870;border-radius:var(--r);padding:.8rem 1rem;font-size:.83rem;line-height:1.7;color:var(--text)">
         <strong>Hvad du skal tænke på:</strong> Angiv kun gener og symptomer du <em>regelmæssigt</em> oplever, og som du selv mistænker har sammenhæng med lufthavnen - det kan være støj, lugt, luftkvalitet eller en kombination. Kroniske diagnoser skal kun angives hvis de opstod <em>efter</em> du flyttede til området. Er du ansat i lufthavnen, er du også meget velkommen - klik blot på lufthavnsområdet på kortet.
       </div>
     </div>
@@ -483,7 +594,7 @@ details[open] summary{color:var(--text)}
       <div class="card-title">⏱ Eksponeringstidslinje <span class="req">*</span></div>
 
       <!-- Støj -->
-      <div style="padding:.6rem .8rem;background:var(--stoj-bg);border:1px solid #c7d8f7;border-radius:var(--r);margin-bottom:1rem">
+      <div style="padding:.6rem .8rem;background:var(--stoj-bg);border:1px solid var(--border);border-radius:var(--r);margin-bottom:1rem">
         <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--stoj);margin-bottom:.6rem">🔊 Flystøj</div>
         <div class="form-group">
           <label>Hvornår begyndte du første gang at mærke flystøjsgener? <span class="req">*</span></label>
@@ -513,7 +624,7 @@ details[open] summary{color:var(--text)}
       </div>
 
       <!-- Luft -->
-      <div style="padding:.6rem .8rem;background:var(--luft-bg);border:1px solid #f0ccaa;border-radius:var(--r)">
+      <div style="padding:.6rem .8rem;background:var(--luft-bg);border:1px solid var(--border);border-radius:var(--r)">
         <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--luft);margin-bottom:.6rem">💨 Luftforurening og lugtgener</div>
         <div class="form-group">
           <label>Hvornår begyndte du første gang at mærke luft- eller lugtgener?</label>
@@ -641,7 +752,7 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">Generhyppighed - beboere
-      <span class="analysis-badge" style="background:#f5ede0;color:#7a3e00;border-color:#e0c090">Adfærdspåvirkning</span>
+      <span class="analysis-badge badge-adfaerd" style="background:#f5ede0;color:#7a3e00;border-color:#e0c090">Adfærdspåvirkning</span>
     </div>
     <div class="chart-sub">Andel der rapporterer adfærdsmæssige og sociale konsekvenser (gener). Indgår <em>ikke</em> i Bradford Hill-beregningerne, men belyser den samlede belastning.</div>
     <div class="leg-row">

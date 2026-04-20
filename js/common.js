@@ -195,6 +195,48 @@ export async function loadAirportGeoJSON() {
   return _airportGJ;
 }
 
+// ── Blocked zones (ocean / Sweden / uninhabited) ─────────────
+// Format: 'band|dir' – mirrors the key used in results.js zone maps.
+// Rule: "X km Y and anything further Y" = all bands from X outward in dir Y are blocked.
+export const BLOCKED_ZONES = new Set([
+  // SV: ocean south of Køge Bugt from 10 km out
+  '10-20 km|SV', '20+ km|SV',
+  // S: Køge Bugt / open sea from 10 km out
+  '10-20 km|S',  '20+ km|S',
+  // SØ: Øresund from 5 km out
+  '5-10 km|SØ',  '10-20 km|SØ', '20+ km|SØ',
+  // Ø: Øresund (Sweden) from 1.25 km out
+  '1.25-3 km|Ø', '3-5 km|Ø',   '5-10 km|Ø',  '10-20 km|Ø', '20+ km|Ø',
+  // NØ: Øresund / Sweden from 1.25 km out
+  '1.25-3 km|NØ','3-5 km|NØ',  '5-10 km|NØ', '10-20 km|NØ','20+ km|NØ',
+]);
+
+export function isBlockedZone(band, dir) {
+  return BLOCKED_ZONES.has(`${band}|${dir}`);
+}
+
+// Draws grey hatched overlay polygons for all blocked zones.
+// Returns a Leaflet LayerGroup so the caller can remove/redraw after clipping data loads.
+export function drawBlockedZoneOverlay(map, airportGJ = null) {
+  const group = L.layerGroup().addTo(map);
+  BLOCKED_ZONES.forEach(key => {
+    const [band, dir] = key.split('|');
+    const dirIdx = DIRS8.indexOf(dir);
+    if (dirIdx < 0) return;
+    const [inner, outer] = BAND_RADII[band] || [0, 3];
+    const latLngs = sectorLatLngs(AIRPORT, inner, outer, dirIdx);
+    const style = {
+      color: '#6b7a8a', weight: 1.2, dashArray: '5 4',
+      fillColor: '#8892a0', fillOpacity: 0.28, interactive: false
+    };
+    const layer = (airportGJ ? clipSector(latLngs, airportGJ) : null)
+      ? L.geoJSON(clipSector(latLngs, airportGJ), { style })
+      : L.polygon(latLngs, style);
+    layer.addTo(group);
+  });
+  return group;
+}
+
 // ── Tab navigation ────────────────────────────────────────────
 let _refreshResults = null;
 export function registerResultsRefresh(fn) { _refreshResults = fn; }

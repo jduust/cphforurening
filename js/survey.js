@@ -4,7 +4,7 @@
 
 import { db, AIRPORT, EMPLOYEE_BAND, haversineKm, bearingDeg, toDir8, toBand,
          destPoint, sectorLatLngs, BAND_RADII, loadAirportGeoJSON, addDirOverlay, DIRS8,
-         pointInPolygon, clipSector } from './common.js';
+         pointInPolygon, clipSector, isBlockedZone, drawBlockedZoneOverlay } from './common.js';
 import { collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -23,6 +23,8 @@ L.circleMarker([AIRPORT.lat, AIRPORT.lng],
     .addTo(sMap)
 );
 addDirOverlay(sMap, 12, 21);
+// Draw blocked zones immediately (clipped version redrawn after airport GeoJSON loads)
+let _sBlockedOverlay = drawBlockedZoneOverlay(sMap, null);
 let _airportGJData = null;
 loadAirportGeoJSON().then(gj => {
   if (!gj) return;
@@ -31,15 +33,35 @@ loadAirportGeoJSON().then(gj => {
   airportPane.style.zIndex = 450;
   L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.15 },
     pane:'sAirportPane' }).addTo(sMap);
+  // Redraw blocked overlay now that clipping data is available
+  if (_sBlockedOverlay) _sBlockedOverlay.remove();
+  _sBlockedOverlay = drawBlockedZoneOverlay(sMap, gj);
 });
 
 let uMarker, _zoneHL;
 sMap.on('click', e => {
   const { lat, lng } = e.latlng;
   const km  = haversineKm(AIRPORT, { lat, lng });
+  const fb  = document.getElementById('map-feedback');
+
+  // ── Guard: too far away (> 25 km) ────────────────────────
+  if (km > 25) {
+    fb.textContent = '🚫 Dette område er for langt fra lufthavnen (> 25 km). Klik tættere på CPH.';
+    fb.className = 'error';
+    return;
+  }
+
   const dir = toDir8(bearingDeg(AIRPORT, { lat, lng }));
   const isInsideAirport = _airportGJData ? pointInPolygon(lat, lng, _airportGJData) : km < 1.25;
   const band = isInsideAirport ? EMPLOYEE_BAND : (km < 1.25 ? '1.25-3 km' : toBand(km));
+
+  // ── Guard: blocked zone (ocean / Sweden / uninhabited) ───
+  if (!isInsideAirport && isBlockedZone(band, dir)) {
+    fb.textContent = `🚫 Det valgte område (${band} · ${dir}) er ikke gyldigt. Kun beboede områder i Danmark inden for 25 km er gyldige.`;
+    fb.className = 'error';
+    return;
+  }
+
   const isEmp = band === EMPLOYEE_BAND;
   console.log(`[Survey] Klik: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
 
@@ -50,8 +72,6 @@ sMap.on('click', e => {
       (Math.round(lng*100)/100).toFixed(2)
     ][i];
   });
-
-  const fb = document.getElementById('map-feedback');
 
   // Employees: only background (age + smoking) + kronisk; residents: everything
   document.getElementById('background-card').style.display  = '';          // always show
