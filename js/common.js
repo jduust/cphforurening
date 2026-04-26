@@ -200,7 +200,7 @@ export async function loadAirportGeoJSON() {
 // Rule: "X km Y and anything further Y" = all bands from X outward in dir Y are blocked.
 export const BLOCKED_ZONES = new Set([
   // SV: ocean south of Køge Bugt from ~7.5 km out
-  '7.5-15 km|SV', '15-25 km|SV',
+   '15-25 km|SV',
   // S: Køge Bugt / open sea from ~7.5 km out
   '7.5-15 km|S',  '15-25 km|S',
   // SØ: Øresund from 5 km out
