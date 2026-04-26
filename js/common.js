@@ -29,16 +29,16 @@ export const AIRPORT = { lat: 55.6180, lng: 12.6560 };
 
 // 0-1.25 km = ansatzone (ingen beboere her - antages at være lufthavnsansatte)
 export const EMPLOYEE_BAND = '0-1.25 km';
-export const DIST_BANDS    = ['0-1.25 km','1.25-3 km','3-5 km','5-10 km','10-20 km','20+ km'];
+export const DIST_BANDS    = ['0-1.25 km','1.25-3 km','3-5 km','5-7.5 km','7.5-15 km','15-25 km'];
 
 // Midpunktsafstande (km) bruges i regressionsanalyse
 export const BAND_MIDPOINTS = {
   '0-1.25 km':  0.625,
   '1.25-3 km':  2.125,
   '3-5 km':     4.0,
-  '5-10 km':    7.5,
-  '10-20 km':  15.0,
-  '20+ km':    25.0,
+  '5-7.5 km':   6.25,
+  '7.5-15 km': 11.25,
+  '15-25 km':  20.0,
 };
 
 export const DIRS8 = ['N','NØ','Ø','SØ','S','SV','V','NV'];
@@ -97,9 +97,9 @@ export function toBand(km)   {
   if (km < 1.25) return '0-1.25 km';
   if (km < 3)    return '1.25-3 km';
   if (km < 5)    return '3-5 km';
-  if (km < 10)   return '5-10 km';
-  if (km < 20)   return '10-20 km';
-  return '20+ km';
+  if (km < 7.5)  return '5-7.5 km';
+  if (km < 15)   return '7.5-15 km';
+  return '15-25 km';
 }
 // Pre-computed set of nuisance values - anything NOT in this set is treated as a symptom
 const _GEN_VALS = new Set(ALL_SYMS.filter(s => s.t === 'gen').map(s => s.v));
@@ -123,9 +123,9 @@ export const BAND_RADII = {
   '0-1.25 km':  [0,     1.25],
   '1.25-3 km':  [1.25,  3   ],
   '3-5 km':     [3,     5   ],
-  '5-10 km':    [5,     10  ],
-  '10-20 km':   [10,    20  ],
-  '20+ km':     [20,    25  ],
+  '5-7.5 km':   [5,     7.5 ],
+  '7.5-15 km':  [7.5,   15  ],
+  '15-25 km':   [15,    25  ],
 };
 
 export function destPoint(center, km, bearingDeg) {
@@ -199,25 +199,72 @@ export async function loadAirportGeoJSON() {
 // Format: 'band|dir' – mirrors the key used in results.js zone maps.
 // Rule: "X km Y and anything further Y" = all bands from X outward in dir Y are blocked.
 export const BLOCKED_ZONES = new Set([
-  // SV: ocean south of Køge Bugt from 10 km out
-  '10-20 km|SV', '20+ km|SV',
-  // S: Køge Bugt / open sea from 10 km out
-  '10-20 km|S',  '20+ km|S',
+  // SV: ocean south of Køge Bugt from ~7.5 km out
+  '7.5-15 km|SV', '15-25 km|SV',
+  // S: Køge Bugt / open sea from ~7.5 km out
+  '7.5-15 km|S',  '15-25 km|S',
   // SØ: Øresund from 5 km out
-  '5-10 km|SØ',  '10-20 km|SØ', '20+ km|SØ',
+  '5-7.5 km|SØ', '7.5-15 km|SØ', '15-25 km|SØ',
   // Ø: Øresund (Sweden) from 1.25 km out
-  '1.25-3 km|Ø', '3-5 km|Ø',   '5-10 km|Ø',  '10-20 km|Ø', '20+ km|Ø',
+  '1.25-3 km|Ø', '3-5 km|Ø',   '5-7.5 km|Ø',  '7.5-15 km|Ø', '15-25 km|Ø',
   // NØ: Øresund / Sweden from 1.25 km out
-  '1.25-3 km|NØ','3-5 km|NØ',  '5-10 km|NØ', '10-20 km|NØ','20+ km|NØ',
+  '1.25-3 km|NØ','3-5 km|NØ',  '5-7.5 km|NØ', '7.5-15 km|NØ','15-25 km|NØ',
 ]);
 
 export function isBlockedZone(band, dir) {
   return BLOCKED_ZONES.has(`${band}|${dir}`);
 }
 
-// Draws grey hatched overlay polygons for all blocked zones.
+// One-time SVG <defs> injection for diagonal hatch pattern used by blocked zones.
+function _ensureHatchPattern() {
+  if (document.getElementById('blockedHatch')) return;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  let host = document.getElementById('_mapPatternsHost');
+  if (!host) {
+    host = document.createElementNS(svgNS, 'svg');
+    host.setAttribute('id', '_mapPatternsHost');
+    host.setAttribute('width', '0');
+    host.setAttribute('height', '0');
+    host.style.position = 'absolute';
+    host.style.pointerEvents = 'none';
+    document.body.appendChild(host);
+  }
+  const defs = document.createElementNS(svgNS, 'defs');
+  const pat = document.createElementNS(svgNS, 'pattern');
+  pat.setAttribute('id', 'blockedHatch');
+  pat.setAttribute('width', '7');
+  pat.setAttribute('height', '7');
+  pat.setAttribute('patternUnits', 'userSpaceOnUse');
+  pat.setAttribute('patternTransform', 'rotate(45)');
+  const bg = document.createElementNS(svgNS, 'rect');
+  bg.setAttribute('width', '7'); bg.setAttribute('height', '7');
+  bg.setAttribute('fill', '#8892a0'); bg.setAttribute('fill-opacity', '0.18');
+  pat.appendChild(bg);
+  const line = document.createElementNS(svgNS, 'line');
+  line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
+  line.setAttribute('x2', '0'); line.setAttribute('y2', '7');
+  line.setAttribute('stroke', '#4a5868');
+  line.setAttribute('stroke-width', '2.2');
+  line.setAttribute('stroke-opacity', '0.6');
+  pat.appendChild(line);
+  defs.appendChild(pat);
+  host.appendChild(defs);
+}
+
+function _applyHatchFill(layer) {
+  const apply = l => {
+    const p = l && l._path;
+    if (!p) return;
+    p.setAttribute('fill', 'url(#blockedHatch)');
+    p.setAttribute('fill-opacity', '1');
+  };
+  if (layer.eachLayer) layer.eachLayer(apply); else apply(layer);
+}
+
+// Draws diagonal-hatched overlay polygons for all blocked zones.
 // Returns a Leaflet LayerGroup so the caller can remove/redraw after clipping data loads.
 export function drawBlockedZoneOverlay(map, airportGJ = null) {
+  _ensureHatchPattern();
   const group = L.layerGroup().addTo(map);
   BLOCKED_ZONES.forEach(key => {
     const [band, dir] = key.split('|');
@@ -226,13 +273,15 @@ export function drawBlockedZoneOverlay(map, airportGJ = null) {
     const [inner, outer] = BAND_RADII[band] || [0, 3];
     const latLngs = sectorLatLngs(AIRPORT, inner, outer, dirIdx);
     const style = {
-      color: '#6b7a8a', weight: 1.2, dashArray: '5 4',
-      fillColor: '#8892a0', fillOpacity: 0.28, interactive: false
+      color: '#5a6878', weight: 1, dashArray: '4 4',
+      fillColor: '#8892a0', fillOpacity: 0, interactive: false
     };
-    const layer = (airportGJ ? clipSector(latLngs, airportGJ) : null)
-      ? L.geoJSON(clipSector(latLngs, airportGJ), { style })
+    const clipped = airportGJ ? clipSector(latLngs, airportGJ) : null;
+    const layer = clipped
+      ? L.geoJSON(clipped, { style })
       : L.polygon(latLngs, style);
     layer.addTo(group);
+    _applyHatchFill(layer);
   });
   return group;
 }

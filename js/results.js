@@ -54,19 +54,27 @@ let rMap = null;
 let _rBlockedOverlay = null;
 function initResultsMap() {
   console.log('[Results] Initialiserer resultatkort…');
-  rMap = L.map('map-results').setView([AIRPORT.lat, AIRPORT.lng], 10);
+  const MAX_BOUNDS_KM = 50;
+  const _dLat = MAX_BOUNDS_KM / 111;
+  const _dLng = MAX_BOUNDS_KM / (111 * Math.cos(AIRPORT.lat * Math.PI / 180));
+  const bounds = [
+    [AIRPORT.lat - _dLat, AIRPORT.lng - _dLng],
+    [AIRPORT.lat + _dLat, AIRPORT.lng + _dLng]
+  ];
+  rMap = L.map('map-results', { maxBounds: bounds, maxBoundsViscosity: 1.0, minZoom: 9 })
+    .setView([AIRPORT.lat, AIRPORT.lng], 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { attribution:'© OpenStreetMap', maxZoom:17 }).addTo(rMap);
+    { attribution:'© OpenStreetMap', maxZoom:17, bounds }).addTo(rMap);
   L.circleMarker([AIRPORT.lat, AIRPORT.lng],
     { radius:11, color:'#e8a020', fillColor:'#e8a020', fillOpacity:1, weight:2 })
-    .bindTooltip('✈ CPH Lufthavn', { permanent:true, direction:'top', offset:[0,-14] })
+    .bindTooltip('CPH Lufthavn', { permanent:true, direction:'top', offset:[0,-14] })
     .addTo(rMap);
-  [3,5,10,20].forEach(km =>
+  [3,5,7.5,15,25].forEach(km =>
     L.circle([AIRPORT.lat, AIRPORT.lng],
       { radius:km*1000, color:'#2a4f8c', weight:1.5, fillOpacity:.02, dashArray:'4 6' })
       .addTo(rMap)
   );
-  addDirOverlay(rMap, 21, 21.5);
+  addDirOverlay(rMap, 26, 26.5);
   // Draw blocked zones immediately (no clipping yet)
   _rBlockedOverlay = drawBlockedZoneOverlay(rMap, null);
   const airportPane = rMap.createPane('rAirportPane');
@@ -307,14 +315,14 @@ function updateAll(docs) {
       labels: onsetBands.map(b => b),
       datasets:[
         {
-          label: '🔊 Flystøj (gns. debut-år)',
+          label: 'Flystøj (gns. debut-år)',
           data: onsetBands.map(b => avgYear(bandStojLists[b])),
           backgroundColor: 'rgba(42,79,140,.75)',
           borderRadius: 3,
           barThickness: 16,
         },
         {
-          label: '💨 Luft/lugt (gns. debut-år)',
+          label: 'Luft/lugt (gns. debut-år)',
           data: onsetBands.map(b => avgYear(bandLuftLists[b])),
           backgroundColor: 'rgba(176,80,16,.7)',
           borderRadius: 3,
@@ -381,8 +389,9 @@ function updateAll(docs) {
     if (nAll > 0 && totalWithAny > 0) {
       summaryEl.innerHTML = `
         <div style="background:var(--white);border:1px solid var(--border);border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
-          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:.7rem">
-            ⚠ ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)}%) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
+          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem">
+            <svg class="icon icon-lg"><use href="#i-alert"/></svg>
+            ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)} %) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
             ${GRP_META.map(m => { const mc = CT.kCol[m.g]; return `
@@ -450,7 +459,7 @@ function updateAll(docs) {
     }
   }
 
-  console.log('[Results] Alle grafer opdateret ✅');
+  console.log('[Results] Alle grafer opdateret');
 }
 
 // ── Datalists ─────────────────────────────────────────────────
@@ -538,8 +547,8 @@ function updateScientific(docs) {
     const first=withData[0].rate, last=withData[withData.length-1].rate;
     doseNote.className = first>last?'notice notice-success':'notice notice-warn';
     doseNote.innerHTML = first>last
-      ? `📈 <strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)}% (nærmeste zone) til ${last.toFixed(1)}% (fjerneste zone) - understøtter biologisk plausibel årsagssammenhæng.`
-      : `⚠ Gradienten er endnu ikke entydig - sandsynligvis pga. få svar i visse zoner.`;
+      ? `<strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)} % (nærmeste zone) til ${last.toFixed(1)} % (fjerneste zone) - understøtter biologisk plausibel årsagssammenhæng.`
+      : `Gradienten er endnu ikke entydig - sandsynligvis pga. få svar i visse zoner.`;
   }
 
   // Dose bar chart
@@ -561,7 +570,9 @@ function updateScientific(docs) {
   const reg     = weightedLinReg(regData);
   const gradEl  = document.getElementById('gradient-body');
   if (gradEl && reg) {
-    const slopeDir = reg.slope < 0 ? '📉 Faldende' : '📈 Stigende';
+    const slopeIcon = reg.slope < 0
+      ? `<svg class="icon" style="color:var(--emp);margin-right:.3rem"><use href="#i-trend-down"/></svg>Faldende`
+      : `<svg class="icon" style="color:var(--kronisk);margin-right:.3rem"><use href="#i-trend-up"/></svg>Stigende`;
     gradEl.innerHTML = `
       <div class="rr-grid" style="margin-bottom:.9rem">
         <div class="rr-box">
@@ -569,7 +580,7 @@ function updateScientific(docs) {
           <div class="rr-lbl">Hældning (%/km)</div>
         </div>
         <div class="rr-box">
-          <div class="rr-num" style="color:var(--text);font-size:1.2rem">${(reg.r2*100).toFixed(1)}%</div>
+          <div class="rr-num" style="color:var(--text);font-size:1.2rem">${(reg.r2*100).toFixed(1)} %</div>
           <div class="rr-lbl">R² (forklaret varians)</div>
         </div>
         <div class="rr-box">
@@ -578,15 +589,18 @@ function updateScientific(docs) {
         </div>
       </div>
       <div class="rr-interp" style="border-left-color:var(--navy-light)">
-        ${slopeDir} gradient på <strong>${reg.slope.toFixed(2)} procentpoint pr. km</strong> med vægtede mindste kvadraters regression (R² = ${(reg.r2*100).toFixed(1)}%).
-        ${reg.slope<0&&reg.r2>0.5?'<strong>Stærk negativ gradient</strong> - stærkt indicium for dosis-respons-sammenhæng med afstand som eksponering.':reg.slope<0?'Negativ gradient - retning som forventet, men R² kræver flere svar for at styrke signalet.':'Gradienten er endnu ikke negativ - del linket for at indhente svar fra alle zoner.'}
+        <span class="status">${slopeIcon}</span> gradient på <strong>${reg.slope.toFixed(2)} procentpoint pr. km</strong> med vægtede mindste kvadraters regression (R² = ${(reg.r2*100).toFixed(1)} %).
+        ${reg.slope<0&&reg.r2>0.5?' <strong>Stærk negativ gradient</strong> - stærkt indicium for dosis-respons-sammenhæng med afstand som eksponering.':reg.slope<0?' Negativ gradient - retning som forventet, men R² kræver flere svar for at styrke signalet.':' Gradienten er endnu ikke negativ - del linket for at indhente svar fra alle zoner.'}
       </div>
       <details style="margin-top:.9rem">
-        <summary>🔍 Regressionsgrundlag (alle zoner)</summary>
-        <div class="formula">${active.map(d=>`${d.zone}: rate=${d.rate?.toFixed(1)??'-'}%, n=${d.n}, midpunkt=${d.mid}km`).join('\n')}\n\nVægtet lineær regression: rate = ${reg.intercept.toFixed(2)} + ${reg.slope.toFixed(4)}·afstand\nR² = ${reg.r2.toFixed(4)}</div>
+        <summary>Regressionsgrundlag (alle zoner)</summary>
+        <div id="grad-formula-math" class="formula-katex"></div>
+        <div class="formula-num">${active.map(d=>`${d.zone}: rate=${d.rate?.toFixed(1)??'-'}%, n=${d.n}, midpunkt=${d.mid} km`).join('\n')}</div>
       </details>`;
+    renderKatex('grad-formula-math',
+      `\\hat{y}(d) = ${reg.intercept.toFixed(2)} ${reg.slope>=0?'+':''}${reg.slope.toFixed(4)}\\,d \\qquad R^{2} = ${reg.r2.toFixed(4)}`);
   } else if (gradEl) {
-    gradEl.innerHTML = `<div class="notice notice-warn">⏳ Kræver svar fra mindst 2 zoner for at beregne gradienten.</div>`;
+    gradEl.innerHTML = `<div class="notice notice-warn"><svg class="icon" style="color:var(--amber);margin-right:.3rem"><use href="#i-clock"/></svg>Kræver svar fra mindst 2 zoner for at beregne gradienten.</div>`;
   }
 
   // ── 3. Relative Risk (innermost vs outermost with data) ───
@@ -609,20 +623,30 @@ function updateScientific(docs) {
   document.getElementById('rr-hi').textContent = hi?hi.toFixed(2)+'x':'-';
   document.getElementById('rr-bands').textContent = innerBand&&outerBand ? `${innerBand} vs. ${outerBand}` : '';
   const rrI = document.getElementById('rr-interp');
-  if(rr&&lo&&hi)
-    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. ${outerBand}. 95% KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] - ${lo>1?'<strong>inkluderer ikke 1,0</strong> ✅ statistisk signifikant.':'inkluderer 1,0 - kræver flere svar.'}`;
-  else if(!(a+b)||!(c+d2))
+  if(rr&&lo&&hi) {
+    const sigBadge = lo>1
+      ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> - KI inkluderer ikke 1,0.`
+      : `KI inkluderer 1,0 - kræver flere svar for signifikans.`;
+    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. ${outerBand}. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] - ${sigBadge}`;
+  } else if(!(a+b)||!(c+d2))
     rrI.innerHTML=`Mangler svar fra inderste <em>eller</em> yderste zone for at beregne RR.`;
   else
-    rrI.innerHTML=`${innerBand??'?'}: ${(rE*100).toFixed(1)}% (n=${a+b}) &nbsp;|&nbsp; ${outerBand??'?'}: ${(rU*100).toFixed(1)}% (n=${c+d2}).`;
+    rrI.innerHTML=`${innerBand??'?'}: ${(rE*100).toFixed(1)} % (n=${a+b}) &nbsp;|&nbsp; ${outerBand??'?'}: ${(rU*100).toFixed(1)} % (n=${c+d2}).`;
+
+  renderKatex('rr-formula-math',
+    `\\text{RR} = \\dfrac{P(\\text{sym}\\mid\\text{nær})}{P(\\text{sym}\\mid\\text{fjern})} = \\dfrac{a/(a+b)}{c/(c+d)} \\\\[0.4em] ` +
+    `\\text{SE}(\\ln\\text{RR}) = \\sqrt{\\dfrac{b}{a(a+b)} + \\dfrac{d}{c(c+d)}} \\\\[0.4em] ` +
+    `\\text{KI}_{95\\%} = \\exp\\!\\left(\\ln\\text{RR} \\pm 1{,}96\\cdot\\text{SE}(\\ln\\text{RR})\\right)`
+  );
   document.getElementById('rr-formula').textContent=
-    `RR = P(sym | ${innerBand}) / P(sym | ${outerBand})\n`+
-    `   = ${a}/${a+b} / ${c}/${c+d2} = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'-'}\n`+
-    (se?`SE(ln RR) = ${se.toFixed(4)}\n95% KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper.');
+    `Inderste zone (${innerBand}):  a = ${a},  b = ${b}\n`+
+    `Yderste zone (${outerBand}):  c = ${c},  d = ${d2}\n`+
+    `RR = (${a}/${a+b}) / (${c}/${c+d2}) = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'-'}\n`+
+    (se?`SE(ln RR) = ${se.toFixed(4)}\n95 % KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper.');
 
   // ── 4. Chi-squared (nærmeste 2 beboerbånd vs fjerneste 2) ─
   const nearBands = ['1.25-3 km','3-5 km'];
-  const farBands  = ['10-20 km','20+ km'];
+  const farBands  = ['7.5-15 km','15-25 km'];
   const near = resDocs.filter(d=>nearBands.includes(d.dist_band));
   const far  = resDocs.filter(d=>farBands.includes(d.dist_band));
   const cA=near.filter(hasSym).length, cB=near.length-cA;
@@ -635,19 +659,23 @@ function updateScientific(docs) {
   document.getElementById('chi-v').textContent=chi2.toFixed(2);
   document.getElementById('chi-p').textContent=pFmt(pv);
   const verd=document.getElementById('chi-verdict');
-  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns">⏳ <span><strong>Lille datamængde (n=${cN})</strong><br>Del linket for at samle svar fra nær- og fjernzone.</span></div>`;
-  else if(pv<0.001) verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p < 0,001)</strong><br>Stærkt statistisk signifikant.</span></div>`;
-  else if(pv<0.05)  verd.innerHTML=`<div class="verdict verdict-sig">✅ <span><strong>Vi forkaster H₀ (p = ${pFmt(pv)})</strong><br>Statistisk signifikant sammenhæng.</span></div>`;
-  else              verd.innerHTML=`<div class="verdict verdict-ns">⚠️ <span><strong>H₀ kan endnu ikke forkastes (p = ${pFmt(pv)})</strong><br>Endnu for få svar.</span></div>`;
-  const rNear=(cA+cB)?`${(cA/(cA+cB)*100).toFixed(1)}%`:'-';
-  const rFar =(cC+cD)?`${(cC/(cC+cD)*100).toFixed(1)}%`:'-';
+  const ic = name => `<svg class="icon icon-lg"><use href="#i-${name}"/></svg>`;
+  if(cN<10) verd.innerHTML=`<div class="verdict verdict-ns"><span class="status status-pending">${ic('clock')}</span> <span><strong>Lille datamængde (n=${cN})</strong><br>Del linket for at samle svar fra nær- og fjernzone.</span></div>`;
+  else if(pv<0.001) verd.innerHTML=`<div class="verdict verdict-sig"><span class="status status-pos">${ic('check')}</span> <span><strong>Vi forkaster H₀ (p &lt; 0,001)</strong><br>Stærkt statistisk signifikant.</span></div>`;
+  else if(pv<0.05)  verd.innerHTML=`<div class="verdict verdict-sig"><span class="status status-pos">${ic('check')}</span> <span><strong>Vi forkaster H₀ (p = ${pFmt(pv)})</strong><br>Statistisk signifikant sammenhæng.</span></div>`;
+  else              verd.innerHTML=`<div class="verdict verdict-ns"><span class="status status-warn">${ic('alert')}</span> <span><strong>H₀ kan endnu ikke forkastes (p = ${pFmt(pv)})</strong><br>Endnu for få svar.</span></div>`;
+  const rNear=(cA+cB)?`${(cA/(cA+cB)*100).toFixed(1)} %`:'-';
+  const rFar =(cC+cD)?`${(cC/(cC+cD)*100).toFixed(1)} %`:'-';
+  renderKatex('chi-formula-math',
+    `\\chi^{2} = \\dfrac{N\\,(ad - bc)^{2}}{(a+b)(c+d)(a+c)(b+d)} \\qquad \\text{df} = 1`
+  );
   document.getElementById('chi-tbl').innerHTML=`<table class="dose-table"><thead><tr>
     <th></th><th>Symptomer: Ja</th><th>Symptomer: Nej</th><th>I alt</th><th>Rate</th></tr></thead><tbody>
-    <tr><td class="dzone">Nær (1,25-5 km)</td><td>${cA}</td><td>${cB}</td><td>${cA+cB}</td><td class="drate">${rNear}</td></tr>
-    <tr><td class="dzone">Fjern (10+ km)</td><td>${cC}</td><td>${cD}</td><td>${cC+cD}</td><td class="drate">${rFar}</td></tr>
-    <tr style="font-weight:600"><td>I alt</td><td>${cA+cC}</td><td>${cB+cD}</td><td>${cN}</td><td></td></tr>
+    <tr><td class="dzone">Nær (1,25–5 km) <small style="color:var(--muted)">a, b</small></td><td>${cA}</td><td>${cB}</td><td>${cA+cB}</td><td class="drate">${rNear}</td></tr>
+    <tr><td class="dzone">Fjern (7,5–25 km) <small style="color:var(--muted)">c, d</small></td><td>${cC}</td><td>${cD}</td><td>${cC+cD}</td><td class="drate">${rFar}</td></tr>
+    <tr style="font-weight:600"><td>I alt N</td><td>${cA+cC}</td><td>${cB+cD}</td><td>${cN}</td><td></td></tr>
     </tbody></table>
-    <div style="font-size:.77rem;color:var(--muted);margin-top:.5rem;font-family:'Space Mono',monospace">χ² = ${chi2.toFixed(4)}, p = ${pv<0.001?'< 0,001':pv.toFixed(6)}</div>`;
+    <div class="formula-num">a = ${cA},  b = ${cB},  c = ${cC},  d = ${cD},  N = ${cN}\nχ² = ${chi2.toFixed(4)},  p = ${pv<0.001?'< 0,001':pv.toFixed(6)}</div>`;
 
   // ── 5. Conclusion ─────────────────────────────────────────
   const withD=dd.filter(d=>d.n>=3);
@@ -659,14 +687,14 @@ function updateScientific(docs) {
   <div class="concl-grid">
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">1.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Dosis-respons</div>
-      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)}% (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)}% (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)} % (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)} % (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
     </div>
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">2.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Lineær gradient</div>
-      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${reg?`Hældning = ${reg.slope.toFixed(2)} %/km, R² = ${(reg.r2*100).toFixed(1)}% (${active.length} zoner).`:'Kræver svar fra ≥2 zoner.'}</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${reg?`Hældning = ${reg.slope.toFixed(2)} %/km, R² = ${(reg.r2*100).toFixed(1)} % (${active.length} zoner).`:'Kræver svar fra ≥2 zoner.'}</div>
     </div>
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">3.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">RR & χ²-test</div>
+      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">RR &amp; χ²-test</div>
       <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">RR = ${rrStr} ${kiStr}. χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}</div>
     </div>
   </div>
@@ -674,6 +702,21 @@ function updateScientific(docs) {
     <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af':'er på vej mod at opfylde'} Bradford Hill-kriterierne og bør præsenteres for kommunen med krav om officiel epidemiologisk undersøgelse.
     ${n<50?' <em>Del linket for at styrke evidensen.</em>':''}
   </div>`;
+}
+
+// ── KaTeX renderer (safe even if KaTeX hasn't loaded yet) ────
+function renderKatex(elId, tex) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const tryRender = () => {
+    if (typeof katex === 'undefined') return setTimeout(tryRender, 80);
+    try {
+      katex.render(tex, el, { displayMode: true, throwOnError: false, output: 'html' });
+    } catch (e) {
+      el.textContent = tex;
+    }
+  };
+  tryRender();
 }
 
 // ── Confounder analysis ───────────────────────────────────────
@@ -687,6 +730,25 @@ function isHighTraffic(d) {
   // Handle both old schema (Kraftig trafikstøj) and new schema (Ja, i høj grad / Ja, i nogen grad)
   return t === 'Kraftig trafikstøj' || t === 'Ja, i høj grad' || t === 'Ja, i nogen grad';
 }
+// Approximate midpoint of age band, used for stratification
+function ageMid(d) {
+  const a = d.age || '';
+  if (a === 'Under 18')   return 16;
+  if (a === '18-30 år' || a === '18–30 år') return 24;
+  if (a === '31-45 år' || a === '31–45 år') return 38;
+  if (a === '46-60 år' || a === '46–60 år') return 53;
+  if (a === 'Over 60 år') return 68;
+  // legacy bins from older test data
+  if (a === '18-29') return 24;
+  if (a === '30-39') return 35;
+  if (a === '40-49') return 45;
+  if (a === '50-59') return 55;
+  if (a === '60-69') return 65;
+  if (a === '70+')   return 75;
+  return null;
+}
+function isYounger(d) { const m = ageMid(d); return m !== null && m < 46; }
+function isOlder(d)   { const m = ageMid(d); return m !== null && m >= 46; }
 
 function updateConfounders(docs) {
   const el = document.getElementById('confounder-body');
@@ -695,11 +757,14 @@ function updateConfounders(docs) {
   const resDocs   = docs.filter(d => !isEmployee(d));
   const RES_BANDS = DIST_BANDS.filter(b => b !== EMPLOYEE_BAND);
 
-  // Subset: answered smoking/traffic questions
+  // Subset: answered smoking/traffic/age questions
   const withSmoking = resDocs.filter(d => d.smoking);
   const withTraffic = resDocs.filter(d => d.traffic);
+  const withAge     = resDocs.filter(d => ageMid(d) !== null);
   const neverSmoke  = withSmoking.filter(d => !isSmoker(d));
   const noHighTraff = withTraffic.filter(d => !isHighTraffic(d));
+  const younger     = withAge.filter(isYounger);
+  const older       = withAge.filter(isOlder);
   const cleanSubset = resDocs.filter(d => d.smoking && !isSmoker(d) && d.traffic && !isHighTraffic(d));
 
   function gradient(subset) {
@@ -716,12 +781,28 @@ function updateConfounders(docs) {
   const gAll    = gradient(resDocs);
   const gSmoke  = gradient(neverSmoke);
   const gTraff  = gradient(noHighTraff);
+  const gYoung  = gradient(younger);
+  const gOld    = gradient(older);
   const gClean  = gradient(cleanSubset);
 
-  function fmtReg(g) {
-    if (!g.reg || g.active.length < 2) return `<em style="color:var(--muted)">Ikke nok data (n=${g.n})</em>`;
-    const dir = g.reg.slope < 0 ? '📉' : '📈';
-    return `${dir} Hældn. <strong>${g.reg.slope.toFixed(2)}</strong> %/km &nbsp;·&nbsp; R² <strong>${(g.reg.r2*100).toFixed(1)}%</strong> &nbsp;·&nbsp; n=${g.n}`;
+  // Verdict cell HTML for a stratum vs the unadjusted reference
+  function verdictCell(g, label, minN = 10) {
+    const ic = name => `<svg class="icon" style="margin-right:.3rem"><use href="#i-${name}"/></svg>`;
+    if (!g.reg || g.active.length < 2 || g.n < minN)
+      return `<span class="status status-pending">${ic('clock')}For få svar (n=${g.n})</span>`;
+    if (g.reg.slope < 0)
+      return `<span class="status status-pos">${ic('check')}Signal bevaret - ${label} ikke forklaring</span>`;
+    return `<span class="status status-warn">${ic('alert')}Svagere signal i denne stratum</span>`;
+  }
+
+  function row(label, sublabel, g, verdictHtml, isHeader=false) {
+    return `<tr${isHeader?' style="border-top:2px solid var(--border)"':''}>
+      <td class="dzone">${isHeader?'<strong>':''}${label}${isHeader?'</strong>':''}${sublabel?`<br><small style="font-weight:400;color:var(--muted)">${sublabel}</small>`:''}</td>
+      <td>${g.n}</td>
+      <td class="drate">${g.reg ? g.reg.slope.toFixed(2)+' %/km' : '-'}</td>
+      <td>${g.reg ? (g.reg.r2*100).toFixed(1)+' %' : '-'}</td>
+      <td style="font-size:.79rem">${verdictHtml}</td>
+    </tr>`;
   }
 
   el.innerHTML = `
@@ -729,44 +810,22 @@ function updateConfounders(docs) {
       <thead><tr>
         <th>Undergruppe</th>
         <th>n</th>
-        <th>Gradient (hældning)</th>
+        <th>Hældning</th>
         <th>R²</th>
         <th>Fortolkning</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td class="dzone">Alle beboere (ujusteret)</td>
-          <td>${gAll.n}</td>
-          <td class="drate">${gAll.reg ? gAll.reg.slope.toFixed(2)+' %/km' : '-'}</td>
-          <td>${gAll.reg ? (gAll.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">Referencelinje</td>
-        </tr>
-        <tr>
-          <td class="dzone">Aldrigrygere kun</td>
-          <td>${gSmoke.n}</td>
-          <td class="drate">${gSmoke.reg ? gSmoke.reg.slope.toFixed(2)+' %/km' : '-'}</td>
-          <td>${gSmoke.reg ? (gSmoke.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gSmoke.reg && gSmoke.reg.slope < 0 ? '✅ Signal bevaret - rygning ikke forklaring' : gSmoke.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
-        </tr>
-        <tr>
-          <td class="dzone">Ingen/lav vejtrafikstøj</td>
-          <td>${gTraff.n}</td>
-          <td class="drate">${gTraff.reg ? gTraff.reg.slope.toFixed(2)+' %/km' : '-'}</td>
-          <td>${gTraff.reg ? (gTraff.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gTraff.reg && gTraff.reg.slope < 0 ? '✅ Signal bevaret - trafikstøj ikke forklaring' : gTraff.n < 10 ? '⏳ For få svar' : '⚠ Svagere signal'}</td>
-        </tr>
-        <tr style="border-top:2px solid var(--border)">
-          <td class="dzone"><strong>Dobbelt-justeret</strong><br><small style="font-weight:400;color:var(--muted)">Aldrigrygere + ingen/lav trafikstøj</small></td>
-          <td>${gClean.n}</td>
-          <td class="drate">${gClean.reg ? gClean.reg.slope.toFixed(2)+' %/km' : '-'}</td>
-          <td>${gClean.reg ? (gClean.reg.r2*100).toFixed(1)+'%' : '-'}</td>
-          <td style="font-size:.79rem;color:var(--muted)">${gClean.reg && gClean.reg.slope < 0 ? '✅ Stærk indikation - confoundere udelukket' : gClean.n < 10 ? '⏳ Kræver flere svar med confounderbaggrundsinformation' : '⚠ Endnu ikke entydigt'}</td>
-        </tr>
+        ${row('Alle beboere (ujusteret)', '', gAll, '<span style="color:var(--muted)">Referencelinje</span>')}
+        ${row('Aldrigrygere kun', '', gSmoke, verdictCell(gSmoke, 'rygning'))}
+        ${row('Ingen/lav vejtrafikstøj', '', gTraff, verdictCell(gTraff, 'trafikstøj'))}
+        ${row('Yngre (<46 år)', 'Lavere baggrundsrisiko for kræft/CV', gYoung, verdictCell(gYoung, 'alder'))}
+        ${row('Ældre (≥46 år)', 'Højere baggrundsrisiko for kræft/CV', gOld, verdictCell(gOld, 'alder'))}
+        ${row('Dobbelt-justeret', 'Aldrigrygere + ingen/lav trafikstøj', gClean, verdictCell(gClean, 'samlet'), true)}
       </tbody>
     </table>
     <div class="rr-interp" style="border-left-color:var(--stoj)">
-      <strong>Fortolkning:</strong> Hvis den negative gradient bevares - eller endda styrkes - i undergrupper uden rygning og uden vejtrafikstøj, er confounding fra disse faktorer usandsynlig som forklaring på det observerede dosis-respons-mønster.
-      ${gClean.n < 15 ? '<br><em style="color:var(--amber)">⚠ Del linket for at opnå tilstrækkelig statistisk styrke i de justerede undergrupper (mindst 15-20 svar pr. undergruppe anbefales).</em>' : ''}
+      <strong>Fortolkning:</strong> Hvis den negative gradient bevares - eller endda styrkes - i undergrupper uden rygning, uden vejtrafikstøj og inden for hver aldersgruppe, er confounding fra disse faktorer usandsynlig som forklaring på det observerede dosis-respons-mønster. <strong>Alder</strong> er især vigtig for kræft- og hjertekarsygdomme, hvor baggrundsincidensen stiger kraftigt med årene.
+      ${gClean.n < 15 ? `<br><span class="status status-warn" style="margin-top:.4rem;display:inline-flex"><svg class="icon" style="margin-right:.3rem"><use href="#i-alert"/></svg>Del linket for at opnå tilstrækkelig statistisk styrke i de justerede undergrupper (mindst 15–20 svar pr. undergruppe anbefales).</span>` : ''}
     </div>`;
 }
 

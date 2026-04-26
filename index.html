@@ -10,6 +10,8 @@
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <style>
 :root{
   --navy:#0d1e36;--navy-mid:#1a3660;--navy-light:#2a4f8c;
@@ -23,13 +25,13 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
-header{background:var(--navy);color:white;padding:2.8rem 2rem 2.2rem;border-bottom:3px solid var(--amber)}
+header{background:var(--navy);color:white;padding:1.85rem 1.4rem 1.6rem;border-bottom:3px solid var(--amber);position:relative;overflow:hidden}
+header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--amber) 0 14px,transparent 14px 28px);opacity:.55}
 .h-inner{max-width:920px;margin:0 auto;position:relative}
-.h-label{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
-.h-label::before{content:'';width:20px;height:1px;background:var(--amber);flex-shrink:0}
-header h1{font-family:'Inter',sans-serif;font-size:clamp(1.5rem,3vw,2rem);font-weight:700;line-height:1.15;margin-bottom:.65rem;letter-spacing:-.02em}
-header h1 em{color:var(--amber);font-style:normal;font-weight:300}
-header p{color:rgba(255,255,255,.65);max-width:520px;font-size:.87rem;line-height:1.75}
+.h-label{font-family:'Space Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.85rem;display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.h-tag{background:rgba(200,134,10,.16);color:var(--amber);border:1px solid rgba(200,134,10,.45);padding:.2rem .55rem;border-radius:2px;letter-spacing:.14em;font-weight:700}
+header h1{font-family:'Inter',sans-serif;font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:700;line-height:1.22;margin-bottom:.55rem;letter-spacing:-.012em}
+header p{color:rgba(255,255,255,.72);max-width:600px;font-size:.83rem;line-height:1.7}
 nav.tabs{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;display:flex;justify-content:center}
 nav.tabs button{padding:.9rem 1.8rem;border:none;background:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;letter-spacing:.05em;text-transform:uppercase}
 nav.tabs button:hover{color:var(--navy)}
@@ -139,10 +141,36 @@ footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.73rem;bord
 }
 .sci-divider{display:flex;align-items:center;gap:.9rem;margin:1.8rem 0 1rem;color:var(--muted);font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
 .sci-divider::before,.sci-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.icon{width:1em;height:1em;vertical-align:-0.14em;flex-shrink:0;display:inline-block;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-sm{width:.85em;height:.85em}
+.icon-lg{width:1.25em;height:1.25em;vertical-align:-0.22em}
+.data-source{display:flex;align-items:flex-start;gap:.55rem;padding:.6rem .85rem;margin:0 0 1rem;background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--navy-light);border-radius:var(--r);font-size:.77rem;color:var(--muted);line-height:1.55}
+.data-source .icon{margin-top:.15em;color:var(--navy-light)}
+.data-source strong{color:var(--text);font-weight:600}
+.data-source .ds-row{margin-top:.18rem}
+.data-source .ds-incl{color:var(--green,#0a8c5a)}
+.data-source .ds-excl{color:var(--red)}
+.status{display:inline-flex;align-items:center;gap:.4rem;font-weight:600}
+.status-pos{color:var(--emp)}
+.status-neg{color:var(--kronisk)}
+.status-pending{color:var(--muted)}
+.status-warn{color:var(--amber)}
+.formula-katex{background:var(--bg);padding:.85rem 1rem;border-radius:var(--r);margin-top:.5rem;overflow-x:auto;border:1px solid var(--border)}
+.formula-katex .katex-display{margin:.4em 0}
+.formula-num{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--muted);margin-top:.6rem;line-height:1.7;padding:.55rem .8rem;background:var(--bg);border-radius:var(--r);border:1px solid var(--border);overflow-x:auto;white-space:pre-wrap}
 .dose-table{width:100%;border-collapse:collapse;font-size:.83rem}
 .dose-table th{text-align:left;font-size:.65rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:.4rem .7rem;border-bottom:2px solid var(--border)}
-.dose-table td{padding:.5rem .7rem;border-bottom:1px solid var(--border);font-family:'Inter',sans-serif;font-size:.81rem}
+.dose-table td{padding:.5rem .7rem;border-bottom:1px solid var(--border);font-family:'Inter',sans-serif;font-size:.81rem;vertical-align:top}
 .dose-table tr:last-child td{border-bottom:none}
+#dose-tbl,#confounder-body,#chi-tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+#dose-tbl > .dose-table{min-width:360px}
+#confounder-body > .dose-table{min-width:600px}
+#chi-tbl > .dose-table{min-width:340px}
+@media(max-width:640px){
+  .dose-table{font-size:.78rem}
+  .dose-table th,.dose-table td{padding:.4rem .5rem}
+  .dbar{display:none}
+}
 .dzone{font-family:'Inter',sans-serif!important;font-weight:500}
 .drate{color:var(--red);font-weight:600}
 .dbar{display:inline-block;height:5px;background:var(--red);border-radius:1px;opacity:.5;vertical-align:middle;margin-left:.4rem}
@@ -171,10 +199,10 @@ details[open] summary{color:var(--text)}
 
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#111927;--white:#19243a;--text:#dce4f0;--muted:#7a8ba0;--border:#28364f;
-    --amber-light:#111927;
-    --stoj-bg:#111e35;--luft-bg:#1e1005;--psyko-bg:#16102c;--emp-bg:#0a1c12;
-    --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%237a8ba0' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
+    --bg:#0f1623;--white:#1c2740;--text:#e6ecf5;--muted:#8a9bb3;--border:#2d3c58;
+    --amber-light:#0f1623;
+    --stoj-bg:#1f3458;--luft-bg:#3a200a;--psyko-bg:#2a1d4d;--emp-bg:#0f2c1c;
+    --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%238a9bb3' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
   }
 /* ── Navigation ── */
   nav.tabs{background:var(--white);border-bottom-color:var(--border)}
@@ -196,25 +224,25 @@ details[open] summary{color:var(--text)}
   .about-body a{color:#7aaae0}
 
   /* ── Sym-card headers: lighter text + dark-mode border ── */
-  .sym-card.stoj .sym-card-header{border-bottom-color:var(--border);color:#7aaae0}
-  .sym-card.luft .sym-card-header{border-bottom-color:var(--border);color:#e0935a}
-  .sym-card.psyko .sym-card-header{border-bottom-color:var(--border);color:#b090e0}
-  .sym-card.emp .sym-card-header{border-bottom-color:var(--border);color:#4dc87a}
-  .sym-card.kronisk .sym-card-header{border-bottom-color:var(--border);color:#e07878}
+  .sym-card.stoj .sym-card-header{border-bottom-color:#324868;color:#9cc0eb}
+  .sym-card.luft .sym-card-header{border-bottom-color:#5a3a18;color:#eda172}
+  .sym-card.psyko .sym-card-header{border-bottom-color:#3e2a6a;color:#c0a0e8}
+  .sym-card.emp .sym-card-header{border-bottom-color:#1d4530;color:#6cd494}
+  .sym-card.kronisk .sym-card-header{border-bottom-color:#5a2828;color:#e89090}
 
   /* ── Sym headers (category pills) ── */
-  .sym-stoj{background:#1a2d4a;color:#7aaae0}
-  .sym-luft{background:#2a1a0e;color:#e0935a}
-  .sym-kronisk{background:#2a1010;color:#e07878}
-  .sym-psyko{background:#1e1035;color:#b090e0}
-  .sym-emp{background:#0a1c12;color:#4dc87a}
+  .sym-stoj{background:#1f3458;color:#9cc0eb}
+  .sym-luft{background:#3a200a;color:#eda172}
+  .sym-kronisk{background:#3a1818;color:#e89090}
+  .sym-psyko{background:#2a1d4d;color:#c0a0e8}
+  .sym-emp{background:#0f2c1c;color:#6cd494}
 
   /* ── Checkboxes & chips ── */
-  .chk:hover{background:rgba(255,255,255,.05)}
-  .chip{background:#1e2d4a;color:#a0b8d8}
+  .chk:hover{background:rgba(255,255,255,.06)}
+  .chip{background:#26375a;color:#b8caea}
 
   /* ── Annoyance/severity block ── */
-  .annoyance-block{background:#18243a;border-color:#2c4060}
+  .annoyance-block{background:#15203a;border-color:#324868}
   .annoyance-block.untouched{background:rgba(200,134,10,.1);border-color:var(--amber)}
   .annoyance-label{color:var(--text)}
   .sev-anchor{color:var(--muted)}
@@ -234,15 +262,19 @@ details[open] summary{color:var(--text)}
   #map-feedback.employee-notice{border-color:#1a4030}
 
   /* ── Kronisk header (hardcoded bg) ── */
-  .sym-card.kronisk .sym-card-header{background:#2a1010}
-  .sym-card.emp .sym-card-header{border-bottom-color:var(--border)}
+  .sym-card.kronisk .sym-card-header{background:#3a1818}
+  .sym-card.emp .sym-card-header{border-bottom-color:#1d4530}
+
+  /* ── Timing-card inner colored sub-boxes (avoid blue-on-blue) ── */
+  #timing-card > div[style*="--stoj-bg"]{border-color:#324868!important}
+  #timing-card > div[style*="--luft-bg"]{border-color:#5a3a18!important}
 
   /* ── Notices ── */
   .notice-warn{background:#1a1408;border-left-color:var(--amber);color:#d4a040}
   .notice-success{background:#0a1c12;border-left-color:#0a9c62;color:#4dd9a0}
   .verdict-ns{background:rgba(200,134,10,.12);border-left-color:var(--amber);color:#d4a040}
 
-  /* ── Stats boxes stay vivid — no change needed ── */
+  /* ── Stats boxes stay vivid - no change needed ── */
 
   /* ── Results & analysis elements ── */
   .rr-box,.chi-box,.concl-item{background:var(--bg);border-color:var(--border)}
@@ -268,6 +300,15 @@ details[open] summary{color:var(--text)}
   .dose-table td{border-bottom-color:var(--border)}
   /* ── Adfærdspåvirkning badge ── */
   .badge-adfaerd{background:#1e1408!important;color:#d4a040!important;border-color:#4a3010!important}
+  /* ── Data-source / formulas dark variants ── */
+  .data-source{background:rgba(255,255,255,.025);border-left-color:#7aaae0}
+  .data-source .icon{color:#7aaae0}
+  .data-source .ds-incl{color:#4dd9a0}
+  .data-source .ds-excl{color:#e07878}
+  .formula-katex,.formula-num{background:rgba(0,0,0,.18);border-color:var(--border)}
+  .status-pos{color:#4dd9a0}
+  .status-neg{color:#e07878}
+  .status-warn{color:#e8b850}
   /* ── OpenStreetMap dark mode: invert + hue-rotate restores natural colours ── */
   .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.88) contrast(0.9)}
   /* keep markers/overlays un-inverted */
@@ -279,10 +320,30 @@ details[open] summary{color:var(--text)}
 </head>
 <body>
 
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-trend-down" viewBox="0 0 24 24"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></symbol>
+    <symbol id="i-trend-up" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-no-entry" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+    <symbol id="i-cursor" viewBox="0 0 24 24"><path d="M9 11V6a3 3 0 0 1 6 0v5"/><path d="M9 11h12l-3 8H6l-3-8h6z"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol>
+  </defs>
+</svg>
+
 <header>
   <div class="h-inner">
-    <div class="h-label">Epidemiologisk borgerundersøgelse · Amager / CPH</div>
-    <h1>Lufthavnen &<br><em>Dit Helbred</em></h1>
+    <div class="h-label">
+      <span class="h-tag">Borgerundersøgelse</span>
+      <span>Epidemiologisk studie · Amager / CPH</span>
+    </div>
+    <h1>Lufthavnen &amp; dit helbred</h1>
     <p>Hjælp med at dokumentere sammenhængen mellem din afstand til lufthavnen og de symptomer du oplever. Alle svar er anonyme og opdateres i realtid.</p>
   </div>
 </header>
@@ -300,14 +361,14 @@ details[open] summary{color:var(--text)}
 
   <div id="notice-done" class="notice notice-warn" style="display:none">
     Du har allerede besvaret undersøgelsen - tak!
-    <a href="#" onclick="showTab('results');return false;" style="color:#5a3a00;font-weight:600"> Se resultater →</a>
+    <a href="#" onclick="showTab('results');return false;" style="color:#5a3a00;font-weight:600"> Se resultater</a>
   </div>
 
   <div id="form-wrap">
 
-    <!-- 📋 Intro -->
+    <!-- Intro -->
     <div class="card intro-notice" style="border-left:3px solid var(--amber);background:var(--amber-light)">
-      <div class="card-title" style="border-bottom-color:#e8c870">📋 Inden du svarer - læs dette først</div>
+      <div class="card-title" style="border-bottom-color:#e8c870">Inden du svarer - læs dette først</div>
       <p style="font-size:.88rem;line-height:1.8;margin-bottom:.9rem">
         Dette er en <strong>borgerdrevet epidemiologisk undersøgelse</strong> som undersøger, om der er en sammenhæng mellem nærhed til CPH Lufthavn og de helbredsgener beboere oplever. Undersøgelsen er udarbejdet i samarbejde med en læge, en med baggrund i folkesundhedsvidenskab og en epidemiolog - og bygger på den samme metode som en lignende undersøgelse ved Prøvestenen, der viste et klart og reproducerbart eksponerings-respons-mønster.
       </p>
@@ -316,15 +377,15 @@ details[open] summary{color:var(--text)}
       </p>
       <div class="intro-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.9rem">
         <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
-          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">⏱ Tidsforbbrug</div>
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">Tidsforbrug</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Ca. 3–5 minutter</div>
         </div>
         <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
-          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">🔒 Anonymitet</div>
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">Anonymitet</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Ingen persondata gemmes</div>
         </div>
         <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
-          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">📍 Præcision</div>
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">Præcision</div>
           <div style="font-size:.84rem;font-weight:600;color:var(--text)">Kun zone + retning gemmes</div>
         </div>
       </div>
@@ -333,12 +394,12 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- 🗺 Placering -->
+    <!-- Placering -->
     <div class="card">
-      <div class="card-title">🗺 Din placering <span class="req">*</span></div>
+      <div class="card-title">Din placering <span class="req">*</span></div>
       <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> - kun afstandszone og retning registreres.</p>
       <div id="map-picker"></div>
-      <div id="map-feedback">👆 Klik på kortet for at angive det valgte område</div>
+      <div id="map-feedback"><svg class="icon"><use href="#i-cursor"/></svg> Klik på kortet for at angive det valgte område</div>
       <input type="hidden" id="f-dist-band">
       <input type="hidden" id="f-dist-km">
       <input type="hidden" id="f-dir">
@@ -346,9 +407,9 @@ details[open] summary{color:var(--text)}
       <input type="hidden" id="f-lng-z">
     </div>
 
-    <!-- 👤 Baggrundsinformation -->
+    <!-- Baggrundsinformation -->
     <div class="card" id="background-card">
-      <div class="card-title">👤 Baggrundsinformation <span class="req">*</span></div>
+      <div class="card-title">Baggrundsinformation <span class="req">*</span></div>
       <div id="f-years-row" style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem">
         <div class="form-group" style="margin:0">
           <label>Hvor længe har du boet i det valgte område? <span class="req">*</span></label>
@@ -369,6 +430,10 @@ details[open] summary{color:var(--text)}
             <option>31–45 år</option><option>46–60 år</option><option>Over 60 år</option>
           </select>
         </div>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);line-height:1.55;margin-bottom:.9rem;display:flex;align-items:flex-start;gap:.4rem">
+        <svg class="icon" style="margin-top:.18em;color:var(--navy-light)"><use href="#i-info"/></svg>
+        <span><strong style="color:var(--text);font-weight:600">Hvorfor spørger vi om alder?</strong> Risiko for kræft, hjerte-karsygdom og symptomrapportering stiger med alderen - alder er en af de stærkeste confoundere i epidemiologi. Aldersgruppen bruges til at stratificere analyserne (fx separat gradient for &lt;46 år vs. ≥46 år), så vi kan teste om afstandsmønsteret består når aldersfordelingen kontrolleres.</span>
       </div>
       <div class="form-group" style="margin-bottom:.9rem">
         <label>Ryger du?</label>
@@ -404,7 +469,7 @@ details[open] summary{color:var(--text)}
     <!-- Resident-only sections (hidden for airport employees) -->
     <div id="resident-sections">
 
-    <!-- 🔊 STØJGENER -->
+    <!-- STØJGENER -->
     <div class="sym-card stoj">
       <div class="sym-card-header">
         <div class="sym-card-icon"></div>
@@ -450,7 +515,7 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- 💨 LUFTFORURENING -->
+    <!-- LUFTFORURENING -->
     <div class="sym-card luft">
       <div class="sym-card-header">
         <div class="sym-card-icon"></div>
@@ -496,7 +561,7 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- 🧠 PSYKOSOCIAL BELASTNING -->
+    <!-- PSYKOSOCIAL BELASTNING -->
     <div class="sym-card psyko">
       <div class="sym-card-header">
         <div class="sym-card-icon"></div>
@@ -533,10 +598,10 @@ details[open] summary{color:var(--text)}
 
     <!-- Employee notice (hidden by default) -->
     <div id="employee-notice" style="display:none;margin-bottom:1rem" class="notice notice-success">
-      <strong>✈️ Du er registreret som ansat i lufthavnsområdet.</strong> For ansatte er kun alder, rygning og kroniske diagnoser relevante - spørgsmål om boligstøj, luftgener og eksponeringstidslinje vises ikke. Kroniske diagnoser nedenfor er særligt vigtige for undersøgelsen.
+      <strong>Du er registreret som ansat i lufthavnsområdet.</strong> For ansatte er kun alder, rygning og kroniske diagnoser relevante - spørgsmål om boligstøj, luftgener og eksponeringstidslinje vises ikke. Kroniske diagnoser nedenfor er særligt vigtige for undersøgelsen.
     </div>
 
-    <!-- 🏥 KRONISKE SYGDOMME - vises ved ≥2 år (beboere) eller altid (ansatte) -->
+    <!-- KRONISKE SYGDOMME - vises ved ≥2 år (beboere) eller altid (ansatte) -->
     <div id="kronisk-wrap" style="display:none">
       <div class="sym-card kronisk">
         <div class="sym-card-header">
@@ -589,13 +654,13 @@ details[open] summary{color:var(--text)}
       </div>
     </div>
 
-    <!-- ⏱ EKSPONERINGSTIDSLINJE -->
+    <!-- EKSPONERINGSTIDSLINJE -->
     <div class="card" id="timing-card">
-      <div class="card-title">⏱ Eksponeringstidslinje <span class="req">*</span></div>
+      <div class="card-title">Eksponeringstidslinje <span class="req">*</span></div>
 
       <!-- Støj -->
       <div style="padding:.6rem .8rem;background:var(--stoj-bg);border:1px solid var(--border);border-radius:var(--r);margin-bottom:1rem">
-        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--stoj);margin-bottom:.6rem">🔊 Flystøj</div>
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--stoj);margin-bottom:.6rem">Flystøj</div>
         <div class="form-group">
           <label>Hvornår begyndte du første gang at mærke flystøjsgener? <span class="req">*</span></label>
           <select id="f-onset" required>
@@ -625,7 +690,7 @@ details[open] summary{color:var(--text)}
 
       <!-- Luft -->
       <div style="padding:.6rem .8rem;background:var(--luft-bg);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--luft);margin-bottom:.6rem">💨 Luftforurening og lugtgener</div>
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--luft);margin-bottom:.6rem">Luftforurening og lugtgener</div>
         <div class="form-group">
           <label>Hvornår begyndte du første gang at mærke luft- eller lugtgener?</label>
           <select id="f-onset-luft">
@@ -657,15 +722,15 @@ details[open] summary{color:var(--text)}
     <div id="err-msg" style="color:var(--red);font-size:.84rem;text-align:center;margin-bottom:.75rem;display:none">
       Noget gik galt. Tjek din forbindelse og prøv igen.
     </div>
-    <button class="btn-primary" id="btn-sub" onclick="submitSurvey()">Send mit svar ›</button>
+    <button class="btn-primary" id="btn-sub" onclick="submitSurvey()">Send mit svar</button>
     <p style="text-align:center;color:var(--muted);font-size:.76rem;margin-top:.7rem">Alle svar er anonyme - ingen personoplysninger gemmes</p>
   </div>
 
   <div id="success-wrap" style="display:none">
     <div class="card" style="text-align:center;padding:2.5rem">
-      <div style="font-family:'Inter',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Tak for dit bidrag!</div>
+      <div style="font-family:'Inter',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Tak for dit bidrag</div>
       <p style="color:var(--muted);font-size:.87rem;margin-bottom:1.5rem">Du er med til at skabe evidensbaseret dokumentation til brug over for myndighederne.</p>
-      <a href="#" onclick="showTab('results');return false;" style="display:inline-block;background:var(--navy);color:white;padding:.65rem 1.7rem;border-radius:var(--r);font-weight:600;text-decoration:none;font-size:.87rem;letter-spacing:.04em">Se de live resultater →</a>
+      <a href="#" onclick="showTab('results');return false;" style="display:inline-block;background:var(--navy);color:white;padding:.65rem 1.7rem;border-radius:var(--r);font-weight:600;text-decoration:none;font-size:.87rem;letter-spacing:.04em">Se de live resultater</a>
     </div>
   </div>
 </div>
@@ -685,7 +750,15 @@ details[open] summary{color:var(--text)}
     <div class="card-title">Geografisk symptombyrde
       <span class="analysis-badge">Analyse 1 - Geografisk klyngning</span>
     </div>
-    <div class="chart-sub">Cirklernes størrelse = antal besvarelser. Farven går fra blå (få symptomer) til rød (mange). Et klart mønster med rødere cirkler tæt på lufthavnen er stærkt kausalitetsbevis. Grøn ring = ansatzone (0–1,25 km).</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Alle besvarelser med gyldig zone og retning.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i 1,25–25 km, ansatte i 0–1,25 km (vises som grøn zone).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> svar uden zone eller retning.</span>
+      </span>
+    </div>
+    <div class="chart-sub">Cirklernes størrelse = antal besvarelser. Farven går fra blå (få symptomer) til rød (mange). Et klart mønster med rødere cirkler tæt på lufthavnen er stærkt kausalitetsbevis.</div>
     <div id="map-results"></div>
   </div>
 
@@ -693,7 +766,15 @@ details[open] summary{color:var(--text)}
     <div class="card-title">Symptombyrde vs. afstand
       <span class="analysis-badge">Analyse 2 - Dosis-respons</span>
     </div>
-    <div class="chart-sub">Gennemsnitligt antal rapporterede symptomer pr. person opdelt på afstandszone (beboere). Et systematisk fald fra venstre mod højre er det klassiske eksponerings-respons-signal.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboerrespondenter opdelt på de 5 afstandszoner.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere (1,25–25 km).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte (0–1,25 km).</span>
+      </span>
+    </div>
+    <div class="chart-sub">Gennemsnitligt antal rapporterede symptomer pr. person opdelt på afstandszone. Et systematisk fald fra venstre mod højre er det klassiske eksponerings-respons-signal.</div>
     <div class="chart-wrap" style="height:280px"><canvas id="c-dist"></canvas></div>
   </div>
 
@@ -702,12 +783,20 @@ details[open] summary{color:var(--text)}
       <div class="card-title" style="font-size:.95rem">Symptomer pr. retning
         <span class="analysis-badge" style="font-size:.57rem">Analyse 3</span>
       </div>
-      <div class="chart-sub" style="font-size:.76rem">Høje tal i nedstrøms retninger indikerer luftbåren forurening frem for blot støj. Der er langt flere</div>
+      <div class="data-source" style="font-size:.72rem;padding:.45rem .7rem">
+        <svg class="icon icon-sm"><use href="#i-database"/></svg>
+        <span><strong>Data:</strong> alle beboerrespondenter, gns. symptomtælling pr. retning.</span>
+      </div>
+      <div class="chart-sub" style="font-size:.76rem">Høje tal i nedstrøms retninger indikerer luftbåren forurening frem for blot støj.</div>
       <div class="chart-wrap" style="height:250px"><canvas id="c-radar"></canvas></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-title" style="font-size:.95rem">Alvorlighed vs. afstand</div>
-      <div class="chart-sub" style="font-size:.76rem">Selvvurderet gennemsnitsalvorlighed (ICBEN 0–10) for støj og luft pr. afstandszone.</div>
+      <div class="data-source" style="font-size:.72rem;padding:.45rem .7rem">
+        <svg class="icon icon-sm"><use href="#i-database"/></svg>
+        <span><strong>Data:</strong> beboere der har besvaret slider for støj/luft (ICBEN 0–10).</span>
+      </div>
+      <div class="chart-sub" style="font-size:.76rem">Selvvurderet gennemsnitsalvorlighed pr. afstandszone.</div>
       <div class="chart-wrap" style="height:250px"><canvas id="c-sev"></canvas></div>
     </div>
   </div>
@@ -717,16 +806,31 @@ details[open] summary{color:var(--text)}
     <div class="card-title">Kronisk sygdom og kræft vs. afstand
       <span class="analysis-badge">Analyse 4 - Kronisk morbiditet</span>
     </div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Andel af respondenter pr. zone med ≥1 lægediagnosticeret kronisk tilstand opstået efter flytning hertil.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere med ≥2 års bopæl (kronisk-spørgsmålet vises kun for disse).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; beboere med &lt;2 års bopæl.</span>
+      </span>
+    </div>
     <div class="chart-sub">Andel af respondenter med mindst én kronisk diagnose (inkl. kræft) pr. afstandszone.</div>
     <div class="chart-wrap" style="height:260px"><canvas id="c-kronisk"></canvas></div>
   </div>
 
   <div class="card" style="border:2px solid #c03030">
     <div class="card-title" style="border-bottom-color:#e0c0c0;color:#7b0000">
-      ⚠ Lægediagnosticerede sygdomme - opstået efter flytning til området
+      Lægediagnosticerede sygdomme - opstået efter flytning til området
       <span class="analysis-badge" style="background:#fdf0f0;color:#7b0000;border-color:#e0a0a0">Alle respondenter</span>
     </div>
-    <div class="chart-sub">Alle angivne tilstande er <strong>lægediagnosticerede</strong> og opstod <strong>efter</strong> flytning til denne adresse. Lungekræft, hjertesygdom og slagtilfælde er de stærkest evidensbaserede endpoints for kronisk støj- og luftforureningseksponering (WHO, HYENA-studiet, Health Effects Institute). Selv 1–2% udgør en markant overrepræsentation: den alderstandardiserede baggrundsrate for lungekræft i Danmark er ~0,15% pr. år - enhver koncentration i et geografisk defineret nærområde er et alvorligt signal.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Alle besvarelser (beboere + ansatte) der har angivet ≥1 kronisk diagnose opstået efter flytning hertil.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere ≥2 år + alle ansatte.</span>
+      </span>
+    </div>
+    <div class="chart-sub">Alle angivne tilstande er <strong>lægediagnosticerede</strong> og opstod <strong>efter</strong> flytning til denne adresse. Lungekræft, hjertesygdom og slagtilfælde er de stærkest evidensbaserede endpoints for kronisk støj- og luftforureningseksponering (WHO, HYENA-studiet, Health Effects Institute). Selv 1–2 % udgør en markant overrepræsentation: den alderstandardiserede baggrundsrate for lungekræft i Danmark er ~0,15 % pr. år - enhver koncentration i et geografisk defineret nærområde er et alvorligt signal.</div>
     <div id="kd-summary"></div>
     <div class="leg-row">
       <span class="leg"><span class="leg-dot" style="background:#5c0a0a"></span>Kræft</span>
@@ -741,7 +845,15 @@ details[open] summary{color:var(--text)}
     <div class="card-title">Symptomhyppighed - beboere
       <span class="analysis-badge">Kun kliniske symptomer</span>
     </div>
-    <div class="chart-sub">Andel af beboerrespondenter der rapporterer hvert symptom. Disse tal indgår i Bradford Hill-beregningerne. Beboere = respondenter udenfor 0–1,25 km-zonen.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboerrespondenter, kun symptom-mærkede items (ikke adfærdsgener).
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere (1,25–25 km), kliniske symptomer fra støj/luft/psyko.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; adfærds-/genepåvirkning (vises separat nedenfor).</span>
+      </span>
+    </div>
+    <div class="chart-sub">Andel af beboerrespondenter der rapporterer hvert symptom. Disse tal indgår i Bradford Hill-beregningerne.</div>
     <div class="leg-row">
       <span class="leg"><span class="leg-dot" style="background:var(--stoj)"></span>Støj</span>
       <span class="leg"><span class="leg-dot" style="background:var(--luft)"></span>Luftforurening</span>
@@ -754,7 +866,14 @@ details[open] summary{color:var(--text)}
     <div class="card-title">Generhyppighed - beboere
       <span class="analysis-badge badge-adfaerd" style="background:#f5ede0;color:#7a3e00;border-color:#e0c090">Adfærdspåvirkning</span>
     </div>
-    <div class="chart-sub">Andel der rapporterer adfærdsmæssige og sociale konsekvenser (gener). Indgår <em>ikke</em> i Bradford Hill-beregningerne, men belyser den samlede belastning.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboerrespondenter, kun adfærds-/gener-mærkede items.
+        <span class="ds-row"><strong class="ds-excl">NB:</strong> indgår <em>ikke</em> i Bradford Hill-beregningerne - vises kun for at belyse den samlede belastning.</span>
+      </span>
+    </div>
+    <div class="chart-sub">Andel der rapporterer adfærdsmæssige og sociale konsekvenser (gener).</div>
     <div class="leg-row">
       <span class="leg"><span class="leg-dot" style="background:var(--stoj)"></span>Støj</span>
       <span class="leg"><span class="leg-dot" style="background:var(--luft)"></span>Luftforurening</span>
@@ -765,7 +884,14 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">Hvornår begyndte generne? - gennemsnit pr. afstandszone</div>
-    <div class="chart-sub">Gennemsnitligt årstal for debut af gener, opdelt på afstandszone (beboere). Hvis lufthavnens påvirkning breder sig udad over tid - i takt med stigende trafik, nye ruter og ændrede flyveveje - forventes det inderste bælte at have det tidligste gennemsnitsår, og tallene stiger gradvist ud mod periferien.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboere der har angivet et debut-årstal for støj og/eller luft/lugt.
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> svar med "Oplever ingen mærkbare gener" og "Husker ikke præcist".</span>
+      </span>
+    </div>
+    <div class="chart-sub">Gennemsnitligt årstal for debut af gener, opdelt på afstandszone. Hvis lufthavnens påvirkning breder sig udad over tid - i takt med stigende trafik, nye ruter og ændrede flyveveje - forventes det inderste bælte at have det tidligste gennemsnitsår, og tallene stiger gradvist ud mod periferien.</div>
     <div class="chart-wrap" style="height:260px"><canvas id="c-onset"></canvas></div>
   </div>
 
@@ -784,6 +910,14 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">1. Dosis-respons-analyse</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboerrespondenter, opgjort som andel med ≥1 klinisk symptom pr. afstandszone.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere (1,25–25 km).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; adfærdsgener tæller ikke som symptom.</span>
+      </span>
+    </div>
     <div class="chart-sub">Bradford Hill-kriterierne kræver en klar biologisk gradient: symptomraten bør stige proportionalt med eksponering (kortere afstand = højere eksponering).</div>
     <div id="dose-tbl"><div style="height:120px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
     <div class="chart-wrap" style="height:220px;margin-top:1.1rem"><canvas id="c-dose"></canvas></div>
@@ -792,28 +926,52 @@ details[open] summary{color:var(--text)}
 
   <div class="card">
     <div class="card-title">2. Lineær gradient - alle zoner</div>
-    <div class="chart-sub">Vægtet lineær regression af symptomraten på afstand (midpunkt pr. zone, vægtet med n). En negativ hældning og høj R² bekræfter et stærkt dosis-respons-signal på tværs af <em>alle</em> afstandszoner - ikke blot de to yderste.</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Vægtet lineær regression - én observation pr. zone (rate, n, midpunkts-afstand), vægtet med n.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> alle beboerzoner med n ≥ 1.</span>
+      </span>
+    </div>
+    <div class="chart-sub">Modellen tilpasses på form: rate(d) = β₀ + β₁·d. En negativ hældning og høj R² bekræfter et stærkt dosis-respons-signal på tværs af <em>alle</em> afstandszoner - ikke blot de to yderste.</div>
     <div id="gradient-body"><div style="height:80px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 
   <div class="card">
-    <div class="card-title">3. Relativ Risiko (RR) med 95% Konfidensinterval</div>
+    <div class="card-title">3. Relativ Risiko (RR) med 95 % Konfidensinterval</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> 2×2-krydstabel (eksponeret/uexponeret × symptom/ingen symptom) på inderste vs. yderste beboerzone med data.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i de to ydergrupper med ≥1 svar.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> alle øvrige zoner (indgår i analyse 2 / 4).</span>
+      </span>
+    </div>
     <div class="chart-sub">Sammenligner symptomraten i den inderste beboerzone med den yderste zone med data. <small id="rr-bands" style="color:var(--muted)"></small></div>
     <div class="rr-grid">
       <div class="rr-box"><div class="rr-num" id="rr-v">-</div><div class="rr-lbl">Relativ Risiko</div></div>
-      <div class="rr-box"><div class="rr-num" id="rr-lo">-</div><div class="rr-lbl">95% KI nedre</div></div>
-      <div class="rr-box"><div class="rr-num" id="rr-hi">-</div><div class="rr-lbl">95% KI øvre</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-lo">-</div><div class="rr-lbl">95 % KI nedre</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-hi">-</div><div class="rr-lbl">95 % KI øvre</div></div>
     </div>
     <div class="rr-interp" id="rr-interp">Beregner…</div>
     <details style="margin-top:.9rem">
       <summary>Beregningsgrundlag</summary>
-      <div class="formula" id="rr-formula"></div>
+      <div id="rr-formula-math" class="formula-katex"></div>
+      <div id="rr-formula" class="formula-num"></div>
     </details>
   </div>
 
   <div class="card">
     <div class="card-title">4. Statistisk signifikanstest (χ²)</div>
-    <div class="chart-sub"><strong>H₀:</strong> Ingen sammenhæng &nbsp;|&nbsp; <strong>Hₐ:</strong> Signifikant sammenhæng (α = 0,05) &nbsp;|&nbsp; Nær = 1,25–5 km, Fjern = 10+ km</div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Pearsons χ²-test for uafhængighed på 2×2-tabel.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i nær (1,25–5 km) og fjern (7,5–25 km).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> mellemzone (5–7,5 km) - anvendes kun i regressionen for at undgå "wash-out".</span>
+      </span>
+    </div>
+    <div class="chart-sub"><strong>H₀:</strong> Ingen sammenhæng &nbsp;|&nbsp; <strong>Hₐ:</strong> Signifikant sammenhæng (α = 0,05) &nbsp;|&nbsp; Nær = 1,25–5 km, Fjern = 7,5–25 km</div>
     <div class="chi-grid">
       <div class="chi-box"><div class="chi-num" id="chi-v">-</div><div class="chi-lbl">χ²-værdi</div></div>
       <div class="chi-box"><div class="chi-num" id="chi-p">-</div><div class="chi-lbl">p-værdi</div></div>
@@ -821,7 +979,8 @@ details[open] summary{color:var(--text)}
     </div>
     <div id="chi-verdict"></div>
     <details style="margin-top:.9rem">
-      <summary>Krydstabel</summary>
+      <summary>Beregningsgrundlag &amp; krydstabel</summary>
+      <div id="chi-formula-math" class="formula-katex"></div>
       <div id="chi-tbl" style="margin-top:.6rem;overflow-x:auto"></div>
     </details>
   </div>
@@ -832,8 +991,16 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">6. Confounderjustering <span class="analysis-badge" style="margin-left:.5rem">Rygning · Vejtrafikstøj</span></div>
-    <div class="chart-sub">For at vurdere om afstandsgradienten er ægte og ikke blot afspejler rygning eller vejtrafikstøj, beregnes gradienten separat i undergrupper. Hvis signalet består - også blandt aldrigrygere og dem uden vejtrafikstøj - styrkes den kausale fortolkning markant.</div>
+    <div class="card-title">6. Confounderjustering <span class="analysis-badge" style="margin-left:.5rem">Alder · Rygning · Vejtrafikstøj</span></div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Vægtet lineær regression beregnes separat i hver undergruppe og sammenlignes med den ujusterede referencelinje.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet pr. række:</strong> beboere der har besvaret den relevante baggrundsvariabel.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; respondenter uden svar på den relevante variabel for hver række.</span>
+      </span>
+    </div>
+    <div class="chart-sub">For at vurdere om afstandsgradienten er ægte og ikke blot afspejler alder, rygning eller vejtrafikstøj, beregnes gradienten separat i undergrupper. Hvis signalet består - også blandt aldrigrygere, yngre/ældre, og dem uden vejtrafikstøj - styrkes den kausale fortolkning markant. Alder er specielt vigtig fordi risiko for kræft og hjerte-karsygdom stiger kraftigt med alderen, og fordi ældre tendens kan være overrepræsenteret i ældre boligområder tæt på lufthavnen.</div>
     <div id="confounder-body"><div style="height:100px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 

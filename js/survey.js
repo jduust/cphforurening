@@ -11,19 +11,27 @@ import { collection, addDoc, serverTimestamp }
 console.log('[Survey] Modul indlæst.');
 
 // ── Survey map ────────────────────────────────────────────────
-const sMap = L.map('map-picker').setView([AIRPORT.lat, AIRPORT.lng], 11);
+const MAX_BOUNDS_KM = 50;
+const _dLat = MAX_BOUNDS_KM / 111;
+const _dLng = MAX_BOUNDS_KM / (111 * Math.cos(AIRPORT.lat * Math.PI / 180));
+const MAP_MAX_BOUNDS = [
+  [AIRPORT.lat - _dLat, AIRPORT.lng - _dLng],
+  [AIRPORT.lat + _dLat, AIRPORT.lng + _dLng]
+];
+
+const sMap = L.map('map-picker', { maxBounds: MAP_MAX_BOUNDS, maxBoundsViscosity: 1.0, minZoom: 9 })
+  .setView([AIRPORT.lat, AIRPORT.lng], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  { attribution: '© OpenStreetMap', maxZoom: 17 }).addTo(sMap);
+  { attribution: '© OpenStreetMap', maxZoom: 17, bounds: MAP_MAX_BOUNDS }).addTo(sMap);
 L.circleMarker([AIRPORT.lat, AIRPORT.lng],
   { radius: 9, color: '#e8a020', fillColor: '#e8a020', fillOpacity: 1, weight: 2 })
-  .bindTooltip('✈ CPH Lufthavn', { permanent: false }).addTo(sMap);
-[3,5,10,20].forEach(km =>
+  .bindTooltip('CPH Lufthavn', { permanent: false }).addTo(sMap);
+[3,5,7.5,15,25].forEach(km =>
   L.circle([AIRPORT.lat, AIRPORT.lng],
     { radius: km * 1000, color: '#2a4f8c', weight: 1, fillOpacity: .02, dashArray: '4 5' })
     .addTo(sMap)
 );
-addDirOverlay(sMap, 12, 21);
-// Draw blocked zones immediately (clipped version redrawn after airport GeoJSON loads)
+addDirOverlay(sMap, 13, 26);
 let _sBlockedOverlay = drawBlockedZoneOverlay(sMap, null);
 let _airportGJData = null;
 loadAirportGeoJSON().then(gj => {
@@ -33,7 +41,6 @@ loadAirportGeoJSON().then(gj => {
   airportPane.style.zIndex = 450;
   L.geoJSON(gj, { style:{ color:'#155a2e', weight:2, fillColor:'#155a2e', fillOpacity:.15 },
     pane:'sAirportPane' }).addTo(sMap);
-  // Redraw blocked overlay now that clipping data is available
   if (_sBlockedOverlay) _sBlockedOverlay.remove();
   _sBlockedOverlay = drawBlockedZoneOverlay(sMap, gj);
 });
@@ -46,7 +53,7 @@ sMap.on('click', e => {
 
   // ── Guard: too far away (> 25 km) ────────────────────────
   if (km > 25) {
-    fb.textContent = '🚫 Dette område er for langt fra lufthavnen (> 25 km). Klik tættere på CPH.';
+    fb.textContent = 'Dette område er for langt fra lufthavnen (> 25 km). Klik tættere på CPH.';
     fb.className = 'error';
     return;
   }
@@ -57,7 +64,7 @@ sMap.on('click', e => {
 
   // ── Guard: blocked zone (ocean / Sweden / uninhabited) ───
   if (!isInsideAirport && isBlockedZone(band, dir)) {
-    fb.textContent = `🚫 Det valgte område (${band} · ${dir}) er ikke gyldigt. Kun beboede områder i Danmark inden for 25 km er gyldige.`;
+    fb.textContent = `Det valgte område (${band} · ${dir}) er ikke gyldigt. Kun beboede områder i Danmark inden for 25 km er gyldige.`;
     fb.className = 'error';
     return;
   }
@@ -89,10 +96,10 @@ sMap.on('click', e => {
   }
 
   if (isEmp) {
-    fb.innerHTML = `✈️ <strong>Lufthavnsområdet valgt.</strong> Kun kroniske sygdomme og kræft er relevante for denne zone.`;
+    fb.innerHTML = `<strong>Lufthavnsområdet valgt.</strong> Kun kroniske sygdomme og kræft er relevante for denne zone.`;
     fb.className = 'employee-notice';
   } else {
-    fb.textContent = `📍 Det valgte område: ${band} · Retning ${dir} (${km.toFixed(1)} km fra lufthavnen)`;
+    fb.textContent = `Det valgte område: ${band} · Retning ${dir} (${km.toFixed(1)} km fra lufthavnen)`;
     fb.className = 'ok';
   }
 
@@ -121,7 +128,7 @@ sMap.on('click', e => {
   uMarker = L.circleMarker([lat, lng],
     { radius: 9, color: isEmp?'#155a2e':'#c0392b',
       fillColor: isEmp?'#155a2e':'#c0392b', fillOpacity: .9, weight: 2 })
-    .bindTooltip(isEmp ? `✈️ Ansatzone · ${dir}` : `${band} · ${dir}`,
+    .bindTooltip(isEmp ? `Ansatzone · ${dir}` : `${band} · ${dir}`,
       { permanent: true, direction: 'top', offset: [0,-12] })
     .addTo(sMap);
 });
