@@ -606,7 +606,7 @@ function mhOddsRatio(strata) {
     nTot += ni;
     terms.push({ a, b, c, d, ni, R, S });
   });
-  if (sumR <= 0 || sumS <= 0) return { or: null, terms, nTot, used };
+  if (sumR <= 0 || sumS <= 0) return { or: null, terms, nTot, used, sumR, sumS };
   const or = sumR / sumS;
   const varLn = sPR / (2 * sumR * sumR) + sPSQR / (2 * sumR * sumS) + sQS / (2 * sumS * sumS);
   const se = Math.sqrt(varLn);
