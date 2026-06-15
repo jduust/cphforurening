@@ -70,15 +70,13 @@ sMap.on('click', e => {
   }
 
   const isEmp = band === EMPLOYEE_BAND;
-  console.log(`[Survey] Klik: ${lat.toFixed(4)}, ${lng.toFixed(4)} → ${band}, ${dir}`);
+  // Privatliv: vi logger og gemmer KUN område (zone + retning) - aldrig præcise koordinater.
+  console.log(`[Survey] Klik registreret som område: ${band}, retning ${dir}`);
 
-  ['f-dist-band','f-dist-km','f-dir','f-lat-z','f-lng-z'].forEach((id, i) => {
-    document.getElementById(id).value = [
-      band, km.toFixed(2), dir,
-      (Math.round(lat*100)/100).toFixed(2),
-      (Math.round(lng*100)/100).toFixed(2)
-    ][i];
-  });
+  // Kun afstandszone og retning sættes. De præcise koordinater (lat/lng) og den
+  // eksakte afstand i km forlader aldrig browseren og gemmes ikke nogen steder.
+  document.getElementById('f-dist-band').value = band;
+  document.getElementById('f-dir').value       = dir;
 
   // Employees: only background (age + smoking) + kronisk; residents: everything
   document.getElementById('background-card').style.display  = '';          // always show
@@ -212,11 +210,10 @@ window.submitSurvey = async () => {
 
   try {
     const ref = await addDoc(collection(db, 'responses'), {
+      // Placering gemmes KUN som område: afstandszone + én af 8 retninger.
+      // Ingen præcise koordinater eller eksakt km-afstand indsamles (privatliv).
       dist_band,
-      dist_km:        parseFloat(document.getElementById('f-dist-km').value) || null,
       dir:            document.getElementById('f-dir').value,
-      lat_z:          parseFloat(document.getElementById('f-lat-z').value)  || null,
-      lng_z:          parseFloat(document.getElementById('f-lng-z').value)  || null,
       years:          is_employee ? null : (document.getElementById('f-years').value || null),
       age:            document.getElementById('f-age').value      || null,
       smoking:        document.getElementById('f-smoking').value  || null,

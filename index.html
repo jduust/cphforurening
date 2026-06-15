@@ -382,7 +382,7 @@ details[open] summary{color:var(--text)}
         </div>
         <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
           <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">Anonymitet</div>
-          <div style="font-size:.84rem;font-weight:600;color:var(--text)">Ingen persondata gemmes</div>
+          <div style="font-size:.84rem;font-weight:600;color:var(--text)">Zone + retning gemmes</div>
         </div>
         <div style="background:var(--white);border-radius:var(--r);padding:.75rem .85rem;border:1px solid #e0c870">
           <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.3rem">Præcision</div>
@@ -392,6 +392,15 @@ details[open] summary{color:var(--text)}
       <div style="background:var(--white);border:1px solid #e0c870;border-radius:var(--r);padding:.8rem 1rem;font-size:.83rem;line-height:1.7;color:var(--text)">
         <strong>Hvad du skal tænke på:</strong> Angiv kun gener og symptomer du <em>regelmæssigt</em> oplever, og som du selv mistænker har sammenhæng med lufthavnen - det kan være støj, lugt, luftkvalitet eller en kombination. Kroniske diagnoser skal kun angives hvis de opstod <em>efter</em> du flyttede til området. Er du ansat i lufthavnen, er du også meget velkommen - klik blot på lufthavnsområdet på kortet.
       </div>
+      <div style="margin-top:.75rem;background:#fdf8ec;border:1px solid #e0c870;border-left:3px solid var(--amber);border-radius:var(--r);padding:.85rem 1rem;font-size:.81rem;line-height:1.7;color:#5a3a00">
+        <strong>Datasikkerhed og samtykke — læs venligst:</strong><br>
+        Ved at indsende dit svar accepterer du følgende vilkår:
+        <ul style="margin:.5rem 0 .3rem 1.1rem;padding:0">
+          <li><strong>Hvad gemmes:</strong> Afstandszone (fx "3–5 km"), vindretning (én af 8 verdenshjørner), alder­gruppe, rygestatus, trafikeksponering og de symptomer og diagnoser du angiver. Dit præcise klik på kortet gemmes <em>ikke</em>.</li>
+          <li style="margin-top:.3rem"><strong>Delt, offentligt tilgængeligt datasæt:</strong> Data stilles frit tilgængeligt, så andre forskere, journalister og myndigheder kan foretage egne analyser. Det kan ikke udelukkes, at en person med kendskab til din specifikke sygdomshistorik — i kombination med din omtrentlige zone og retning — i meget sjældne tilfælde vil kunne gætte, hvem der har besvaret. Risikoen er lille, men ikke nul. Vurderer du at din sygdomshistorik er usædvanlig nok til at udgøre en identifikationsrisiko, opfordres du til at undlade at angive kroniske diagnoser, eller til ikke at deltage.</li>
+          <li style="margin-top:.3rem"><strong>Ingen kommerciel brug:</strong> Data bruges udelukkende til epidemiologisk forskning og offentlig formidling.</li>
+        </ul>
+      </div>
     </div>
 
     <!-- Placering -->
@@ -400,11 +409,9 @@ details[open] summary{color:var(--text)}
       <p class="map-hint">Klik på kortet for at markere din omtrentlige bopæl. <strong>Det præcise klik gemmes ikke</strong> - kun afstandszone og retning registreres.</p>
       <div id="map-picker"></div>
       <div id="map-feedback"><svg class="icon"><use href="#i-cursor"/></svg> Klik på kortet for at angive det valgte område</div>
+      <!-- Kun område gemmes: afstandszone + retning. Ingen koordinater/eksakt afstand. -->
       <input type="hidden" id="f-dist-band">
-      <input type="hidden" id="f-dist-km">
       <input type="hidden" id="f-dir">
-      <input type="hidden" id="f-lat-z">
-      <input type="hidden" id="f-lng-z">
     </div>
 
     <!-- Baggrundsinformation -->
@@ -745,6 +752,11 @@ details[open] summary{color:var(--text)}
     <div class="stat-box s3"><div class="stat-num" id="st-kronisk">-</div><div class="stat-lbl">Kronisk sygdom / kræft</div></div>
     <div class="stat-box s4"><div class="stat-num" id="st-emp">-</div><div class="stat-lbl">Ansatte-besvarelser</div></div>
   </div>
+  <div style="text-align:right;margin-bottom:1rem">
+    <button onclick="downloadCSV()" style="background:var(--navy);color:white;border:none;padding:.48rem 1.1rem;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.77rem;font-weight:600;cursor:pointer;letter-spacing:.04em;display:inline-flex;align-items:center;gap:.5rem">
+      <svg class="icon icon-sm"><use href="#i-database"/></svg> Download data (CSV)
+    </button>
+  </div>
 
   <div class="card">
     <div class="card-title">Geografisk symptombyrde
@@ -780,14 +792,17 @@ details[open] summary{color:var(--text)}
 
   <div class="two-col">
     <div class="card" style="margin-bottom:0">
-      <div class="card-title" style="font-size:.95rem">Symptomer pr. retning
+      <div class="card-title" style="font-size:.95rem">Symptomer pr. retning — 1–5 km
         <span class="analysis-badge" style="font-size:.57rem">Analyse 3</span>
       </div>
       <div class="data-source" style="font-size:.72rem;padding:.45rem .7rem">
         <svg class="icon icon-sm"><use href="#i-database"/></svg>
-        <span><strong>Data:</strong> alle beboerrespondenter, gns. symptomtælling pr. retning.</span>
+        <span><strong>Data:</strong> kun beboere i 1,25–5 km (nærzonen), gns. symptomtælling pr. retning.</span>
       </div>
       <div class="chart-sub" style="font-size:.76rem">Høje tal i nedstrøms retninger indikerer luftbåren forurening frem for blot støj.</div>
+      <div class="notice notice-warn" style="font-size:.75rem;padding:.5rem .75rem;margin-bottom:.6rem;line-height:1.55">
+        <strong>Obs. om retningsfordelingen:</strong> Analysen er begrænset til 1–5 km fordi der fra syd til nordøst (SØ, Ø, NØ, N) primært er Øresund og Sverige — her bor meget få respondenter. 
+      </div>
       <div class="chart-wrap" style="height:250px"><canvas id="c-radar"></canvas></div>
     </div>
     <div class="card" style="margin-bottom:0">
@@ -801,6 +816,26 @@ details[open] summary{color:var(--text)}
     </div>
   </div>
   <div style="margin-bottom:1.1rem"></div>
+
+  <div class="card">
+    <div class="card-title">Symptomer vs. bopælsvarighed og afstand
+      <span class="analysis-badge">Analyse 2b - Varighed × afstand</span>
+    </div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Beboerrespondenter krydstabuleret på afstandszone og hvor længe de har boet i området; hver søjle er gns. antal kliniske symptomer pr. person i cellen.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere (1,25–25 km) med angivet bopælsvarighed.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; celler uden svar vises som "-".</span>
+      </span>
+    </div>
+    <div class="chart-sub">Kombinerer to eksponeringsmål: <strong>hvor tæt</strong> man bor på lufthavnen og <strong>hvor længe</strong> man har boet der. Hvis både kortere afstand og længere bopælstid (større kumuleret eksponering) hænger sammen med flere symptomer, styrker det dosis-respons-fortolkningen.</div>
+    <div class="chart-wrap" style="height:300px"><canvas id="c-years-dist"></canvas></div>
+    <details style="margin-top:.9rem">
+      <summary>Beregningsgrundlag - gennemsnit og n pr. celle</summary>
+      <div id="years-dist-tbl" style="margin-top:.6rem;overflow-x:auto"></div>
+    </details>
+  </div>
 
   <div class="card">
     <div class="card-title">Kronisk sygdom og kræft vs. afstand
@@ -860,6 +895,22 @@ details[open] summary{color:var(--text)}
       <span class="leg"><span class="leg-dot" style="background:var(--psyko)"></span>Psykosocialt</span>
     </div>
     <div class="chart-wrap" style="height:380px"><canvas id="c-sym"></canvas></div>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--luft)">
+    <div class="card-title">Signatursymptomer - det der gør fundet unikt
+      <span class="analysis-badge">Specificitet</span>
+    </div>
+    <div class="data-source">
+      <svg class="icon"><use href="#i-database"/></svg>
+      <span>
+        <strong>Datagrundlag:</strong> Andel af beboere der rapporterer specifikke fysiologiske symptomer, opdelt på nær- og fjernzone.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere; nær = 1,25–5 km, fjern = 7,5–25 km.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; mellemzone (5–7,5 km).</span>
+      </span>
+    </div>
+    <div class="chart-sub">Generel støjgene er uspecifik. Fysiologiske symptomer som <strong>hovedpine og kvalme</strong> er langt mere specifikke for en reel sundhedspåvirkning fra luftbåren forurening - og det er deres overrepræsentation tæt på lufthavnen, der gør undersøgelsens fund usædvanligt.</div>
+    <div id="unique-sym-body"><div style="height:90px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 
   <div class="card">
@@ -938,24 +989,25 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card">
-    <div class="card-title">3. Relativ Risiko (RR) med 95 % Konfidensinterval</div>
+    <div class="card-title">3. Odds Ratio (OR) med 95 % Konfidensinterval</div>
     <div class="data-source">
       <svg class="icon"><use href="#i-database"/></svg>
       <span>
-        <strong>Datagrundlag:</strong> 2×2-krydstabel (eksponeret/uexponeret × symptom/ingen symptom) på inderste vs. yderste beboerzone med data.
+        <strong>Datagrundlag:</strong> 2×2-krydstabel (eksponeret/ueksponeret × symptom/ingen symptom) på inderste vs. yderste beboerzone med data.
         <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i de to ydergrupper med ≥1 svar.</span>
         <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> alle øvrige zoner (indgår i analyse 2 / 4).</span>
+        <span class="ds-row"><strong style="color:var(--navy)">Mål:</strong> Odds Ratio er det korrekte statistiske mål for tværsnitsundersøgelser — se forklaring i tolkningsfeltet nedenfor.</span>
       </span>
     </div>
-    <div class="chart-sub">Sammenligner symptomraten i den inderste beboerzone med den yderste zone med data. <small id="rr-bands" style="color:var(--muted)"></small></div>
+    <div class="chart-sub">Sammenligner symptom-odds i den inderste beboerzone med den yderste zone med data. <small id="rr-bands" style="color:var(--muted)"></small></div>
     <div class="rr-grid">
-      <div class="rr-box"><div class="rr-num" id="rr-v">-</div><div class="rr-lbl">Relativ Risiko</div></div>
+      <div class="rr-box"><div class="rr-num" id="rr-v">-</div><div class="rr-lbl">Odds Ratio (OR)</div></div>
       <div class="rr-box"><div class="rr-num" id="rr-lo">-</div><div class="rr-lbl">95 % KI nedre</div></div>
       <div class="rr-box"><div class="rr-num" id="rr-hi">-</div><div class="rr-lbl">95 % KI øvre</div></div>
     </div>
     <div class="rr-interp" id="rr-interp">Beregner…</div>
     <details style="margin-top:.9rem">
-      <summary>Beregningsgrundlag</summary>
+      <summary>Beregningsgrundlag og formel</summary>
       <div id="rr-formula-math" class="formula-katex"></div>
       <div id="rr-formula" class="formula-num"></div>
     </details>
@@ -986,21 +1038,27 @@ details[open] summary{color:var(--text)}
   </div>
 
   <div class="card" style="border:1px solid var(--navy-mid)">
-    <div class="card-title">5. Samlet konklusion og anbefaling</div>
+    <div class="card-title">5. Samlet konklusion og myndighedsanbefaling</div>
     <div id="concl-body"><div style="height:80px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 
   <div class="card">
-    <div class="card-title">6. Confounderjustering <span class="analysis-badge" style="margin-left:.5rem">Alder · Rygning · Vejtrafikstøj</span></div>
+    <div class="card-title">6. Confounderjusteret effekt <span class="analysis-badge" style="margin-left:.5rem">Alder · Rygning · Vejtrafikstøj</span></div>
     <div class="data-source">
       <svg class="icon"><use href="#i-database"/></svg>
       <span>
-        <strong>Datagrundlag:</strong> Vægtet lineær regression beregnes separat i hver undergruppe og sammenlignes med den ujusterede referencelinje.
-        <span class="ds-row"><strong class="ds-incl">Inkluderet pr. række:</strong> beboere der har besvaret den relevante baggrundsvariabel.</span>
-        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; respondenter uden svar på den relevante variabel for hver række.</span>
+        <strong>Hvad er en confounder?</strong> En confounder er en bagvedliggende faktor, der både hænger sammen med eksponeringen (afstand til lufthavnen) og med symptomerne - og som derfor kan skabe et <em>falsk</em> signal. Eksempel: er beboere tæt på lufthavnen ældre, kunne flere symptomer skyldes alder frem for forureningen. Vi justerer derfor for alder, rygning og vejtrafikstøj.
+        <span class="ds-row"><strong class="ds-incl">Metode:</strong> Del A pooler nær-vs-fjern odds ratio inden for strata (Mantel-Haenszel). Del B genberegner afstandsgradienten i hver undergruppe.</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; pr. analyse også respondenter uden svar på den relevante baggrundsvariabel.</span>
       </span>
     </div>
-    <div class="chart-sub">For at vurdere om afstandsgradienten er ægte og ikke blot afspejler alder, rygning eller vejtrafikstøj, beregnes gradienten separat i undergrupper. Hvis signalet består - også blandt aldrigrygere, yngre/ældre, og dem uden vejtrafikstøj - styrkes den kausale fortolkning markant. Alder er specielt vigtig fordi risiko for kræft og hjerte-karsygdom stiger kraftigt med alderen, og fordi ældre tendens kan være overrepræsenteret i ældre boligområder tæt på lufthavnen.</div>
+
+    <div style="font-weight:700;font-size:.82rem;color:var(--navy);margin:.4rem 0 .5rem">A · Justeret odds ratio (Mantel-Haenszel)</div>
+    <div class="chart-sub">Her sammenlignes den <strong>ujusterede</strong> odds ratio (symptomer nær vs. fjern lufthavnen) direkte med den <strong>justerede</strong> - dvs. den samme sammenligning beregnet separat inden for hvert lag af confounderen og derefter vejet sammen. Det viser sort på hvidt, om effekten holder, <em>efter</em> der er justeret.</div>
+    <div id="mh-body"><div style="height:120px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
+
+    <div style="font-weight:700;font-size:.82rem;color:var(--navy);margin:1.4rem 0 .5rem;border-top:1px solid var(--border);padding-top:1rem">B · Afstandsgradient pr. undergruppe (stratificeret)</div>
+    <div class="chart-sub">Som supplement genberegnes hele afstandsgradienten (hældning %/km) separat i hver undergruppe. Består den negative gradient - også blandt aldrigrygere, yngre/ældre og dem uden vejtrafikstøj - er confounding fra disse faktorer usandsynlig.</div>
     <div id="confounder-body"><div style="height:100px;background:linear-gradient(90deg,#e8e6e2 25%,#f2f1ee 50%,#e8e6e2 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)"></div></div>
   </div>
 

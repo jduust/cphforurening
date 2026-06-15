@@ -37,6 +37,21 @@ const KRONISK_ITEMS = [
 let _latestDocs = null;
 let _rAirportGJ = null; // cached airport GeoJSON for polygon clipping
 
+// ── Bopælsvarighed grupperet til 4 kategorier (bruges i varighed×afstand-grafen) ──
+// Længere bopæl = større kumuleret eksponering. Både hyphen- og en-dash-varianter
+// håndteres, så ældre testdata også matcher.
+const YEAR_GROUPS = [
+  { key:'< 2 år',  match:new Set(['Under 1 år','1-2 år','1–2 år']) },
+  { key:'2–5 år',  match:new Set(['2-5 år','2–5 år']) },
+  { key:'5–10 år', match:new Set(['5-10 år','5–10 år']) },
+  { key:'> 10 år', match:new Set(['Over 10 år']) },
+];
+function yearGroup(d) {
+  const y = d.years || '';
+  for (const g of YEAR_GROUPS) if (g.match.has(y)) return g.key;
+  return null;
+}
+
 // ── Chart theme (light / dark mode aware) ────────────────────
 const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
 const CT = {
@@ -188,9 +203,12 @@ function updateAll(docs) {
                x:{ grid:{display:false}, ticks:{color:CT.tick} } } }
   });
 
-  // Radar chart
+  // Radar chart - retning, KUN nærzonen (1,25-5 km).
+  // Begrænset bevidst til nærzonen: i de fjerne bånd mod Ø/NØ/SØ er der hav/Sverige
+  // og meget få respondenter, hvilket ellers ville give vildledende retningsudsving.
+  const RADAR_BANDS = new Set(['1.25-3 km','3-5 km']);
   const DR = {}; DIRS8.forEach(d=>DR[d]={s:0,n:0});
-  resDocs.forEach(d=>{ if(d.dir&&DR[d.dir]){DR[d.dir].s+=symCount(d);DR[d.dir].n++;} });
+  resDocs.forEach(d=>{ if(d.dir&&DR[d.dir]&&RADAR_BANDS.has(d.dist_band)){DR[d.dir].s+=symCount(d);DR[d.dir].n++;} });
   del('radar');
   ch['radar'] = new Chart(document.getElementById('c-radar'), {
     type:'radar',
@@ -200,7 +218,10 @@ function updateAll(docs) {
         borderColor: dark ? '#5090e0' : '#2a4f8c',
         pointBackgroundColor: dark ? '#5090e0' : '#2a4f8c',
         pointRadius:4 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>{ const d=DIRS8[c.dataIndex];
+          return DR[d].n ? ` Gns. ${c.raw} symptomer  ·  n=${DR[d].n}` : ' Ingen svar i nærzonen'; } } } },
       scales:{ r:{ beginAtZero:true,
         grid:{ color: CT.grid },
         angleLines:{ color: CT.grid },
@@ -226,6 +247,61 @@ function updateAll(docs) {
                    title:{display:true,text:'Gns. alvorlighed (0–10)',font:{size:10},color:CT.tick}, grid:{color:CT.grid} },
                x:{ grid:{display:false}, ticks:{font:{size:9},color:CT.tick} } } }
   });
+
+  // ── Symptomer vs. bopælsvarighed × afstand ────────────────
+  // Krydstabel: for hver (zone, varighedsgruppe) beregnes gns. antal kliniske symptomer.
+  const YD = {}; // `${band}||${grp}` -> {sum, n}
+  resDocs.forEach(d => {
+    const b = d.dist_band, g = yearGroup(d);
+    if (!b || !g || !B[b]) return;
+    const k = `${b}||${g}`;
+    (YD[k] ??= { sum:0, n:0 });
+    YD[k].sum += symCount(d);
+    YD[k].n++;
+  });
+  const ydCell = (b, g) => { const o = YD[`${b}||${g}`]; return o && o.n ? { avg:o.sum/o.n, n:o.n } : { avg:null, n:0 }; };
+  const ydCols = dark
+    ? ['#2f5ca0','#4a7fcf','#6ea8e6','#9ccbf2']   // mørk: flere år = lysere/mere markant
+    : ['#aac4e6','#6f9fd8','#3a6fb8','#143f78'];   // lys: flere år = mørkere
+  del('years-dist');
+  const ydEl = document.getElementById('c-years-dist');
+  if (ydEl) {
+    ch['years-dist'] = new Chart(ydEl, {
+      type:'bar',
+      data:{ labels: AB,
+        datasets: YEAR_GROUPS.map((g, gi) => ({
+          label: g.key,
+          data: AB.map(b => { const c = ydCell(b, g.key); return c.avg !== null ? +c.avg.toFixed(2) : null; }),
+          backgroundColor: ydCols[gi], borderRadius:3,
+        })) },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:11, padding:8, color:CT.legend } },
+          tooltip:{ callbacks:{ label:c => {
+            const b = AB[c.dataIndex], g = YEAR_GROUPS[c.datasetIndex].key, o = ydCell(b, g);
+            return o.n ? ` Boet ${g}: ${o.avg.toFixed(1)} symptomer i gns. (n=${o.n})` : ` Boet ${g}: ingen svar`;
+          } } }
+        },
+        scales:{
+          y:{ beginAtZero:true, title:{ display:true, text:'Gns. antal symptomer', font:{size:11}, color:CT.tick },
+              ticks:{ color:CT.tick }, grid:{ color:CT.grid } },
+          x:{ grid:{ display:false }, ticks:{ color:CT.tick } }
+        } }
+    });
+  }
+  // Transparenstabel: gns. (n) pr. celle
+  const ydTbl = document.getElementById('years-dist-tbl');
+  if (ydTbl) {
+    ydTbl.innerHTML = AB.length
+      ? `<table class="dose-table"><thead><tr><th>Bopælsvarighed \\ zone</th>${AB.map(b=>`<th>${b}</th>`).join('')}</tr></thead><tbody>
+          ${YEAR_GROUPS.map(g=>`<tr><td class="dzone">${g.key}</td>${AB.map(b=>{
+            const o=ydCell(b,g.key);
+            return `<td class="drate">${o.n?`${o.avg.toFixed(1)} <small style="color:var(--muted)">(n=${o.n})</small>`:'-'}</td>`;
+          }).join('')}</tr>`).join('')}
+        </tbody></table>
+        <div class="formula-num">Hver celle = (sum af kliniske symptomer i cellen) / (antal respondenter i cellen). "-" = ingen svar i cellen endnu.</div>`
+      : '<div class="notice notice-warn">Endnu ingen beboersvar med angivet bopælsvarighed.</div>';
+  }
 
   // Kronisk chart
   del('kronisk');
@@ -512,6 +588,32 @@ function weightedLinReg(xy) {
   return {slope,intercept,r2};
 }
 
+// ── Mantel-Haenszel adjusted odds ratio ───────────────────────
+// Pooler nær-vs-fjern odds ratio på tværs af confounder-strata, så vi får ÉN
+// justeret OR der kan sammenlignes med den ujusterede (crude) OR.
+// strata: [{a,b,c,d}]  hvor  a=nær+symptom, b=nær+ingen, c=fjern+symptom, d=fjern+ingen
+// CI beregnes med Robins-Breslow-Greenland-variansestimatoren (standardmetoden).
+function mhOddsRatio(strata) {
+  let sumR = 0, sumS = 0, sPR = 0, sPSQR = 0, sQS = 0, used = 0, nTot = 0;
+  const terms = [];
+  strata.forEach(t => {
+    const { a, b, c, d } = t, ni = a + b + c + d;
+    if (ni === 0) return;
+    const R = a * d / ni, S = b * c / ni, P = (a + d) / ni, Q = (b + c) / ni;
+    sumR += R; sumS += S;
+    sPR += P * R; sPSQR += P * S + Q * R; sQS += Q * S;
+    if (a + b > 0 && c + d > 0) used++;
+    nTot += ni;
+    terms.push({ a, b, c, d, ni, R, S });
+  });
+  if (sumR <= 0 || sumS <= 0) return { or: null, terms, nTot, used };
+  const or = sumR / sumS;
+  const varLn = sPR / (2 * sumR * sumR) + sPSQR / (2 * sumR * sumS) + sQS / (2 * sumS * sumS);
+  const se = Math.sqrt(varLn);
+  return { or, lo: Math.exp(Math.log(or) - 1.96 * se), hi: Math.exp(Math.log(or) + 1.96 * se),
+           se, terms, nTot, used, sumR, sumS };
+}
+
 // ── Scientific analysis ───────────────────────────────────────
 function updateScientific(docs) {
   const resDocs = docs.filter(d => !isEmployee(d));
@@ -603,46 +705,59 @@ function updateScientific(docs) {
     gradEl.innerHTML = `<div class="notice notice-warn"><svg class="icon" style="color:var(--amber);margin-right:.3rem"><use href="#i-clock"/></svg>Kræver svar fra mindst 2 zoner for at beregne gradienten.</div>`;
   }
 
-  // ── 3. Relative Risk (innermost vs outermost with data) ───
+  // ── 3. Odds Ratio (innermost vs outermost with data) ─────────
+  // NOTE: This is a cross-sectional survey (no prospective follow-up), so the
+  // correct measure is the Odds Ratio (OR), not Relative Risk (RR).
+  // OR ≈ RR when the outcome is rare (<10 %), but is the statistically
+  // appropriate estimator when we cannot ascertain the population at risk over time.
   const innerBand = active[0]?.zone;
   const outerBand = active[active.length-1]?.zone;
   const exp   = innerBand ? resDocs.filter(d=>d.dist_band===innerBand) : [];
   const unexp = outerBand && outerBand!==innerBand ? resDocs.filter(d=>d.dist_band===outerBand) : [];
   const a=exp.filter(hasSym).length,   b=exp.length-exp.filter(hasSym).length;
   const c=unexp.filter(hasSym).length, d2=unexp.length-unexp.filter(hasSym).length;
-  const rE=(a+b)?a/(a+b):0, rU=(c+d2)?c/(c+d2):0;
-  const rr = rU>0 ? rE/rU : null;
+  // OR = (a/b) / (c/d) = (a*d) / (b*c)
+  const or = (b>0&&c>0&&d2>0) ? (a*d2)/(b*c) : null;
   let lo=null,hi=null,se=null;
-  if (rr&&a>0&&b>0&&c>0&&d2>0) {
-    se=Math.sqrt(b/(a*(a+b))+d2/(c*(c+d2)));
-    lo=Math.exp(Math.log(rr)-1.96*se); hi=Math.exp(Math.log(rr)+1.96*se);
+  if (or&&a>0&&b>0&&c>0&&d2>0) {
+    se = Math.sqrt(1/a + 1/b + 1/c + 1/d2);
+    lo = Math.exp(Math.log(or) - 1.96*se);
+    hi = Math.exp(Math.log(or) + 1.96*se);
   }
-  console.log(`[Results] RR=${rr?.toFixed(2)??'N/A'} (${innerBand} vs ${outerBand}), KI=[${lo?.toFixed(2)??'-'}, ${hi?.toFixed(2)??'-'}]`);
-  document.getElementById('rr-v').textContent  = rr?rr.toFixed(2)+'x':'-';
+  // Keep rr as alias for conclusion section below (approximate)
+  const rE=(a+b)?a/(a+b):0, rU=(c+d2)?c/(c+d2):0;
+  const rr = or; // use OR as the effect measure throughout
+  console.log(`[Results] OR=${or?.toFixed(2)??'N/A'} (${innerBand} vs ${outerBand}), KI=[${lo?.toFixed(2)??'-'}, ${hi?.toFixed(2)??'-'}]`);
+  document.getElementById('rr-v').textContent  = or?or.toFixed(2)+'x':'-';
   document.getElementById('rr-lo').textContent = lo?lo.toFixed(2)+'x':'-';
   document.getElementById('rr-hi').textContent = hi?hi.toFixed(2)+'x':'-';
   document.getElementById('rr-bands').textContent = innerBand&&outerBand ? `${innerBand} vs. ${outerBand}` : '';
   const rrI = document.getElementById('rr-interp');
-  if(rr&&lo&&hi) {
+  if(or&&lo&&hi) {
     const sigBadge = lo>1
-      ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> - KI inkluderer ikke 1,0.`
-      : `KI inkluderer 1,0 - kræver flere svar for signifikans.`;
-    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har en <strong>${rr.toFixed(2)} gange højere risiko</strong> for helbredssymptomer vs. ${outerBand}. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] - ${sigBadge}`;
+      ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> — KI inkluderer ikke 1,0.`
+      : `KI inkluderer 1,0 — kræver flere svar for signifikans.`;
+    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har <strong>${or.toFixed(2)} gange højere odds</strong> for helbredssymptomer vs. ${outerBand}. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${sigBadge}
+      <div style="margin-top:.55rem;font-size:.79rem;color:var(--muted);border-top:1px solid var(--border);padding-top:.45rem">
+        <strong>Hvorfor OR og ikke RR?</strong> Da dette er en tværsnitsundersøgelse (cross-sectional) uden prospektiv opfølgning, kan vi ikke beregne incidens over tid — og dermed ikke den klassiske Relativ Risiko. Odds Ratio er det korrekte mål her. OR ≈ RR, når udfaldet er sjældent (&lt;10 %), men er statistisk præcis uanset prævalens.
+      </div>`;
   } else if(!(a+b)||!(c+d2))
-    rrI.innerHTML=`Mangler svar fra inderste <em>eller</em> yderste zone for at beregne RR.`;
+    rrI.innerHTML=`Mangler svar fra inderste <em>eller</em> yderste zone for at beregne OR.`;
   else
     rrI.innerHTML=`${innerBand??'?'}: ${(rE*100).toFixed(1)} % (n=${a+b}) &nbsp;|&nbsp; ${outerBand??'?'}: ${(rU*100).toFixed(1)} % (n=${c+d2}).`;
 
   renderKatex('rr-formula-math',
-    `\\text{RR} = \\dfrac{P(\\text{sym}\\mid\\text{nær})}{P(\\text{sym}\\mid\\text{fjern})} = \\dfrac{a/(a+b)}{c/(c+d)} \\\\[0.4em] ` +
-    `\\text{SE}(\\ln\\text{RR}) = \\sqrt{\\dfrac{b}{a(a+b)} + \\dfrac{d}{c(c+d)}} \\\\[0.4em] ` +
-    `\\text{KI}_{95\\%} = \\exp\\!\\left(\\ln\\text{RR} \\pm 1{,}96\\cdot\\text{SE}(\\ln\\text{RR})\\right)`
+    `\\text{OR} = \\dfrac{a/b}{c/d} = \\dfrac{a \\cdot d}{b \\cdot c} \\\\[0.5em]` +
+    `\\text{SE}(\\ln\\text{OR}) = \\sqrt{\\dfrac{1}{a}+\\dfrac{1}{b}+\\dfrac{1}{c}+\\dfrac{1}{d}} \\\\[0.4em]` +
+    `\\text{KI}_{95\\%} = \\exp\\!\\left(\\ln\\text{OR} \\pm 1{,}96\\cdot\\text{SE}(\\ln\\text{OR})\\right)`
   );
   document.getElementById('rr-formula').textContent=
-    `Inderste zone (${innerBand}):  a = ${a},  b = ${b}\n`+
-    `Yderste zone (${outerBand}):  c = ${c},  d = ${d2}\n`+
-    `RR = (${a}/${a+b}) / (${c}/${c+d2}) = ${rE.toFixed(4)} / ${rU.toFixed(4)} = ${rr?rr.toFixed(4):'-'}\n`+
-    (se?`SE(ln RR) = ${se.toFixed(4)}\n95 % KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper.');
+    `2×2-tabel:\n`+
+    `                Symptom   Ingen\n`+
+    `  Nær (${innerBand}):   a = ${a}       b = ${b}   (n=${a+b})\n`+
+    `  Fjern (${outerBand}):  c = ${c}       d = ${d2}   (n=${c+d2})\n\n`+
+    `OR = (a×d) / (b×c) = (${a}×${d2}) / (${b}×${c}) = ${or?or.toFixed(4):'-'}\n`+
+    (se?`SE(ln OR) = √(1/${a}+1/${b}+1/${c}+1/${d2}) = ${se.toFixed(4)}\n95 % KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper (a,b,c,d > 0).');
 
   // ── 4. Chi-squared (nærmeste 2 beboerbånd vs fjerneste 2) ─
   const nearBands = ['1.25-3 km','3-5 km'];
@@ -694,13 +809,16 @@ function updateScientific(docs) {
       <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${reg?`Hældning = ${reg.slope.toFixed(2)} %/km, R² = ${(reg.r2*100).toFixed(1)} % (${active.length} zoner).`:'Kræver svar fra ≥2 zoner.'}</div>
     </div>
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">3.</div>
-      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">RR &amp; χ²-test</div>
-      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">RR = ${rrStr} ${kiStr}. χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}</div>
+      <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">OR &amp; χ²-test</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">OR = ${rrStr} ${kiStr}. χ² = ${chi2.toFixed(2)}, p ${pv<0.001?'< 0,001':'= '+pFmt(pv)}. ${pv<0.05?'H₀ forkastes.':'Endnu ikke signifikant.'}</div>
     </div>
   </div>
   <div class="notice notice-warn" style="margin:0">
-    <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af':'er på vej mod at opfylde'} Bradford Hill-kriterierne og bør præsenteres for kommunen med krav om officiel epidemiologisk undersøgelse.
-    ${n<50?' <em>Del linket for at styrke evidensen.</em>':''}
+    <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af Bradford Hill-kriterierne for kausal sammenhæng':'er under dannelse — fortsæt dataindsamlingen'}.
+    ${hasGrad&&pv<0.05
+      ? `De bør fremsendes til <strong>Miljøstyrelsen</strong> og <strong>Styrelsen for Patientsikkerhed</strong> med krav om en officiel, registerbaseret epidemiologisk undersøgelse af lufthavnsnære beboeres helbredsstatus — herunder kobling til CPR-registret og Landspatientregisteret.`
+      : `Når datamaterialet er tilstrækkeligt, bør det fremsendes til <strong>Miljøstyrelsen</strong> og <strong>Styrelsen for Patientsikkerhed</strong>.`}
+    ${n<50?' <em>Del linket — jo flere svar, jo stærkere evidens.</em>':''}
   </div>`;
 }
 
@@ -767,6 +885,98 @@ function updateConfounders(docs) {
   const older       = withAge.filter(isOlder);
   const cleanSubset = resDocs.filter(d => d.smoking && !isSmoker(d) && d.traffic && !isHighTraffic(d));
 
+  // ══ Del A: Mantel-Haenszel justeret odds ratio (nær vs. fjern) ══
+  // Bygger en 2×2-tabel (nær/fjern × symptom/ingen) for et givent subset.
+  const NEAR_BANDS = ['1.25-3 km','3-5 km'], FAR_BANDS = ['7.5-15 km','15-25 km'];
+  function table2x2(subset) {
+    const near = subset.filter(d => NEAR_BANDS.includes(d.dist_band));
+    const far  = subset.filter(d => FAR_BANDS.includes(d.dist_band));
+    const aS = near.filter(hasSym).length, cS = far.filter(hasSym).length;
+    return { a: aS, b: near.length - aS, c: cS, d: far.length - cS };
+  }
+
+  const crude  = mhOddsRatio([ table2x2(resDocs) ]);                       // ujusteret
+  const ageMH  = mhOddsRatio([ table2x2(younger),    table2x2(older)    ]);
+  const smMH   = mhOddsRatio([ table2x2(neverSmoke), table2x2(withSmoking.filter(isSmoker)) ]);
+  const trMH   = mhOddsRatio([ table2x2(noHighTraff), table2x2(withTraffic.filter(isHighTraffic)) ]);
+
+  const fullDocs   = resDocs.filter(d => ageMid(d) !== null && d.smoking && d.traffic);
+  const fullStrata = [];
+  [true,false].forEach(ag => [true,false].forEach(sm => [true,false].forEach(tr => {
+    const sub = fullDocs.filter(d => isYounger(d) === ag && isSmoker(d) === sm && isHighTraffic(d) === tr);
+    if (sub.length) fullStrata.push(table2x2(sub));
+  })));
+  const fullMH = mhOddsRatio(fullStrata);
+
+  const crudeOR = crude.or;
+  const fmtOR = mh => (mh && mh.or !== null) ? mh.or.toFixed(2) + '×' : '-';
+  const fmtCI = mh => (mh && mh.or !== null && mh.lo) ? `[${mh.lo.toFixed(2)}; ${mh.hi.toFixed(2)}]` : '-';
+  function mhVerdict(mh) {
+    const ic = name => `<svg class="icon" style="margin-right:.3rem"><use href="#i-${name}"/></svg>`;
+    if (!mh || mh.or === null || mh.used < 2 || mh.nTot < 20)
+      return `<span class="status status-pending">${ic('clock')}For få svar (n=${mh?.nTot ?? 0})</span>`;
+    if (!crudeOR) return `<span class="status status-pending">${ic('clock')}Mangler crude OR</span>`;
+    const change = (mh.or - crudeOR) / crudeOR;
+    if (mh.or > 1.2 && Math.abs(change) <= 0.25)
+      return `<span class="status status-pos">${ic('check')}Effekt robust - confounding usandsynlig</span>`;
+    if (mh.or > 1.2)
+      return `<span class="status status-pos">${ic('check')}Effekt består (justeret ${change>0?'+':''}${(change*100).toFixed(0)} %)</span>`;
+    return `<span class="status status-warn">${ic('alert')}Effekt svækkes ved justering</span>`;
+  }
+  function mhRow(label, sublabel, mh, verdictHtml, isHeader=false) {
+    return `<tr${isHeader?' style="border-top:2px solid var(--border)"':''}>
+      <td class="dzone">${isHeader?'<strong>':''}${label}${isHeader?'</strong>':''}${sublabel?`<br><small style="font-weight:400;color:var(--muted)">${sublabel}</small>`:''}</td>
+      <td class="drate">${fmtOR(mh)}</td>
+      <td>${fmtCI(mh)}</td>
+      <td>${mh?.nTot ?? 0}</td>
+      <td style="font-size:.79rem">${verdictHtml}</td>
+    </tr>`;
+  }
+
+  const mhEl = document.getElementById('mh-body');
+  if (mhEl) {
+    mhEl.innerHTML = `
+      <div class="rr-grid" style="margin-bottom:.9rem">
+        <div class="rr-box"><div class="rr-num">${fmtOR(crude)}</div><div class="rr-lbl">Crude OR (ujusteret)</div></div>
+        <div class="rr-box"><div class="rr-num">${fmtOR(fullMH)}</div><div class="rr-lbl">Fuldt justeret OR</div></div>
+        <div class="rr-box"><div class="rr-num" style="font-size:1rem">${fmtCI(fullMH)}</div><div class="rr-lbl">95 % KI (justeret)</div></div>
+      </div>
+      <table class="dose-table" style="margin-bottom:1rem">
+        <thead><tr><th>Model</th><th>OR</th><th>95 % KI</th><th>n</th><th>Fortolkning</th></tr></thead>
+        <tbody>
+          ${mhRow('Ujusteret (crude)','Nær 1,25–5 km vs. fjern 7,5–25 km', crude, '<span style="color:var(--muted)">Referencelinje</span>')}
+          ${mhRow('Justeret for alder','Strata: &lt;46 / ≥46 år', ageMH, mhVerdict(ageMH))}
+          ${mhRow('Justeret for rygning','Strata: aldrig / nogensinde ryger', smMH, mhVerdict(smMH))}
+          ${mhRow('Justeret for vejtrafikstøj','Strata: lav / høj trafikstøj', trMH, mhVerdict(trMH))}
+          ${mhRow('Fuldt justeret','Alder × rygning × vejtrafikstøj', fullMH, mhVerdict(fullMH), true)}
+        </tbody>
+      </table>
+      <div class="rr-interp" style="border-left-color:var(--navy-light)">
+        <strong>Sådan læses tabellen:</strong> "Crude OR" er den ujusterede odds ratio for symptomer nær vs. fjern lufthavnen. De justerede rækker pooler den <em>samme</em> nær-vs-fjern-sammenligning <em>inden for</em> strata af hver confounder (Mantel-Haenszel), så fx en skæv aldersfordeling mellem nær- og fjernzone ikke kan skabe et falsk signal. <strong>Forbliver den justerede OR tæt på den ujusterede og stadig &gt; 1, er mønsteret ikke forklaret af confounding.</strong> Falder OR derimod mod 1,0 ved justering, forklarede confounderen en del af effekten.
+      </div>
+      <details style="margin-top:.9rem">
+        <summary>Beregningsgrundlag - Mantel-Haenszel-formel og strata</summary>
+        <div id="mh-formula-math" class="formula-katex"></div>
+        <div id="mh-formula" class="formula-num"></div>
+      </details>`;
+
+    renderKatex('mh-formula-math',
+      `\\text{OR}_{MH} = \\dfrac{\\sum_i a_i d_i / n_i}{\\sum_i b_i c_i / n_i} \\\\[0.5em]` +
+      `\\text{KI}_{95\\%} = \\exp\\!\\left(\\ln\\text{OR}_{MH} \\pm 1{,}96\\,\\sqrt{\\widehat{\\operatorname{Var}}(\\ln\\text{OR}_{MH})}\\right)`
+    );
+    const mhFx = document.getElementById('mh-formula');
+    if (mhFx) {
+      mhFx.textContent = (fullMH.terms && fullMH.terms.length)
+        ? `Fuldt justeret model - bidrag pr. stratum (a=nær+symptom, b=nær+ingen, c=fjern+symptom, d=fjern+ingen):\n`
+          + fullMH.terms.map((t,i)=>`  Stratum ${i+1}:  a=${t.a}  b=${t.b}  c=${t.c}  d=${t.d}  (n=${t.ni})  →  aᵢdᵢ/nᵢ = ${t.R.toFixed(3)},  bᵢcᵢ/nᵢ = ${t.S.toFixed(3)}`).join('\n')
+          + `\n\n  Σ aᵢdᵢ/nᵢ = ${fullMH.sumR.toFixed(3)}     Σ bᵢcᵢ/nᵢ = ${fullMH.sumS.toFixed(3)}`
+          + `\n  OR_MH = ${fullMH.sumR.toFixed(3)} / ${fullMH.sumS.toFixed(3)} = ${fullMH.or !== null ? fullMH.or.toFixed(3) : '-'}`
+          + (fullMH.or !== null ? `\n  95 % KI = [${fullMH.lo.toFixed(3)}; ${fullMH.hi.toFixed(3)}]   (Robins-Breslow-Greenland-varians)` : '')
+        : 'Endnu ikke nok svar med fuldstændige baggrundsoplysninger (alder + rygning + vejtrafikstøj) til den fuldt justerede model. Del linket for at indsamle flere svar.';
+    }
+  }
+
+  // ══ Del B: Stratificeret gradient (afstandsmønster pr. undergruppe) ══
   function gradient(subset) {
     const active = RES_BANDS.map(zone => {
       const sub = subset.filter(d => d.dist_band === zone);
@@ -829,6 +1039,56 @@ function updateConfounders(docs) {
     </div>`;
 }
 
+// ── Signatursymptomer (specificitet) ─────────────────────────
+// Hovedpine + kvalme er fysiologiske, relativt specifikke symptomer. Generel
+// støjgene/søvnforstyrrelse er uspecifik og forventelig ved enhver støjkilde -
+// at de specifikke symptomer er hyppigere TÆT på lufthavnen er et stærkere
+// kausalt fingeraftryk. Vi viser prævalens nær (1,25-5 km) vs. fjern (7,5-25 km).
+const SIGNATURE_SYMS = [
+  { label:'Hovedpine / trykken i hovedet', val:'Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj' },
+  { label:'Kvalme eller utilpashed',       val:'Kvalme eller utilpashed' },
+  { label:'Irritation i øjne, næse, svælg', val:'Irritation i øjne, næse eller svælg' },
+];
+function updateUnique(docs) {
+  const el = document.getElementById('unique-sym-body');
+  if (!el) return;
+  const resDocs = docs.filter(d => !isEmployee(d));
+  const n = resDocs.length;
+  if (!n) { el.innerHTML = '<div class="notice notice-warn">Endnu ingen beboersvar.</div>'; return; }
+
+  const has  = (d, val) => ['stoj','luft','psyko'].some(cat => (d[cat]||[]).includes(val));
+  const near = resDocs.filter(d => ['1.25-3 km','3-5 km'].includes(d.dist_band));
+  const far  = resDocs.filter(d => ['7.5-15 km','15-25 km'].includes(d.dist_band));
+  const pct  = (arr, val) => arr.length ? arr.filter(d => has(d, val)).length / arr.length * 100 : null;
+  const cell = v => v === null ? '<td class="drate">-</td>'
+                               : `<td class="drate">${v.toFixed(1)} %</td>`;
+
+  const rows = SIGNATURE_SYMS.map(s => {
+    const pNear = pct(near, s.val), pFar = pct(far, s.val), pAll = pct(resDocs, s.val);
+    const ratio = (pNear && pFar) ? (pNear / pFar) : null;
+    return `<tr>
+      <td class="dzone">${s.label}</td>
+      ${cell(pNear)}${cell(pFar)}${cell(pAll)}
+      <td class="drate">${ratio ? '<strong>'+ratio.toFixed(1)+'×</strong>' : '-'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table class="dose-table" style="margin-bottom:.9rem">
+      <thead><tr>
+        <th>Signatursymptom</th>
+        <th>Nær<br><small style="font-weight:400;color:var(--muted)">1,25–5 km (n=${near.length})</small></th>
+        <th>Fjern<br><small style="font-weight:400;color:var(--muted)">7,5–25 km (n=${far.length})</small></th>
+        <th>Alle<br><small style="font-weight:400;color:var(--muted)">(n=${n})</small></th>
+        <th>Nær/fjern</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="rr-interp" style="border-left-color:var(--luft)">
+      <strong>Hvorfor er disse symptomer afgørende?</strong> Søvnforstyrrelse, irritabilitet og generel støjgene er <em>uspecifikke</em> - de optræder ved næsten enhver støjkilde og kan ikke i sig selv adskille lufthavnen fra fx vejtrafik. Derimod er <strong>hovedpine, kvalme og slimhindeirritation</strong> fysiologiske reaktioner, der typisk knyttes til <em>luftbåren</em> forurening (ultrafine partikler og dampe fra jetbrændstof). At netop disse er hyppigere tæt på lufthavnen - kolonnen "Nær/fjern" viser overrepræsentationen - er et langt mere specifikt kausalt fingeraftryk end støjgene alene. Det er denne kombination, der gør undersøgelsens fund usædvanligt.
+    </div>`;
+}
+
 // ── Full refresh ──────────────────────────────────────────────
 function refreshResults() {
   console.log('[Results] refreshResults() kaldt.');
@@ -841,6 +1101,7 @@ function refreshResults() {
     console.log(`[Results] Genrenderer med ${_latestDocs.length} cached docs.`);
     updateAll(_latestDocs);
     updateScientific(_latestDocs);
+    updateUnique(_latestDocs);
     updateConfounders(_latestDocs);
     if (rMap) updateResultsMap(_latestDocs);
   } else {
@@ -849,7 +1110,78 @@ function refreshResults() {
 }
 registerResultsRefresh(refreshResults);
 
-// ── Live Firestore listener ───────────────────────────────────
+// ── CSV Download ──────────────────────────────────────────────
+window.downloadCSV = () => {
+  if (!_latestDocs || _latestDocs.length === 0) {
+    alert('Ingen data at downloade endnu.'); return;
+  }
+  // Build a flat, analysis-friendly CSV
+  const cols = [
+    // Placering er bevidst kun område (zone + retning) - ingen koordinater/eksakt afstand.
+    'dist_band','dir',
+    'years','age','smoking','smoking_years','traffic','is_employee',
+    'stoj_sev','luft_sev','onset','onset_luft','got_worse','got_worse_luft',
+    // Symptom presence flags (0/1) - one column per category
+    'has_stoj','has_luft','has_psyko','has_kronisk',
+    // Aggregate counts
+    'n_stoj','n_luft','n_psyko','n_kronisk',
+    // All symptom arrays as pipe-separated text
+    'stoj_items','luft_items','psyko_items','kronisk_items'
+  ];
+  const esc = v => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = [cols.join(',')];
+  _latestDocs.forEach(d => {
+    const stojArr    = d.stoj    || [];
+    const luftArr    = d.luft    || [];
+    const psykoArr   = d.psyko   || [];
+    const kroniskArr = d.kronisk || [];
+    rows.push([
+      esc(d.dist_band),
+      esc(d.dir),
+      esc(d.years),
+      esc(d.age),
+      esc(d.smoking),
+      esc(d.smoking_years),
+      esc(d.traffic),
+      esc(d.is_employee ? 1 : 0),
+      esc(d.stoj_sev ?? ''),
+      esc(d.luft_sev ?? ''),
+      esc(d.onset),
+      esc(d.onset_luft),
+      esc(d.got_worse),
+      esc(d.got_worse_luft),
+      esc(stojArr.length    > 0 ? 1 : 0),
+      esc(luftArr.length    > 0 ? 1 : 0),
+      esc(psykoArr.length   > 0 ? 1 : 0),
+      esc(kroniskArr.length > 0 ? 1 : 0),
+      esc(stojArr.length),
+      esc(luftArr.length),
+      esc(psykoArr.length),
+      esc(kroniskArr.length),
+      esc(stojArr.join('|')),
+      esc(luftArr.join('|')),
+      esc(psykoArr.join('|')),
+      esc(kroniskArr.join('|')),
+    ].join(','));
+  });
+  const blob = new Blob([rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `cph-lufthavn-data-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  console.log(`[Results] CSV downloadet: ${_latestDocs.length} rækker.`);
+};
+
+
 if (db) {
   console.log('[Results] Opretter onSnapshot-lytter…');
   onSnapshot(query(collection(db,'responses')), snap => {
@@ -862,6 +1194,7 @@ if (db) {
       console.log('[Results] Tab aktiv - opdaterer live.');
       updateAll(docs);
       updateScientific(docs);
+      updateUnique(docs);
       updateConfounders(docs);
     } else {
       console.log('[Results] Tab skjult - data cached.');
