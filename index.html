@@ -315,6 +315,31 @@ details[open] summary{color:var(--text)}
   .leaflet-overlay-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-popup-pane{filter:invert(1) hue-rotate(180deg)}
   .sci-divider{color:var(--muted)}
   .sci-divider::before,.sci-divider::after{background:var(--border)}
+
+  /* ══ Dark-mode kontrastrettelser ══════════════════════════════ */
+  /* Generisk: inline tekstfarver der bruger ikke-tilpassede brand-variabler
+     (navy/stoj/luft/psyko/kronisk/red/emp) er mørk-på-mørk i dark mode.
+     Disse selektorer fanger BÅDE statiske inline-styles i HTML OG de
+     dynamisk indsatte styles fra results.js, og mapper dem til lyse varianter. */
+  [style*="color:var(--navy)"]{color:#8fb4e6!important}
+  [style*="color:var(--navy-mid)"],[style*="color:var(--navy-light)"]{color:#7aaae0!important}
+  [style*="color:var(--stoj)"]{color:#9cc0eb!important}
+  [style*="color:var(--luft)"]{color:#eda172!important}
+  [style*="color:var(--psyko)"]{color:#c0a0e8!important}
+  [style*="color:var(--kronisk)"]{color:#e89090!important}
+  [style*="color:var(--red)"]{color:#ec7c6e!important}
+  [style*="color:var(--emp)"]{color:#6cd494!important}
+  /* Hardkodede lyse bokse / mørk tekst i inline-styles */
+  [style*="color:#7b0000"]{color:#e89090!important;border-bottom-color:#5a2828!important}
+  [style*="background:#fdf0f0"]{background:#3a1818!important;border-color:#5a2828!important}
+  [style*="background:#f5ede0"]{background:#1e1408!important;border-color:#4a3010!important}
+  [style*="background:#fdf8ec"]{background:#1a1408!important;border-color:#4a3a10!important}
+  [style*="color:#5a3a00"]{color:#d8b878!important}
+  [style*="color:#7a3e00"]{color:#d4a040!important}
+  /* Klasser hvis brand-farve ikke var overstyret i dark mode */
+  .rr-num{color:#ff7a66}
+  .drate{color:#ef8074}
+  .concl-n{color:#8fb4e6}
 }
 </style>
 </head>

@@ -915,7 +915,7 @@ function updateConfounders(docs) {
     const ic = name => `<svg class="icon" style="margin-right:.3rem"><use href="#i-${name}"/></svg>`;
     if (!mh || mh.or === null || mh.used < 2 || mh.nTot < 20)
       return `<span class="status status-pending">${ic('clock')}For få svar (n=${mh?.nTot ?? 0})</span>`;
-    if (!crudeOR) return `<span class="status status-pending">${ic('clock')}Mangler crude OR</span>`;
+    if (!crudeOR) return `<span class="status status-pending">${ic('clock')}Mangler ujusteret OR</span>`;
     const change = (mh.or - crudeOR) / crudeOR;
     if (mh.or > 1.2 && Math.abs(change) <= 0.25)
       return `<span class="status status-pos">${ic('check')}Effekt robust - confounding usandsynlig</span>`;
@@ -937,14 +937,14 @@ function updateConfounders(docs) {
   if (mhEl) {
     mhEl.innerHTML = `
       <div class="rr-grid" style="margin-bottom:.9rem">
-        <div class="rr-box"><div class="rr-num">${fmtOR(crude)}</div><div class="rr-lbl">Crude OR (ujusteret)</div></div>
+        <div class="rr-box"><div class="rr-num">${fmtOR(crude)}</div><div class="rr-lbl">Ujusteret OR</div></div>
         <div class="rr-box"><div class="rr-num">${fmtOR(fullMH)}</div><div class="rr-lbl">Fuldt justeret OR</div></div>
         <div class="rr-box"><div class="rr-num" style="font-size:1rem">${fmtCI(fullMH)}</div><div class="rr-lbl">95 % KI (justeret)</div></div>
       </div>
       <table class="dose-table" style="margin-bottom:1rem">
         <thead><tr><th>Model</th><th>OR</th><th>95 % KI</th><th>n</th><th>Fortolkning</th></tr></thead>
         <tbody>
-          ${mhRow('Ujusteret (crude)','Nær 1,25–5 km vs. fjern 7,5–25 km', crude, '<span style="color:var(--muted)">Referencelinje</span>')}
+          ${mhRow('Ujusteret','Nær 1,25–5 km vs. fjern 7,5–25 km', crude, '<span style="color:var(--muted)">Referencelinje</span>')}
           ${mhRow('Justeret for alder','Strata: &lt;46 / ≥46 år', ageMH, mhVerdict(ageMH))}
           ${mhRow('Justeret for rygning','Strata: aldrig / nogensinde ryger', smMH, mhVerdict(smMH))}
           ${mhRow('Justeret for vejtrafikstøj','Strata: lav / høj trafikstøj', trMH, mhVerdict(trMH))}
@@ -952,7 +952,7 @@ function updateConfounders(docs) {
         </tbody>
       </table>
       <div class="rr-interp" style="border-left-color:var(--navy-light)">
-        <strong>Sådan læses tabellen:</strong> "Crude OR" er den ujusterede odds ratio for symptomer nær vs. fjern lufthavnen. De justerede rækker pooler den <em>samme</em> nær-vs-fjern-sammenligning <em>inden for</em> strata af hver confounder (Mantel-Haenszel), så fx en skæv aldersfordeling mellem nær- og fjernzone ikke kan skabe et falsk signal. <strong>Forbliver den justerede OR tæt på den ujusterede og stadig &gt; 1, er mønsteret ikke forklaret af confounding.</strong> Falder OR derimod mod 1,0 ved justering, forklarede confounderen en del af effekten.
+        <strong>Sådan læses tabellen:</strong> Den <strong>ujusterede</strong> OR er odds ratio for symptomer nær vs. fjern lufthavnen, uden hensyn til baggrundsfaktorer. De justerede rækker pooler den <em>samme</em> nær-vs-fjern-sammenligning <em>inden for</em> strata af hver confounder (Mantel-Haenszel), så fx en skæv aldersfordeling mellem nær- og fjernzone ikke kan skabe et falsk signal. <strong>Forbliver den justerede OR tæt på den ujusterede og stadig &gt; 1, er mønsteret ikke forklaret af confounding.</strong> Falder OR derimod mod 1,0 ved justering, forklarede confounderen en del af effekten.
       </div>
       <details style="margin-top:.9rem">
         <summary>Beregningsgrundlag - Mantel-Haenszel-formel og strata</summary>
