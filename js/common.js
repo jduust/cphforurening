@@ -4,6 +4,9 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeAppCheck, ReCaptchaV3Provider }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+
 
 // ── Firebase config ───────────────────────────────────────────
 const firebaseConfig = {
@@ -19,19 +22,18 @@ export let db = null;
 try {
   const app = initializeApp(firebaseConfig);
   db = getFirestore(app);
+
+  // After initializeApp(firebaseConfig):
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6Lf0OiMtAAAAAAy_ycpWCW7PKDgJPPLXimzCguo6'),
+    isTokenAutoRefreshEnabled: true
+  });
+
   console.log('[Firebase] ✅ Firestore initialiseret.');
 } catch (e) {
   console.error('[Firebase] ❌ Initialisering fejlede:', e.message);
 }
 
-import { initializeAppCheck, ReCaptchaV3Provider }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
-
-// After initializeApp(firebaseConfig):
-initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6Lf0OiMtAAAAAAy_ycpWCW7PKDgJPPLXimzCguo6'),
-  isTokenAutoRefreshEnabled: true
-});
 
 // ── Constants ─────────────────────────────────────────────────
 export const AIRPORT = { lat: 55.6180, lng: 12.6560 };
