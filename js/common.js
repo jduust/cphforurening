@@ -24,6 +24,15 @@ try {
   console.error('[Firebase] ❌ Initialisering fejlede:', e.message);
 }
 
+import { initializeAppCheck, ReCaptchaV3Provider }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+
+// After initializeApp(firebaseConfig):
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6Lf0OiMtAAAAAAy_ycpWCW7PKDgJPPLXimzCguo6'),
+  isTokenAutoRefreshEnabled: true
+});
+
 // ── Constants ─────────────────────────────────────────────────
 export const AIRPORT = { lat: 55.6180, lng: 12.6560 };
 
@@ -64,6 +73,7 @@ export const ALL_SYMS = [
   {v:'Irritation i øjne, næse eller svælg',                                  k:'luft', t:'sym'},
   {v:'Hyppige luftvejsinfektioner (3 eller flere pr. år)',                   k:'luft', t:'sym'},
   {v:'Kvalme eller utilpashed',                                               k:'luft', t:'sym'},
+  {v:'Hovedpine',                                                             k:'luft', t:'sym'},
   {v:'Forværring af eksisterende luftvejssygdom',                             k:'luft', t:'sym'},
   // ── Luft - gener (adfærdspåvirkning) ─────────────────────────
   {v:'Lugt af jetbrændstof indendørs',                                       k:'luft', t:'gen'},

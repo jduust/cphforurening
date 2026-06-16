@@ -1046,6 +1046,7 @@ function updateConfounders(docs) {
 // kausalt fingeraftryk. Vi viser prævalens nær (1,25-5 km) vs. fjern (7,5-25 km).
 const SIGNATURE_SYMS = [
   { label:'Hovedpine / trykken i hovedet', val:'Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj' },
+  { label:'Hovedpine (luftforurening)',    val:'Hovedpine' },
   { label:'Kvalme eller utilpashed',       val:'Kvalme eller utilpashed' },
   { label:'Irritation i øjne, næse, svælg', val:'Irritation i øjne, næse eller svælg' },
 ];
