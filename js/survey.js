@@ -175,9 +175,19 @@ window.submitSurvey = async () => {
   if (!_isEmpSubmit && !document.getElementById('f-years').value) {
     alert('Angiv venligst hvor længe du har boet på adressen'); return;
   }
+  if (!document.getElementById('f-age').value) {
+    document.getElementById('f-age').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst din aldersgruppe'); return;
+  }
   if (!document.getElementById('f-smoking').value) {
     document.getElementById('f-smoking').scrollIntoView({ behavior:'smooth', block:'center' });
     alert('Angiv venligst din rygestatus'); return;
+  }
+  const _smokingVal = document.getElementById('f-smoking').value;
+  if ((_smokingVal === 'Ja, nuværende ryger' || _smokingVal === 'Nej, men har røget') &&
+      !document.getElementById('f-smoking-years').value) {
+    document.getElementById('f-smoking-years').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst hvor mange år du har røget samlet'); return;
   }
   if (!_isEmpSubmit && !document.getElementById('f-traffic').value) {
     document.getElementById('f-traffic').scrollIntoView({ behavior:'smooth', block:'center' });

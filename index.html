@@ -462,9 +462,9 @@ details[open] summary{color:var(--text)}
           </select>
         </div>
         <div class="form-group" style="margin:0">
-          <label>Aldersgruppe</label>
-          <select id="f-age">
-            <option value="">- Valgfri -</option>
+          <label>Aldersgruppe <span class="req">*</span></label>
+          <select id="f-age" required>
+            <option value="">- Vælg venligst -</option>
             <option>Under 18</option><option>18–30 år</option>
             <option>31–45 år</option><option>46–60 år</option><option>Over 60 år</option>
           </select>
@@ -484,9 +484,9 @@ details[open] summary{color:var(--text)}
         </select>
       </div>
       <div class="form-group" style="margin-bottom:.9rem;display:none" id="smoking-years-wrap">
-        <label>Hvor mange år har du røget samlet?</label>
+        <label>Hvor mange år har du røget samlet? <span class="req">*</span></label>
         <select id="f-smoking-years">
-          <option value="">- Valgfri -</option>
+          <option value="">- Vælg venligst -</option>
           <option value="Under 5 år">Under 5 år</option>
           <option value="5-10 år">5–10 år</option>
           <option value="10-20 år">10–20 år</option>
