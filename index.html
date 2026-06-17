@@ -475,9 +475,9 @@ details[open] summary{color:var(--text)}
         <span><strong style="color:var(--text);font-weight:600">Hvorfor spørger vi om alder?</strong> Risiko for kræft, hjerte-karsygdom og symptomrapportering stiger med alderen - alder er en af de stærkeste confoundere i epidemiologi. Aldersgruppen bruges til at stratificere analyserne (fx separat gradient for &lt;46 år vs. ≥46 år), så vi kan teste om afstandsmønsteret består når aldersfordelingen kontrolleres.</span>
       </div>
       <div class="form-group" style="margin-bottom:.9rem">
-        <label>Ryger du?</label>
-        <select id="f-smoking" onchange="handleSmokingChange()">
-          <option value="">- Valgfri -</option>
+        <label>Ryger du? <span class="req">*</span></label>
+        <select id="f-smoking" onchange="handleSmokingChange()" required>
+          <option value="">- Vælg venligst -</option>
           <option value="Ja, nuværende ryger">Ja - ryger stadig</option>
           <option value="Nej, men har røget">Nej - men har røget regelmæssigt</option>
           <option value="Nej, aldrig">Nej, aldrig</option>
@@ -494,9 +494,9 @@ details[open] summary{color:var(--text)}
         </select>
       </div>
       <div class="form-group" id="f-traffic-row" style="margin-bottom:0">
-        <label>Er du udsat for vejtrafikstøj der hvor du er bosat?</label>
-        <select id="f-traffic">
-          <option value="">- Valgfri -</option>
+        <label>Er du udsat for vejtrafikstøj der hvor du er bosat? <span class="req">*</span></label>
+        <select id="f-traffic" required>
+          <option value="">- Vælg venligst -</option>
           <option value="Ja, i høj grad">Ja, i høj grad</option>
           <option value="Ja, i nogen grad">Ja, i nogen grad</option>
           <option value="Ja, i lav grad">Ja, i lav grad</option>
@@ -717,9 +717,9 @@ details[open] summary{color:var(--text)}
           </select>
         </div>
         <div class="form-group" style="margin-bottom:0">
-          <label>Er støjgenerne <strong>forværret</strong> over den periode du har boet her?</label>
-          <select id="f-got-worse">
-            <option value="">- Vælg -</option>
+          <label>Er støjgenerne <strong>forværret</strong> over den periode du har boet her? <span class="req">*</span></label>
+          <select id="f-got-worse" required>
+            <option value="">- Vælg venligst -</option>
             <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
             <option value="Ja, lettere forværret">Ja, lettere forværret</option>
             <option value="Uændrede siden de startede">Uændrede siden de startede</option>
@@ -732,8 +732,8 @@ details[open] summary{color:var(--text)}
       <div style="padding:.6rem .8rem;background:var(--luft-bg);border:1px solid var(--border);border-radius:var(--r)">
         <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--luft);margin-bottom:.6rem">Luftforurening og lugtgener</div>
         <div class="form-group">
-          <label>Hvornår begyndte du første gang at mærke luft- eller lugtgener?</label>
-          <select id="f-onset-luft">
+          <label>Hvornår begyndte du første gang at mærke luft- eller lugtgener? <span class="req">*</span></label>
+          <select id="f-onset-luft" required>
             <option value="">- Vælg venligst -</option>
             <option value="Oplever ingen mærkbare gener">Oplever ingen mærkbare luft-/lugtgener</option>
             <option value="Før 2015">Før 2015</option>
@@ -747,9 +747,9 @@ details[open] summary{color:var(--text)}
           </select>
         </div>
         <div class="form-group" style="margin-bottom:0">
-          <label>Er luft-/lugtgenerne <strong>forværret</strong> over den periode du har boet her?</label>
-          <select id="f-got-worse-luft">
-            <option value="">- Vælg -</option>
+          <label>Er luft-/lugtgenerne <strong>forværret</strong> over den periode du har boet her? <span class="req">*</span></label>
+          <select id="f-got-worse-luft" required>
+            <option value="">- Vælg venligst -</option>
             <option value="Ja, klart forværret over tid">Ja, klart forværret over tid</option>
             <option value="Ja, lettere forværret">Ja, lettere forværret</option>
             <option value="Uændrede siden de startede">Uændrede siden de startede</option>

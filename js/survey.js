@@ -175,8 +175,28 @@ window.submitSurvey = async () => {
   if (!_isEmpSubmit && !document.getElementById('f-years').value) {
     alert('Angiv venligst hvor længe du har boet på adressen'); return;
   }
+  if (!document.getElementById('f-smoking').value) {
+    document.getElementById('f-smoking').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst din rygestatus'); return;
+  }
+  if (!_isEmpSubmit && !document.getElementById('f-traffic').value) {
+    document.getElementById('f-traffic').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst om du er udsat for vejtrafikstøj'); return;
+  }
   if (!_isEmpSubmit && !document.getElementById('f-onset').value) {
-    alert('Angiv venligst hvornår du begyndte at mærke generne'); return;
+    alert('Angiv venligst hvornår du begyndte at mærke flystøjsgener'); return;
+  }
+  if (!_isEmpSubmit && !document.getElementById('f-got-worse').value) {
+    document.getElementById('f-got-worse').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst om støjgenerne er forværret over tid'); return;
+  }
+  if (!_isEmpSubmit && !document.getElementById('f-onset-luft').value) {
+    document.getElementById('f-onset-luft').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst hvornår du begyndte at mærke luft- eller lugtgener'); return;
+  }
+  if (!_isEmpSubmit && !document.getElementById('f-got-worse-luft').value) {
+    document.getElementById('f-got-worse-luft').scrollIntoView({ behavior:'smooth', block:'center' });
+    alert('Angiv venligst om luft-/lugtgenerne er forværret over tid'); return;
   }
   if (!_isEmpSubmit && !window._sliderTouched.stoj) {
     document.getElementById('stoj-sev-block')?.scrollIntoView({ behavior:'smooth', block:'center' });
