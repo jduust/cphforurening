@@ -135,6 +135,7 @@ select:focus,input:focus{border-color:var(--navy-light)}
 footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.73rem;border-top:1px solid var(--border);background:var(--white);letter-spacing:.05em}
 @media(max-width:640px){
   .stats-row{grid-template-columns:1fr 1fr}
+  .stats-row .s4{grid-column:1/-1}
   .two-col{grid-template-columns:1fr}
   nav.tabs button{padding:.75rem .9rem;font-size:.73rem}
   .intro-cards{grid-template-columns:1fr!important}
@@ -191,7 +192,13 @@ details summary{cursor:pointer;font-size:.77rem;font-weight:700;color:var(--mute
 details summary::-webkit-details-marker{display:none}
 details[open] summary{color:var(--text)}
 .formula{font-family:'Inter',sans-serif;font-size:.77rem;color:var(--muted);line-height:2;background:var(--bg);padding:.7rem .9rem;border-radius:var(--r);margin-top:.5rem;white-space:pre-wrap}
-@media(max-width:640px){.rr-grid,.chi-grid,.concl-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.rr-grid,.chi-grid,.concl-grid{grid-template-columns:repeat(3,1fr);gap:.5rem}
+  .rr-box,.chi-box,.concl-item{padding:.65rem .5rem}
+  .rr-num{font-size:1.1rem}
+  .chi-num{font-size:.95rem}
+  .rr-lbl,.chi-lbl,.concl-desc{font-size:.58rem}
+  .concl-n{font-size:1rem}
+}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .sub-hdr{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.4rem .6rem .25rem;margin:.4rem 0 .15rem;color:var(--muted);border-bottom:1px dashed var(--border)}
 .gen-subsection{margin-top:.35rem}
