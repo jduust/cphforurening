@@ -465,9 +465,9 @@ function updateAll(docs) {
     if (nAll > 0 && totalWithAny > 0) {
       summaryEl.innerHTML = `
         <div style="background:var(--white);border:1px solid var(--border);border-radius:4px;padding:.95rem 1.1rem;margin-bottom:1rem">
-          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem">
-            <svg class="icon icon-lg"><use href="#i-alert"/></svg>
-            ${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)} %) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området
+          <div style="font-size:.69rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:.7rem;display:flex;align-items:flex-start;gap:.4rem">
+            <svg class="icon icon-lg" style="flex-shrink:0;margin-top:.1em"><use href="#i-alert"/></svg>
+            <span>${totalWithAny} ud af ${nAll} respondenter (${(totalWithAny/nAll*100).toFixed(1)} %) rapporterer én eller flere af nedenstående diagnoser - opstået <em style="font-style:normal;text-decoration:underline">efter</em> flytning til området</span>
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
             ${GRP_META.map(m => { const mc = CT.kCol[m.g]; return `
