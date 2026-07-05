@@ -190,6 +190,24 @@ function updateAll(docs) {
   });
   console.log('[Results] Beboerbånd:', AB.map(b=>`${b}(n=${B[b].n})`).join(', '));
 
+  // ── Datadæknings-note: gør skævheden i afstandsfordelingen tydelig ──
+  const covEl = document.getElementById('coverage-note');
+  if (covEl) {
+    const near5 = (B['1.25-3 km']?.n||0) + (B['3-5 km']?.n||0);
+    const far75 = (B['7.5-15 km']?.n||0) + (B['15-25 km']?.n||0);
+    if (n > 0) {
+      const pctNear = Math.round(near5 / n * 100);
+      const thin = far75 < 15;
+      covEl.innerHTML = `<div class="notice ${thin?'notice-warn':'notice-success'}" style="margin:0 0 1rem;line-height:1.65">
+        <strong>Om datagrundlaget:</strong> ${n} beboersvar er indsamlet indtil nu. ${near5} (${pctNear} %) bor i nærområdet (1,25–5 km), mens kun <strong>${far75}</strong> bor længere væk end 7,5 km.
+        ${thin
+          ? `Sammenligningerne mod fjernzonen (odds ratio, χ²-test og confounderjustering) hviler derfor på et lille fjern-sample og har brede konfidensintervaller — de er robuste i <em>retning</em>, men stadig <strong>foreløbige</strong> i styrke. Analyserne <em>inden for</em> nærområdet (afstandsgradient, symptomtyper, bopælsvarighed) står på solidt grundlag.`
+          : `Fordelingen giver nu et rimeligt grundlag for nær–fjern-sammenligningerne.`}
+        <em>Del gerne linket bredt — især med beboere længere fra lufthavnen — så de yderste zoner bliver bedre dækket.</em>
+      </div>`;
+    } else covEl.innerHTML = '';
+  }
+
   // Distance gradient chart
   del('dist');
   ch['dist'] = new Chart(document.getElementById('c-dist'), {
@@ -630,15 +648,20 @@ function updateScientific(docs) {
     return { zone, n:sub.length, nS, rate:sub.length?nS/sub.length*100:null,
              mid:BAND_MIDPOINTS[zone] };
   });
+  const SMALL_N = 5; // zoner under dette antal er statistisk usikre
   const maxR = Math.max(...dd.filter(d=>d.rate!==null).map(d=>d.rate), 1);
+  const anySmall = dd.some(d=>d.n>0 && d.n<SMALL_N);
   document.getElementById('dose-tbl').innerHTML =
     `<table class="dose-table"><thead><tr>
       <th>Afstandszone</th><th>n</th><th>Med symptomer</th><th>Symptomrate</th>
     </tr></thead><tbody>
-    ${dd.map(d=>`<tr><td class="dzone">${d.zone}</td><td>${d.n}</td><td>${d.nS}</td>
+    ${dd.map(d=>{ const small=d.n>0&&d.n<SMALL_N; return `<tr${small?' style="opacity:.5"':''}>
+      <td class="dzone">${d.zone}${small?' <span title="Lille stikprøve - usikker rate" style="color:var(--amber);font-weight:700">†</span>':''}</td>
+      <td>${d.n}</td><td>${d.nS}</td>
       <td class="drate">${d.rate!==null?d.rate.toFixed(1)+'%':'-'}
-      ${d.rate!==null?`<span class="dbar" style="width:${Math.round(d.rate/maxR*80)}px"></span>`:''}</td>
-    </tr>`).join('')}</tbody></table>`;
+      ${d.rate!==null&&!small?`<span class="dbar" style="width:${Math.round(d.rate/maxR*80)}px"></span>`:''}</td>
+    </tr>`; }).join('')}</tbody></table>
+    ${anySmall?`<div style="font-size:.72rem;color:var(--muted);margin-top:.5rem;line-height:1.5">† Zoner med under ${SMALL_N} svar er statistisk usikre - en enkelt besvarelse rykker raten meget (fx giver 2 svar kun raterne 0 %, 50 % eller 100 %). De indgår kun svagt vægtet i regressionen og bør tolkes med forbehold, indtil der er flere svar fra de yderste zoner.</div>`:''}`;
 
   // Gradient note
   const active    = dd.filter(d=>d.n>0);
@@ -646,10 +669,11 @@ function updateScientific(docs) {
   const withData  = dd.filter(d=>d.n>=3);
   if (withData.length >= 2) {
     doseNote.style.display = 'block';
-    const first=withData[0].rate, last=withData[withData.length-1].rate;
+    const firstZ=withData[0], lastZ=withData[withData.length-1];
+    const first=firstZ.rate, last=lastZ.rate;
     doseNote.className = first>last?'notice notice-success':'notice notice-warn';
     doseNote.innerHTML = first>last
-      ? `<strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)} % (nærmeste zone) til ${last.toFixed(1)} % (fjerneste zone) - understøtter biologisk plausibel årsagssammenhæng.`
+      ? `<strong>Gradient observeret:</strong> Symptomraten falder fra ${first.toFixed(1)} % i ${firstZ.zone} til ${last.toFixed(1)} % i ${lastZ.zone} (kun zoner med ≥3 svar sammenlignes) - understøtter en biologisk plausibel dosis-respons-sammenhæng.`
       : `Gradienten er endnu ikke entydig - sandsynligvis pga. få svar i visse zoner.`;
   }
 
@@ -705,15 +729,18 @@ function updateScientific(docs) {
     gradEl.innerHTML = `<div class="notice notice-warn"><svg class="icon" style="color:var(--amber);margin-right:.3rem"><use href="#i-clock"/></svg>Kræver svar fra mindst 2 zoner for at beregne gradienten.</div>`;
   }
 
-  // ── 3. Odds Ratio (innermost vs outermost with data) ─────────
+  // ── 3. Odds Ratio (nærzone 1,25–5 km vs. fjernzone 7,5–25 km) ─
   // NOTE: This is a cross-sectional survey (no prospective follow-up), so the
   // correct measure is the Odds Ratio (OR), not Relative Risk (RR).
-  // OR ≈ RR when the outcome is rare (<10 %), but is the statistically
-  // appropriate estimator when we cannot ascertain the population at risk over time.
-  const innerBand = active[0]?.zone;
-  const outerBand = active[active.length-1]?.zone;
-  const exp   = innerBand ? resDocs.filter(d=>d.dist_band===innerBand) : [];
-  const unexp = outerBand && outerBand!==innerBand ? resDocs.filter(d=>d.dist_band===outerBand) : [];
+  // We pool the two nearest resident bands vs. the two farthest so the OR,
+  // the χ²-test (section 4) and the Mantel-Haenszel crude OR (section 6) all
+  // describe the SAME 2×2 table. Using single outermost zones broke here because
+  // the farthest zones currently hold only n≈2 (division by zero).
+  const OR_NEAR = ['1.25-3 km','3-5 km'];
+  const OR_FAR  = ['7.5-15 km','15-25 km'];
+  const NEAR_LBL = '1,25–5 km', FAR_LBL = '7,5–25 km';
+  const exp   = resDocs.filter(d=>OR_NEAR.includes(d.dist_band));
+  const unexp = resDocs.filter(d=>OR_FAR.includes(d.dist_band));
   const a=exp.filter(hasSym).length,   b=exp.length-exp.filter(hasSym).length;
   const c=unexp.filter(hasSym).length, d2=unexp.length-unexp.filter(hasSym).length;
   // OR = (a/b) / (c/d) = (a*d) / (b*c)
@@ -724,27 +751,29 @@ function updateScientific(docs) {
     lo = Math.exp(Math.log(or) - 1.96*se);
     hi = Math.exp(Math.log(or) + 1.96*se);
   }
-  // Keep rr as alias for conclusion section below (approximate)
+  // Keep rr as alias for conclusion section below
   const rE=(a+b)?a/(a+b):0, rU=(c+d2)?c/(c+d2):0;
   const rr = or; // use OR as the effect measure throughout
-  console.log(`[Results] OR=${or?.toFixed(2)??'N/A'} (${innerBand} vs ${outerBand}), KI=[${lo?.toFixed(2)??'-'}, ${hi?.toFixed(2)??'-'}]`);
+  const farSmall = (c+d2) < 10; // fjernzonen er stadig tynt besat
+  console.log(`[Results] OR=${or?.toFixed(2)??'N/A'} (nær ${a+b} vs fjern ${c+d2}), KI=[${lo?.toFixed(2)??'-'}, ${hi?.toFixed(2)??'-'}]`);
   document.getElementById('rr-v').textContent  = or?or.toFixed(2)+'x':'-';
   document.getElementById('rr-lo').textContent = lo?lo.toFixed(2)+'x':'-';
   document.getElementById('rr-hi').textContent = hi?hi.toFixed(2)+'x':'-';
-  document.getElementById('rr-bands').textContent = innerBand&&outerBand ? `${innerBand} vs. ${outerBand}` : '';
+  document.getElementById('rr-bands').textContent = `${NEAR_LBL} vs. ${FAR_LBL}`;
   const rrI = document.getElementById('rr-interp');
   if(or&&lo&&hi) {
     const sigBadge = lo>1
       ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> — KI inkluderer ikke 1,0.`
       : `KI inkluderer 1,0 — kræver flere svar for signifikans.`;
-    rrI.innerHTML=`Beboere i <strong>${innerBand}</strong> har <strong>${or.toFixed(2)} gange højere odds</strong> for helbredssymptomer vs. ${outerBand}. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${sigBadge}
+    rrI.innerHTML=`Beboere i <strong>nærzonen (${NEAR_LBL})</strong> har <strong>${or.toFixed(2)} gange højere odds</strong> for helbredssymptomer end beboere i <strong>fjernzonen (${FAR_LBL})</strong>. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${sigBadge}
+      ${farSmall?`<div style="margin-top:.5rem"><span class="status status-warn"><svg class="icon"><use href="#i-alert"/></svg>Bred usikkerhed:</span> fjernzonen har kun ${c+d2} svar, så konfidensintervallet er meget bredt. Punktestimatet er robust (se confounderjustering), men flere svar fra &gt; 7,5 km vil indsnævre intervallet.</div>`:''}
       <div style="margin-top:.55rem;font-size:.79rem;color:var(--muted);border-top:1px solid var(--border);padding-top:.45rem">
-        <strong>Hvorfor OR og ikke RR?</strong> Da dette er en tværsnitsundersøgelse (cross-sectional) uden prospektiv opfølgning, kan vi ikke beregne incidens over tid — og dermed ikke den klassiske Relativ Risiko. Odds Ratio er det korrekte mål her. OR ≈ RR, når udfaldet er sjældent (&lt;10 %), men er statistisk præcis uanset prævalens.
+        <strong>Hvorfor OR og ikke RR?</strong> Da dette er en tværsnitsundersøgelse (cross-sectional) uden prospektiv opfølgning, kan vi ikke beregne incidens over tid — og dermed ikke den klassiske Relativ Risiko. Odds Ratio er det korrekte mål her. OR ≈ RR, når udfaldet er sjældent (&lt;10 %), men er statistisk præcis uanset prævalens. Dette er samme 2×2-tabel som χ²-testen nedenfor.
       </div>`;
   } else if(!(a+b)||!(c+d2))
-    rrI.innerHTML=`Mangler svar fra inderste <em>eller</em> yderste zone for at beregne OR.`;
+    rrI.innerHTML=`Mangler svar fra <em>nær- eller fjernzonen</em> for at beregne OR. Nær (${NEAR_LBL}): n=${a+b} &nbsp;|&nbsp; Fjern (${FAR_LBL}): n=${c+d2}.`;
   else
-    rrI.innerHTML=`${innerBand??'?'}: ${(rE*100).toFixed(1)} % (n=${a+b}) &nbsp;|&nbsp; ${outerBand??'?'}: ${(rU*100).toFixed(1)} % (n=${c+d2}).`;
+    rrI.innerHTML=`Nær (${NEAR_LBL}): ${(rE*100).toFixed(1)} % (n=${a+b}) &nbsp;|&nbsp; Fjern (${FAR_LBL}): ${(rU*100).toFixed(1)} % (n=${c+d2}). Kræver ≥1 med og ≥1 uden symptom i begge zoner for et OR-punktestimat.`;
 
   renderKatex('rr-formula-math',
     `\\text{OR} = \\dfrac{a/b}{c/d} = \\dfrac{a \\cdot d}{b \\cdot c} \\\\[0.5em]` +
@@ -752,12 +781,12 @@ function updateScientific(docs) {
     `\\text{KI}_{95\\%} = \\exp\\!\\left(\\ln\\text{OR} \\pm 1{,}96\\cdot\\text{SE}(\\ln\\text{OR})\\right)`
   );
   document.getElementById('rr-formula').textContent=
-    `2×2-tabel:\n`+
-    `                Symptom   Ingen\n`+
-    `  Nær (${innerBand}):   a = ${a}       b = ${b}   (n=${a+b})\n`+
-    `  Fjern (${outerBand}):  c = ${c}       d = ${d2}   (n=${c+d2})\n\n`+
+    `2×2-tabel (samme som χ²-testen):\n`+
+    `                    Symptom   Ingen\n`+
+    `  Nær (${NEAR_LBL}):   a = ${a}       b = ${b}   (n=${a+b})\n`+
+    `  Fjern (${FAR_LBL}):  c = ${c}       d = ${d2}   (n=${c+d2})\n\n`+
     `OR = (a×d) / (b×c) = (${a}×${d2}) / (${b}×${c}) = ${or?or.toFixed(4):'-'}\n`+
-    (se?`SE(ln OR) = √(1/${a}+1/${b}+1/${c}+1/${d2}) = ${se.toFixed(4)}\n95 % KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for svar i begge ydergrupper (a,b,c,d > 0).');
+    (se?`SE(ln OR) = √(1/${a}+1/${b}+1/${c}+1/${d2}) = ${se.toFixed(4)}\n95 % KI = [${lo?.toFixed(4)}, ${hi?.toFixed(4)}]`:'Behov for ≥1 med og ≥1 uden symptom i begge zoner (a,b,c,d > 0).');
 
   // ── 4. Chi-squared (nærmeste 2 beboerbånd vs fjerneste 2) ─
   const nearBands = ['1.25-3 km','3-5 km'];
@@ -802,7 +831,7 @@ function updateScientific(docs) {
   <div class="concl-grid">
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">1.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Dosis-respons</div>
-      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)} % (nærmeste) til ${withD[withD.length-1].rate.toFixed(1)} % (fjerneste) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
+      <div class="concl-desc" style="color:${dark?'#9aaabb':'inherit'}">${hasGrad?`Gradient fra ${withD[0].rate.toFixed(1)} % i ${withD[0].zone} til ${withD[withD.length-1].rate.toFixed(1)} % i ${withD[withD.length-1].zone} (zoner med ≥3 svar) - Bradford Hill-overensstemmelse.`:'Gradienten er under dannelse.'}</div>
     </div>
     <div class="concl-item" style="background:${dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)'}"><div class="concl-n" style="color:${dark?'#7ab4e8':'#2a4f8c'}">2.</div>
       <div style="font-weight:600;margin-bottom:.25rem;font-size:.87rem;color:${dark?'#dce4f0':'inherit'}">Lineær gradient</div>
@@ -908,13 +937,20 @@ function updateConfounders(docs) {
   })));
   const fullMH = mhOddsRatio(fullStrata);
 
+  const FAR_T  = resDocs.filter(d => FAR_BANDS.includes(d.dist_band)).length;
+  const NEAR_T = resDocs.filter(d => NEAR_BANDS.includes(d.dist_band)).length;
   const crudeOR = crude.or;
-  const fmtOR = mh => (mh && mh.or !== null) ? mh.or.toFixed(2) + '×' : '-';
-  const fmtCI = mh => (mh && mh.or !== null && mh.lo) ? `[${mh.lo.toFixed(2)}; ${mh.hi.toFixed(2)}]` : '-';
+  const fmtOR = mh => (mh && mh.or !== null) ? mh.or.toFixed(2) + '×' : '–';
+  const fmtCI = mh => (mh && mh.or !== null && mh.lo) ? `[${mh.lo.toFixed(2)}; ${mh.hi.toFixed(2)}]` : '–';
   function mhVerdict(mh) {
     const ic = name => `<svg class="icon" style="margin-right:.3rem"><use href="#i-${name}"/></svg>`;
-    if (!mh || mh.or === null || mh.used < 2 || mh.nTot < 20)
-      return `<span class="status status-pending">${ic('clock')}For få svar (n=${mh?.nTot ?? 0})</span>`;
+    if (!mh || mh.or === null) {
+      // OR kan kun beregnes hvis mindst ét informativt lag har både 'fjern+symptom' og 'nær uden symptom'.
+      // Skeln mellem "for få svar i alt" og "fjernzonen for tynd til denne stratificering".
+      if (!mh || mh.nTot < 20)
+        return `<span class="status status-pending">${ic('clock')}For få svar (n=${mh?.nTot ?? 0})</span>`;
+      return `<span class="status status-warn">${ic('alert')}Ikke estimerbar endnu — fjernzonen (n=${FAR_T}) er for lille til denne stratificering</span>`;
+    }
     if (!crudeOR) return `<span class="status status-pending">${ic('clock')}Mangler ujusteret OR</span>`;
     const change = (mh.or - crudeOR) / crudeOR;
     if (mh.or > 1.2 && Math.abs(change) <= 0.25)
@@ -935,11 +971,17 @@ function updateConfounders(docs) {
 
   const mhEl = document.getElementById('mh-body');
   if (mhEl) {
+    // Nøgletal: vis den stærkeste justerede OR der kan beregnes — fuldt justeret hvis
+    // fjernzonen tillader det, ellers aldersjusteret (altid tilgængelig).
+    const fullOk = !!(fullMH && fullMH.or !== null);
+    const headMH  = fullOk ? fullMH : ageMH;
+    const headLbl = fullOk ? 'Fuldt justeret OR' : 'Aldersjusteret OR';
+    const headCi  = fullOk ? '95 % KI (fuldt just.)' : '95 % KI (aldersjust.)';
     mhEl.innerHTML = `
       <div class="rr-grid" style="margin-bottom:.9rem">
         <div class="rr-box"><div class="rr-num">${fmtOR(crude)}</div><div class="rr-lbl">Ujusteret OR</div></div>
-        <div class="rr-box"><div class="rr-num">${fmtOR(fullMH)}</div><div class="rr-lbl">Fuldt justeret OR</div></div>
-        <div class="rr-box"><div class="rr-num" style="font-size:1rem">${fmtCI(fullMH)}</div><div class="rr-lbl">95 % KI (justeret)</div></div>
+        <div class="rr-box"><div class="rr-num">${fmtOR(headMH)}</div><div class="rr-lbl">${headLbl}</div></div>
+        <div class="rr-box"><div class="rr-num" style="font-size:1rem">${fmtCI(headMH)}</div><div class="rr-lbl">${headCi}</div></div>
       </div>
       <table class="dose-table" style="margin-bottom:1rem">
         <thead><tr><th>Model</th><th>OR</th><th>95 % KI</th><th>n</th><th>Fortolkning</th></tr></thead>
@@ -952,7 +994,7 @@ function updateConfounders(docs) {
         </tbody>
       </table>
       <div class="rr-interp" style="border-left-color:var(--navy-light)">
-        <strong>Sådan læses tabellen:</strong> Den <strong>ujusterede</strong> OR er odds ratio for symptomer nær vs. fjern lufthavnen, uden hensyn til baggrundsfaktorer. De justerede rækker pooler den <em>samme</em> nær-vs-fjern-sammenligning <em>inden for</em> strata af hver confounder (Mantel-Haenszel), så fx en skæv aldersfordeling mellem nær- og fjernzone ikke kan skabe et falsk signal. <strong>Forbliver den justerede OR tæt på den ujusterede og stadig &gt; 1, er mønsteret ikke forklaret af confounding.</strong> Falder OR derimod mod 1,0 ved justering, forklarede confounderen en del af effekten.
+        <strong>Sådan læses tabellen:</strong> Den <strong>ujusterede</strong> OR er odds ratio for symptomer nær vs. fjern lufthavnen, uden hensyn til baggrundsfaktorer. De justerede rækker pooler den <em>samme</em> nær-vs-fjern-sammenligning <em>inden for</em> strata af hver confounder (Mantel-Haenszel), så fx en skæv aldersfordeling mellem nær- og fjernzone ikke kan skabe et falsk signal. <strong>Forbliver den justerede OR tæt på den ujusterede og stadig &gt; 1, er mønsteret ikke forklaret af confounding.</strong> Falder OR derimod mod 1,0 ved justering, forklarede confounderen en del af effekten. Nøgletallene øverst viser den ujusterede OR ved siden af ${fullOk ? `den <strong>fuldt justerede</strong> (alle tre confoundere på én gang)` : `den <strong>aldersjusterede</strong> (alder er den vigtigste confounder for kræft og hjerte-kar)`} OR.${fullOk ? '' : ` En <em>fuldt</em> justeret model kræver flere svar fra fjernzonen (nu n=${FAR_T}), før den kan beregnes pålideligt.`}
       </div>
       <details style="margin-top:.9rem">
         <summary>Beregningsgrundlag - Mantel-Haenszel-formel og strata</summary>
@@ -970,8 +1012,14 @@ function updateConfounders(docs) {
         ? `Fuldt justeret model - bidrag pr. stratum (a=nær+symptom, b=nær+ingen, c=fjern+symptom, d=fjern+ingen):\n`
           + fullMH.terms.map((t,i)=>`  Stratum ${i+1}:  a=${t.a}  b=${t.b}  c=${t.c}  d=${t.d}  (n=${t.ni})  →  aᵢdᵢ/nᵢ = ${t.R.toFixed(3)},  bᵢcᵢ/nᵢ = ${t.S.toFixed(3)}`).join('\n')
           + `\n\n  Σ aᵢdᵢ/nᵢ = ${fullMH.sumR.toFixed(3)}     Σ bᵢcᵢ/nᵢ = ${fullMH.sumS.toFixed(3)}`
-          + `\n  OR_MH = ${fullMH.sumR.toFixed(3)} / ${fullMH.sumS.toFixed(3)} = ${fullMH.or !== null ? fullMH.or.toFixed(3) : '-'}`
-          + (fullMH.or !== null ? `\n  95 % KI = [${fullMH.lo.toFixed(3)}; ${fullMH.hi.toFixed(3)}]   (Robins-Breslow-Greenland-varians)` : '')
+          + (fullMH.or !== null
+              ? `\n  OR_MH = ${fullMH.sumR.toFixed(3)} / ${fullMH.sumS.toFixed(3)} = ${fullMH.or.toFixed(3)}`
+                + `\n  95 % KI = [${fullMH.lo.toFixed(3)}; ${fullMH.hi.toFixed(3)}]   (Robins-Breslow-Greenland-varians)`
+              : `\n  OR_MH = ${fullMH.sumR.toFixed(3)} / ${fullMH.sumS.toFixed(3)} → ikke defineret (nævneren er 0).`
+                + `\n\n  Med fuld stratificering (alder × rygning × vejtrafikstøj) fordeles fjernzonens ${FAR_T} svar på op til 8 lag.`
+                + `\n  Ingen af de informative lag indeholder samtidig et 'fjern + symptom'- og et 'nær uden symptom'-svar,`
+                + `\n  så Σ bᵢcᵢ/nᵢ = 0 og forholdet kan ikke beregnes. De enkeltvise justeringer ovenfor er derfor`
+                + `\n  det mest robuste, datamaterialet tillader nu. Flere svar fra > 7,5 km vil gøre modellen estimerbar.`)
         : 'Endnu ikke nok svar med fuldstændige baggrundsoplysninger (alder + rygning + vejtrafikstøj) til den fuldt justerede model. Del linket for at indsamle flere svar.';
     }
   }
@@ -1044,11 +1092,11 @@ function updateConfounders(docs) {
 // støjgene/søvnforstyrrelse er uspecifik og forventelig ved enhver støjkilde -
 // at de specifikke symptomer er hyppigere TÆT på lufthavnen er et stærkere
 // kausalt fingeraftryk. Vi viser prævalens nær (1,25-5 km) vs. fjern (7,5-25 km).
+// Hver post kan matche flere svarmuligheder (fx to slags "hovedpine"): tælles hvis MINDST én er afkrydset.
 const SIGNATURE_SYMS = [
-  { label:'Hovedpine / trykken i hovedet', val:'Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj' },
-  { label:'Hovedpine (luftforurening)',    val:'Hovedpine' },
-  { label:'Kvalme eller utilpashed',       val:'Kvalme eller utilpashed' },
-  { label:'Irritation i øjne, næse, svælg', val:'Irritation i øjne, næse eller svælg' },
+  { label:'Hovedpine', vals:['Hovedpine eller trykfornemmelse i hovedet ved kraftig flystøj','Hovedpine'] },
+  { label:'Kvalme eller utilpashed',        vals:['Kvalme eller utilpashed'] },
+  { label:'Irritation i øjne, næse, svælg', vals:['Irritation i øjne, næse eller svælg'] },
 ];
 function updateUnique(docs) {
   const el = document.getElementById('unique-sym-body');
@@ -1057,20 +1105,26 @@ function updateUnique(docs) {
   const n = resDocs.length;
   if (!n) { el.innerHTML = '<div class="notice notice-warn">Endnu ingen beboersvar.</div>'; return; }
 
-  const has  = (d, val) => ['stoj','luft','psyko'].some(cat => (d[cat]||[]).includes(val));
+  const has  = (d, vals) => ['stoj','luft','psyko'].some(cat => (d[cat]||[]).some(v => vals.includes(v)));
   const near = resDocs.filter(d => ['1.25-3 km','3-5 km'].includes(d.dist_band));
   const far  = resDocs.filter(d => ['7.5-15 km','15-25 km'].includes(d.dist_band));
-  const pct  = (arr, val) => arr.length ? arr.filter(d => has(d, val)).length / arr.length * 100 : null;
-  const cell = v => v === null ? '<td class="drate">-</td>'
-                               : `<td class="drate">${v.toFixed(1)} %</td>`;
+  const pct  = (arr, vals) => arr.length ? arr.filter(d => has(d, vals)).length / arr.length * 100 : null;
+  const cell = v => v === null ? '<td class="drate">-</td>' : `<td class="drate">${v.toFixed(1)} %</td>`;
+  const farReliable = far.length >= 10; // fjernzonen er lige nu tyndt besat
 
   const rows = SIGNATURE_SYMS.map(s => {
-    const pNear = pct(near, s.val), pFar = pct(far, s.val), pAll = pct(resDocs, s.val);
-    const ratio = (pNear && pFar) ? (pNear / pFar) : null;
+    const pNear = pct(near, s.vals), pFar = pct(far, s.vals), pAll = pct(resDocs, s.vals);
+    // Nær/fjern-forhold: kun meningsfuldt hvis fjernzonen har nok svar OG >0 %.
+    let ratioCell;
+    if (pNear === null || pFar === null) ratioCell = '<td class="drate">-</td>';
+    else if (!farReliable)               ratioCell = '<td class="drate" style="color:var(--muted)">for få fjern-svar</td>';
+    else if (pFar === 0 && pNear > 0)    ratioCell = '<td class="drate"><strong>kun nær</strong></td>';
+    else if (pFar === 0)                 ratioCell = '<td class="drate">-</td>';
+    else                                 ratioCell = `<td class="drate"><strong>${(pNear/pFar).toFixed(1)}×</strong></td>`;
     return `<tr>
       <td class="dzone">${s.label}</td>
       ${cell(pNear)}${cell(pFar)}${cell(pAll)}
-      <td class="drate">${ratio ? '<strong>'+ratio.toFixed(1)+'×</strong>' : '-'}</td>
+      ${ratioCell}
     </tr>`;
   }).join('');
 
@@ -1086,7 +1140,8 @@ function updateUnique(docs) {
       <tbody>${rows}</tbody>
     </table>
     <div class="rr-interp" style="border-left-color:var(--luft)">
-      <strong>Hvorfor er disse symptomer afgørende?</strong> Søvnforstyrrelse, irritabilitet og generel støjgene er <em>uspecifikke</em> - de optræder ved næsten enhver støjkilde og kan ikke i sig selv adskille lufthavnen fra fx vejtrafik. Derimod er <strong>hovedpine, kvalme og slimhindeirritation</strong> fysiologiske reaktioner, der typisk knyttes til <em>luftbåren</em> forurening (ultrafine partikler og dampe fra jetbrændstof). At netop disse er hyppigere tæt på lufthavnen - kolonnen "Nær/fjern" viser overrepræsentationen - er et langt mere specifikt kausalt fingeraftryk end støjgene alene. Det er denne kombination, der gør undersøgelsens fund usædvanligt.
+      <strong>Hvorfor er disse symptomer afgørende?</strong> Søvnforstyrrelse, irritabilitet og generel støjgene er <em>uspecifikke</em> - de optræder ved næsten enhver støjkilde og kan ikke i sig selv adskille lufthavnen fra fx vejtrafik. Derimod er <strong>hovedpine, kvalme og slimhindeirritation</strong> fysiologiske reaktioner, der typisk knyttes til <em>luftbåren</em> forurening (ultrafine partikler og dampe fra jetbrændstof). Forekomsten i <strong>nærzonen</strong> (kolonnen "Nær") er det stærke signal - et langt mere specifikt kausalt fingeraftryk end støjgene alene. Det er denne kombination, der gør undersøgelsens fund usædvanligt.
+      ${!farReliable?`<br><span class="status status-warn" style="margin-top:.4rem;display:inline-flex"><svg class="icon" style="margin-right:.3rem"><use href="#i-alert"/></svg>Fjernzonen har kun ${far.length} svar - et præcist nær/fjern-forhold kræver flere svar fra &gt; 7,5 km. Nær-tallene står dog på solidt grundlag (n=${near.length}).</span>`:''}
     </div>`;
 }
 

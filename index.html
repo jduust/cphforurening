@@ -791,6 +791,8 @@ details[open] summary{color:var(--text)}
     </button>
   </div>
 
+  <div id="coverage-note"></div>
+
   <div class="card">
     <div class="card-title">Geografisk symptombyrde
       <span class="analysis-badge">Analyse 1 - Geografisk klyngning</span>
@@ -1026,13 +1028,13 @@ details[open] summary{color:var(--text)}
     <div class="data-source">
       <svg class="icon"><use href="#i-database"/></svg>
       <span>
-        <strong>Datagrundlag:</strong> 2×2-krydstabel (eksponeret/ueksponeret × symptom/ingen symptom) på inderste vs. yderste beboerzone med data.
-        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i de to ydergrupper med ≥1 svar.</span>
-        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> alle øvrige zoner (indgår i analyse 2 / 4).</span>
+        <strong>Datagrundlag:</strong> 2×2-krydstabel (eksponeret/ueksponeret × symptom/ingen symptom) på nærzonen (1,25–5 km) vs. fjernzonen (7,5–25 km) — samme tabel som χ²-testen i analyse 4.
+        <span class="ds-row"><strong class="ds-incl">Inkluderet:</strong> beboere i nær- (1,25–5 km) og fjernzonen (7,5–25 km).</span>
+        <span class="ds-row"><strong class="ds-excl">Ekskluderet:</strong> ansatte; mellemzonen (5–7,5 km) udelades for at undgå "wash-out".</span>
         <span class="ds-row"><strong style="color:var(--navy)">Mål:</strong> Odds Ratio er det korrekte statistiske mål for tværsnitsundersøgelser — se forklaring i tolkningsfeltet nedenfor.</span>
       </span>
     </div>
-    <div class="chart-sub">Sammenligner symptom-odds i den inderste beboerzone med den yderste zone med data. <small id="rr-bands" style="color:var(--muted)"></small></div>
+    <div class="chart-sub">Sammenligner symptom-odds i nærzonen (1,25–5 km) med fjernzonen (7,5–25 km). <small id="rr-bands" style="color:var(--muted)"></small></div>
     <div class="rr-grid">
       <div class="rr-box"><div class="rr-num" id="rr-v">-</div><div class="rr-lbl">Odds Ratio (OR)</div></div>
       <div class="rr-box"><div class="rr-num" id="rr-lo">-</div><div class="rr-lbl">95 % KI nedre</div></div>
