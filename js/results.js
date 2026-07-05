@@ -201,9 +201,9 @@ function updateAll(docs) {
       covEl.innerHTML = `<div class="notice ${thin?'notice-warn':'notice-success'}" style="margin:0 0 1rem;line-height:1.65">
         <strong>Om datagrundlaget:</strong> ${n} beboersvar er indsamlet indtil nu. ${near5} (${pctNear} %) bor i nærområdet (1,25–5 km), mens kun <strong>${far75}</strong> bor længere væk end 7,5 km.
         ${thin
-          ? `Sammenligningerne mod fjernzonen (odds ratio, χ²-test og confounderjustering) hviler derfor på et lille fjern-sample og har brede konfidensintervaller — de er robuste i <em>retning</em>, men stadig <strong>foreløbige</strong> i styrke. Analyserne <em>inden for</em> nærområdet (afstandsgradient, symptomtyper, bopælsvarighed) står på solidt grundlag.`
+          ? `Sammenligningerne mod fjernzonen (odds ratio, χ²-test og confounderjustering) hviler derfor på et lille fjern-sample og har brede konfidensintervaller - de er robuste i <em>retning</em>, men stadig <strong>foreløbige</strong> i styrke. Analyserne <em>inden for</em> nærområdet (afstandsgradient, symptomtyper, bopælsvarighed) står på solidt grundlag.`
           : `Fordelingen giver nu et rimeligt grundlag for nær–fjern-sammenligningerne.`}
-        <em>Del gerne linket bredt — især med beboere længere fra lufthavnen — så de yderste zoner bliver bedre dækket.</em>
+        <em>Del gerne linket bredt - især med beboere længere fra lufthavnen - så de yderste zoner bliver bedre dækket.</em>
       </div>`;
     } else covEl.innerHTML = '';
   }
@@ -763,12 +763,12 @@ function updateScientific(docs) {
   const rrI = document.getElementById('rr-interp');
   if(or&&lo&&hi) {
     const sigBadge = lo>1
-      ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> — KI inkluderer ikke 1,0.`
-      : `KI inkluderer 1,0 — kræver flere svar for signifikans.`;
-    rrI.innerHTML=`Beboere i <strong>nærzonen (${NEAR_LBL})</strong> har <strong>${or.toFixed(2)} gange højere odds</strong> for helbredssymptomer end beboere i <strong>fjernzonen (${FAR_LBL})</strong>. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] — ${sigBadge}
+      ? `<span class="status status-pos"><svg class="icon"><use href="#i-check"/></svg>statistisk signifikant</span> - KI inkluderer ikke 1,0.`
+      : `KI inkluderer 1,0 - kræver flere svar for signifikans.`;
+    rrI.innerHTML=`Beboere i <strong>nærzonen (${NEAR_LBL})</strong> har <strong>${or.toFixed(2)} gange højere odds</strong> for helbredssymptomer end beboere i <strong>fjernzonen (${FAR_LBL})</strong>. 95 % KI: [${lo.toFixed(2)}; ${hi.toFixed(2)}] - ${sigBadge}
       ${farSmall?`<div style="margin-top:.5rem"><span class="status status-warn"><svg class="icon"><use href="#i-alert"/></svg>Bred usikkerhed:</span> fjernzonen har kun ${c+d2} svar, så konfidensintervallet er meget bredt. Punktestimatet er robust (se confounderjustering), men flere svar fra &gt; 7,5 km vil indsnævre intervallet.</div>`:''}
       <div style="margin-top:.55rem;font-size:.79rem;color:var(--muted);border-top:1px solid var(--border);padding-top:.45rem">
-        <strong>Hvorfor OR og ikke RR?</strong> Da dette er en tværsnitsundersøgelse (cross-sectional) uden prospektiv opfølgning, kan vi ikke beregne incidens over tid — og dermed ikke den klassiske Relativ Risiko. Odds Ratio er det korrekte mål her. OR ≈ RR, når udfaldet er sjældent (&lt;10 %), men er statistisk præcis uanset prævalens. Dette er samme 2×2-tabel som χ²-testen nedenfor.
+        <strong>Hvorfor OR og ikke RR?</strong> Da dette er en tværsnitsundersøgelse (cross-sectional) uden prospektiv opfølgning, kan vi ikke beregne incidens over tid - og dermed ikke den klassiske Relativ Risiko. Odds Ratio er det korrekte mål her. OR ≈ RR, når udfaldet er sjældent (&lt;10 %), men er statistisk præcis uanset prævalens. Dette er samme 2×2-tabel som χ²-testen nedenfor.
       </div>`;
   } else if(!(a+b)||!(c+d2))
     rrI.innerHTML=`Mangler svar fra <em>nær- eller fjernzonen</em> for at beregne OR. Nær (${NEAR_LBL}): n=${a+b} &nbsp;|&nbsp; Fjern (${FAR_LBL}): n=${c+d2}.`;
@@ -843,11 +843,11 @@ function updateScientific(docs) {
     </div>
   </div>
   <div class="notice notice-warn" style="margin:0">
-    <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af Bradford Hill-kriterierne for kausal sammenhæng':'er under dannelse — fortsæt dataindsamlingen'}.
+    <strong>Anbefaling:</strong> Disse fund ${hasGrad&&pv<0.05?'opfylder flere af Bradford Hill-kriterierne for kausal sammenhæng':'er under dannelse - fortsæt dataindsamlingen'}.
     ${hasGrad&&pv<0.05
-      ? `De bør fremsendes til <strong>Miljøstyrelsen</strong> og <strong>Styrelsen for Patientsikkerhed</strong> med krav om en officiel, registerbaseret epidemiologisk undersøgelse af lufthavnsnære beboeres helbredsstatus — herunder kobling til CPR-registret og Landspatientregisteret.`
+      ? `De bør fremsendes til <strong>Miljøstyrelsen</strong> og <strong>Styrelsen for Patientsikkerhed</strong> med krav om en officiel, registerbaseret epidemiologisk undersøgelse af lufthavnsnære beboeres helbredsstatus - herunder kobling til CPR-registret og Landspatientregisteret.`
       : `Når datamaterialet er tilstrækkeligt, bør det fremsendes til <strong>Miljøstyrelsen</strong> og <strong>Styrelsen for Patientsikkerhed</strong>.`}
-    ${n<50?' <em>Del linket — jo flere svar, jo stærkere evidens.</em>':''}
+    ${n<50?' <em>Del linket - jo flere svar, jo stærkere evidens.</em>':''}
   </div>`;
 }
 
@@ -949,7 +949,7 @@ function updateConfounders(docs) {
       // Skeln mellem "for få svar i alt" og "fjernzonen for tynd til denne stratificering".
       if (!mh || mh.nTot < 20)
         return `<span class="status status-pending">${ic('clock')}For få svar (n=${mh?.nTot ?? 0})</span>`;
-      return `<span class="status status-warn">${ic('alert')}Ikke estimerbar endnu — fjernzonen (n=${FAR_T}) er for lille til denne stratificering</span>`;
+      return `<span class="status status-warn">${ic('alert')}Ikke estimerbar endnu - fjernzonen (n=${FAR_T}) er for lille til denne stratificering</span>`;
     }
     if (!crudeOR) return `<span class="status status-pending">${ic('clock')}Mangler ujusteret OR</span>`;
     const change = (mh.or - crudeOR) / crudeOR;
@@ -971,7 +971,7 @@ function updateConfounders(docs) {
 
   const mhEl = document.getElementById('mh-body');
   if (mhEl) {
-    // Nøgletal: vis den stærkeste justerede OR der kan beregnes — fuldt justeret hvis
+    // Nøgletal: vis den stærkeste justerede OR der kan beregnes - fuldt justeret hvis
     // fjernzonen tillader det, ellers aldersjusteret (altid tilgængelig).
     const fullOk = !!(fullMH && fullMH.or !== null);
     const headMH  = fullOk ? fullMH : ageMH;
